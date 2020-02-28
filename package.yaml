@@ -24,6 +24,9 @@ dependencies:
 
 library:
   source-dirs: src
+  dependencies:
+  - brick
+  - vty
 
 executables:
   a-dark-room-exe:
