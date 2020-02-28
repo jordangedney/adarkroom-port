@@ -9,11 +9,7 @@ import Data.Bifunctor (second)
 
 import Util
 import Game
-
-data Name = VP1
-          | VP2
-          | VP3
-  deriving (Eq, Show, Ord)
+import UIState
 
 storeWindow :: [(String, Int)] -> Widget Name
 storeWindow stockpileItems =
@@ -25,18 +21,22 @@ storeWindow stockpileItems =
   in vLimit (height + 2) $ hLimit (width + 2) $ -- Extra padding for the border
      borderWithLabel (str " stores ") $
      center $
-     viewport VP1 Vertical $ str toDisplay
+     viewport StoreVP Vertical $ str toDisplay
 
-actionWindow =
-  let color = V.white `on` V.cyan
-  in
-  center $ padLeft (Pad 5) $
-  viewport VP2 Vertical $
+fireButton lastClicked =
+  viewport StokeFireButton Vertical $
+  clickable StokeFireButton  $
+  withDefAttr button1 $
   border $
-  str "Light Fire"
+  if lastClicked == Just StokeFireButton then str "stoke fire" else str "light fire"
+
+actionWindow g =
+  let lastClicked = fst <$> _lastReportedClick (_uiState g)
+  in center $ padLeft (Pad 5) $
+     fireButton lastClicked
 
 eventsWindow events = center $
-  viewport VP3 Vertical $
+  viewport EventsVP Vertical $
   hLimit 30 $
   strWrap $ head events
 
@@ -49,11 +49,14 @@ drawUI g =
   withBorderStyle unicodeRounded $
     borderWithLabel (str $ " " <> _location g <> " ") $
       eventsWindow (_events g) <+>
-      tickWindow (_tickCount  g) <+>
-      actionWindow <+>
-      storeWindow (_stored g)
+      actionWindow g <+>
+      storeWindow (_stored g) <+>
+      tickWindow (_tickCount  g)
   ]
+
+button1 :: AttrName
+button1 = attrName "button1"
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
-  [(attrName "button1", V.blue `on` V.blue)]
+  [(button1, V.white `on` V.blue)]

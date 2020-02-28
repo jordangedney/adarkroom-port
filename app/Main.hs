@@ -13,6 +13,7 @@ import           Control.Concurrent             ( threadDelay
                                                 )
 
 import           UI
+import           UIState
 import           Game
 import           Event
 
@@ -26,7 +27,10 @@ app = App { appDraw         = drawUI
 
 main :: IO ()
 main = do
-        let buildVty = V.mkVty V.defaultConfig
+        let buildVty = do
+              v <- V.mkVty =<< V.standardIOConfig
+              V.setMode (V.outputIface v) V.Mouse True
+              return v
         initialVty <- buildVty
         g          <- initGame
         chan       <- newBChan 10

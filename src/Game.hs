@@ -1,5 +1,7 @@
 module Game where
 
+import UIState
+
 data Tick = Tick
 
 data Game = Game
@@ -7,6 +9,7 @@ data Game = Game
   , _stored :: [(String, Int)]
   , _events :: [String]
   , _tickCount :: Int
+  , _uiState :: UIState
   } deriving (Show)
 
 initGame :: IO Game
@@ -19,3 +22,5 @@ initGame = return $ Game " A Dark Room "
                          ["the stranger is standing by the fire. she says she can help. says she builds things"]
 
                          0
+
+                         (UIState Nothing)
