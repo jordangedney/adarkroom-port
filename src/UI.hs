@@ -35,7 +35,14 @@ fireButton lastClicked =
   clickable StokeFireButton  $
   withDefAttr button1 $
   border $
-  if lastClicked == Just StokeFireButton then str " turn him away " else str "light fire"
+  if lastClicked == Just StokeFireButton
+  then str (justifyCenter15 "turn him away")
+  else str (justifyCenter15 "light fire")
+
+justifyCenter15 str =
+  let whitespace = replicate ((15 - length str) `div` 2) ' '
+      newStr = whitespace ++ str ++ whitespace
+  in if length newStr == 15 then newStr else newStr ++ " "
 
 actionWindow g =
   let lastClicked = fst <$> _lastReportedClick (_uiState g)
@@ -48,19 +55,16 @@ eventsWindow events = center $
   hLimit 30 $
   strWrap $ unlines $ interleave [events, replicate (length events) " "]
 
-tickWindow ticks = str $ show ticks
-
 drawUI :: Game -> [Widget Name]
 drawUI g =
   [
   center $ hLimit 77 $ vLimit 30 $
   withBorderStyle unicodeRounded $
-    borderWithLabel (str $ " " <> _location g <> " ") $
+    borderWithLabel (str $ " " <> _location g <> " | " <> (show (_tickCount g)) <> " ") $
       padTop (Pad 1) $
       eventsWindow (_events g) <+>
       actionWindow g <+>
-      storeWindow (_stored g) <+>
-      tickWindow (_tickCount  g)
+      storeWindow (_stored g)
   ]
 
 button1 :: AttrName
