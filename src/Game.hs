@@ -22,7 +22,7 @@ initGame = return $ Game
   , fireValue = 0
   , temperatureValue = 0
   , builderLevel = -1
-  , progressAmount = 50
+  , progressAmount = 0.5
   }
 
 data Game = Game

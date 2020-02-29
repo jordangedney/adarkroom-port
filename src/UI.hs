@@ -24,10 +24,25 @@ storeWindow stockpileItems =
      center $
      viewport StoreVP Vertical $ str toDisplay
 
+progress g =
+  let lbl amountDone = Just $ show $ fromEnum $ amountDone * 100
+      bar amountDone = P.progressBar (Just $ "stoke fire") amountDone
+      pBar = updateAttrMap
+             (mapAttrNames [ (progressBarDone, P.progressCompleteAttr)
+                           , (progressBarToDo, P.progressIncompleteAttr)
+                           ]
+             ) $ bar $ progressAmount g
+      in
+    clickable StokeButton $
+    withDefAttr blueBackground $
+    border $
+    pBar
+
 blueButton attr text =
   clickable attr $
   withDefAttr blueBackground $
-  border $ str (justifyCenter15 text)
+  border $
+  str (justifyCenter15 text)
 
 lightFireButton = blueButton LightButton "light fire"
 stokeFireButton = blueButton StokeButton "stoke fire"
@@ -53,16 +68,6 @@ locationsWindow g =
        , str $ " | " <> show (tickCount g) <> " "
        ]
 
-progress g =
-  let lbl amountDone = Just $ show $ fromEnum $ amountDone * 100
-      bar amountDone = P.progressBar (lbl amountDone) amountDone
-      pBar = updateAttrMap
-             (mapAttrNames [ (progressBarDone, P.progressCompleteAttr)
-                           , (progressBarToDo, P.progressIncompleteAttr)
-                           ]
-             ) $ bar $ progressAmount g
-      in str "X: " <+> pBar
-
 drawUI :: Game -> [Widget Name]
 drawUI g =
   [
@@ -86,5 +91,5 @@ theMap = attrMap V.defAttr
   [ (blueBackground, V.white `on` V.blue)
   , (underlined, fg V.white `V.withStyle` V.underline)
   , (progressBarDone, V.black `on` V.white)
-  , (progressBarToDo, V.white `on` V.black)
+  , (progressBarToDo, V.black `on` V.blue)
   ]
