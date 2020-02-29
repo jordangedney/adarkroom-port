@@ -18,10 +18,13 @@ handleEvent g (AppEvent UnlockOutside) =
   continue g {tickCount = tickCount g + 1}
 
 handleEvent g (MouseDown LightButton _ _ loc) =
-  continue $ g { uiState = (uiState g) { _lastReportedClick = Just (LightButton , loc)}
-               , fireValue = 1
-               , events = "the fire is burning." : (events g)
-               }
+  let lightFire = (updateLastClicked g LightButton loc)
+                  { fireValue = 1
+                  , events = "the fire is burning." : (events g)}
+      fstLight = "the light from the fire spills from the windows, out into the dark."
+      firstLightInGame = lightFire {builderLevel = 0, events = fstLight : events lightFire}
+  in continue $ if (builderLevel g) == -1 then firstLightInGame else lightFire
+
 handleEvent g (MouseDown n _ _ loc) = continue $ updateLastClicked g n loc
 handleEvent g MouseUp {} =
   continue $ g { uiState = (uiState g) { _lastReportedClick = Nothing }}

@@ -35,7 +35,7 @@ stokeButton fireLit = if fireLit then stokeFireButton else lightFireButton
 
 actionWindow g =
   let lastClicked = fst <$> _lastReportedClick (uiState g)
-  in padRight (Pad 6) $ vBox [stokeButton (fireValue g /= 0)]
+  in padRight (Pad 3) $ vBox [stokeButton (fireValue g /= 0)]
 
 eventsWindow :: [String] -> Widget Name
 eventsWindow events =
@@ -57,7 +57,8 @@ drawUI g =
   withBorderStyle unicodeRounded $
      border $
       hBox [eventsWindow (events g)
-           , vBox [ locationsWindow g
+           , padLeft (Pad 3)$
+             vBox [ locationsWindow g
                   ,  actionWindow g <+> storeWindow (stored g)]
            ]
   ]

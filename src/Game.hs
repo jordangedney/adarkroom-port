@@ -12,6 +12,7 @@ data Game = Game
   , uiState :: UIState
   , fireValue :: Int
   , temperatureValue :: Int
+  , builderLevel :: Int
   } deriving (Show)
 
 initGame :: IO Game
@@ -32,3 +33,5 @@ initGame = return $ Game "A Dark Room"
                          0
 
                          0
+
+                         (-1)
