@@ -22,6 +22,7 @@ initGame = return $ Game
   , fireValue = 0
   , temperatureValue = 0
   , builderLevel = -1
+  , progressAmount = 50
   }
 
 data Game = Game
@@ -34,6 +35,7 @@ data Game = Game
   , fireValue :: Int
   , temperatureValue :: Int
   , builderLevel :: Int
+  , progressAmount :: Float
   } deriving (Show)
 
 

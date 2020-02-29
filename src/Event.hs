@@ -19,10 +19,10 @@ handleEvent g (AppEvent Tick) =
 handleEvent g (MouseDown LightButton _ _ loc) =
   let lightFire = (updateLastClicked g LightButton loc)
                   { fireValue = 1
-                  , events = "the fire is burning." : (events g)}
+                  , events = "the fire is burning." : events g}
       fstLight = "the light from the fire spills from the windows, out into the dark."
       firstLightInGame = lightFire {builderLevel = 0, events = fstLight : events lightFire}
-  in continue $ if (builderLevel g) == -1 then firstLightInGame else lightFire
+  in continue $ if builderLevel g == -1 then firstLightInGame else lightFire
 
 handleEvent g (MouseDown n _ _ loc) = continue $ updateLastClicked g n loc
 handleEvent g MouseUp {} =

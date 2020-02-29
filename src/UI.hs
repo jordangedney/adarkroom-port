@@ -4,6 +4,7 @@ import           Brick
 import           Brick.Widgets.Center
 import           Brick.Widgets.Border
 import           Brick.Widgets.Border.Style
+import qualified Brick.Widgets.ProgressBar as P
 import qualified Graphics.Vty as V
 import Data.Bifunctor (second)
 
@@ -35,7 +36,9 @@ stokeButton fireLit = if fireLit then stokeFireButton else lightFireButton
 
 actionWindow g =
   let lastClicked = fst <$> lastReportedClick (uiState g)
-  in padRight (Pad 3) $ vBox [stokeButton (fireValue g /= 0)]
+  in padRight (Pad 3) $ vBox [stokeButton (fireValue g /= 0)
+                             , progress g
+                             ]
 
 eventsWindow :: [String] -> Widget Name
 eventsWindow events =
@@ -49,6 +52,16 @@ locationsWindow g =
        , withAttr underlined $ str (location g)
        , str $ " | " <> show (tickCount g) <> " "
        ]
+
+progress g =
+  let lbl amountDone = Just $ show $ fromEnum $ amountDone * 100
+      bar amountDone = P.progressBar (lbl amountDone) amountDone
+      pBar = updateAttrMap
+             (mapAttrNames [ (progressBarDone, P.progressCompleteAttr)
+                           , (progressBarToDo, P.progressIncompleteAttr)
+                           ]
+             ) $ bar $ progressAmount g
+      in str "X: " <+> pBar
 
 drawUI :: Game -> [Widget Name]
 drawUI g =
@@ -65,9 +78,13 @@ drawUI g =
 
 blueBackground = attrName "blueBackground"
 underlined = attrName "underlined"
+progressBarDone = attrName "progressBarDone"
+progressBarToDo = attrName "progressBarToDo"
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
   [ (blueBackground, V.white `on` V.blue)
   , (underlined, fg V.white `V.withStyle` V.underline)
+  , (progressBarDone, V.black `on` V.white)
+  , (progressBarToDo, V.white `on` V.black)
   ]
