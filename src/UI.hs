@@ -39,18 +39,18 @@ justifyCenter15 str =
 
 actionWindow g =
   let lastClicked = fst <$> _lastReportedClick (_uiState g)
-  in center $ padLeft (Pad 5) $
+  in center $
      fireButton lastClicked
 
 eventsWindow :: [String] -> Widget Name
-eventsWindow events = center $
-  viewport EventsVP Vertical $
+eventsWindow events =
   hLimit 30 $
+  center $
+  viewport EventsVP Vertical $
   strWrap $ unlines $ interleave [events, replicate (length events) " "]
 
 locationsWindow g =
-  hCenter $
-  padAll 1 $
+  padBottom (Pad 1 ) $
   hBox [ str " "
        , withAttr underlined $ str (_location g)
        , str $ " | " <> show (_tickCount g) <> " "
@@ -62,10 +62,9 @@ drawUI g =
   center $ hLimit 77 $ vLimit 30 $
   withBorderStyle unicodeRounded $
      border $
-      vBox [ locationsWindow g
-           , eventsWindow (_events g) <+>
-             actionWindow g <+>
-             storeWindow (_stored g)
+      hBox [eventsWindow (_events g)
+           , vBox [ locationsWindow g
+                  ,  actionWindow g <+> storeWindow (_stored g)]
            ]
   ]
 
