@@ -13,7 +13,7 @@ data Game = Game
   } deriving (Show)
 
 initGame :: IO Game
-initGame = return $ Game " A Dark Room "
+initGame = return $ Game "A Dark Room"
 
                          [("wood", 10)
                          ,("scales", 150)

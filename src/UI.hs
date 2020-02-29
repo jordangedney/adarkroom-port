@@ -23,17 +23,10 @@ storeWindow stockpileItems =
      center $
      viewport StoreVP Vertical $ str toDisplay
 
-fireButton' lastClicked =
-  viewport StokeFireButton Vertical $
-  clickable StokeFireButton  $
-  withDefAttr button1 $
-  border $
-  if lastClicked == Just StokeFireButton then str "stoke fire" else str "light fire"
-
 fireButton lastClicked =
   viewport StokeFireButton Vertical $
   clickable StokeFireButton  $
-  withDefAttr button1 $
+  withDefAttr blueBackground $
   border $
   if lastClicked == Just StokeFireButton
   then str (justifyCenter15 "turn him away")
@@ -55,21 +48,29 @@ eventsWindow events = center $
   hLimit 30 $
   strWrap $ unlines $ interleave [events, replicate (length events) " "]
 
+locationsWindow g =
+  hCenter $
+  padAll 1 $
+  str $ " " <> underline (_location g) <> " | " <> show (_tickCount g) <> " "
+
+underline str = "\ESC[" <> "4" <> "m" <> str <> "\ESC[" <> "24" <> "m"
+
 drawUI :: Game -> [Widget Name]
 drawUI g =
   [
   center $ hLimit 77 $ vLimit 30 $
   withBorderStyle unicodeRounded $
-    borderWithLabel (str $ " " <> _location g <> " | " <> (show (_tickCount g)) <> " ") $
-      padTop (Pad 1) $
-      eventsWindow (_events g) <+>
-      actionWindow g <+>
-      storeWindow (_stored g)
+     border $
+      vBox [ locationsWindow g
+           , eventsWindow (_events g) <+>
+             actionWindow g <+>
+             storeWindow (_stored g)
+           ]
   ]
 
-button1 :: AttrName
-button1 = attrName "button1"
+blueBackground = attrName "blueBackground"
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
-  [(button1, V.white `on` V.blue)]
+  [ (blueBackground, V.white `on` V.blue)
+  ]
