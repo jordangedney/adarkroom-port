@@ -25,18 +25,21 @@ storeWindow stockpileItems =
      viewport StoreVP Vertical $ str toDisplay
 
 progress g =
-  let lbl amountDone = Just $ show $ fromEnum $ amountDone * 100
-      bar amountDone = P.progressBar (Just $ "stoke fire") amountDone
+  let bar amountDone = P.progressBar (Just $ "stoke fire") amountDone
       pBar = updateAttrMap
              (mapAttrNames [ (progressBarDone, P.progressCompleteAttr)
                            , (progressBarToDo, P.progressIncompleteAttr)
                            ]
-             ) $ bar $ progressAmount g
-      in
-    clickable StokeButton $
-    withDefAttr blueBackground $
-    border $
-    pBar
+             ) $ bar $ getAmountDone g
+      getAmountDone g =
+        let t = head [time | (time, event, _) <- upcomingEvents g, FireStoked == event]
+        in 0.01 * fromIntegral t
+      in if hasEvent FireStoked g
+         then clickable StokeButton $
+              withDefAttr blueBackground $
+              border $
+              pBar
+         else str "fk"
 
 blueButton attr text =
   clickable attr $
@@ -45,14 +48,21 @@ blueButton attr text =
   str (justifyCenter15 text)
 
 lightFireButton = blueButton LightButton "light fire"
-stokeFireButton = blueButton StokeButton "stoke fire"
 
-stokeButton fireLit = if fireLit then stokeFireButton else lightFireButton
+hasEvent e g = length [e | (_, event, _) <- upcomingEvents g, e == event] > 0
+
+stokeFireButton :: Game -> Widget Name
+stokeFireButton g =
+  if (hasEvent FireStoked g)
+  then progress g
+  else blueButton StokeButton "stoke fire"
+
+stokeButton g = if fireValue g /= 0 then stokeFireButton g else lightFireButton
 
 actionWindow g =
   let lastClicked = fst <$> lastReportedClick (uiState g)
-  in padRight (Pad 3) $ vBox [stokeButton (fireValue g /= 0)
-                             , progress g
+  in padRight (Pad 3) $ vBox [stokeButton g
+                             -- , progress g
                              ]
 
 eventsWindow :: [String] -> Widget Name

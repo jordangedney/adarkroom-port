@@ -61,4 +61,5 @@ data UIState = UIState
   { lastReportedClick :: Maybe (Name, T.Location)
   , showStores :: ShowStores
   , showOutside :: Bool
+  , stokeButtonTimer :: Int
   } deriving (Show)

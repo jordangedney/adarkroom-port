@@ -12,16 +12,35 @@ updateLastClicked g n loc = g { uiState = (uiState g) { lastReportedClick = Just
 
 handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEvent g (AppEvent Tick) =
-  let tick = g {tickCount = tickCount g + 1,
-                upcomingEvents = map (\(a, b) -> (a - 1, b)) $ upcomingEvents g }
-  in continue g {tickCount = tickCount g + 1}
+  let tick = g { tickCount = tickCount g + 1
+               , upcomingEvents = map (\(a, b, c) -> (a - 1, b, c)) $ upcomingEvents g
+               }
+      finishedEventTodos = [toDo | (time, event, toDo) <- upcomingEvents tick, time == 0]
+      unfinishedEvents = [e | e@(time, event, toDo) <- upcomingEvents tick, time /= 0]
+      withoutFinishedEvents = tick { upcomingEvents = unfinishedEvents }
+      doEvents [] game = game
+      doEvents (e:es) game = doEvents es $ e game
+  in continue $ doEvents finishedEventTodos withoutFinishedEvents
 
 handleEvent g (MouseDown LightButton _ _ loc) =
   let lightFire = (updateLastClicked g LightButton loc)
                   { fireValue = 1
-                  , events = "the fire is burning." : events g}
+                  , events = "the fire is burning." : events g
+                  , upcomingEvents = (100, FireStoked, id) : upcomingEvents g
+                  }
       fstLight = "the light from the fire spills from the windows, out into the dark."
       firstLightInGame = lightFire {builderLevel = 0, events = fstLight : events lightFire}
+  in continue $ if builderLevel g == -1 then firstLightInGame else lightFire
+
+handleEvent g (MouseDown StokeButton _ _ loc) =
+  let lightFire = (updateLastClicked g StokeButton loc)
+                  { fireValue = 1
+                  , events = "the fire is burning." : events g
+                  , upcomingEvents = (100, FireStoked, id) : upcomingEvents g
+                  }
+      fstLight = "the light from the fire spills from the windows, out into the dark."
+      firstLightInGame = lightFire {builderLevel = 0, events = fstLight : events lightFire}
+
   in continue $ if builderLevel g == -1 then firstLightInGame else lightFire
 
 handleEvent g (MouseDown n _ _ loc) = continue $ updateLastClicked g n loc

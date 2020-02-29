@@ -28,7 +28,7 @@ initGame = return $ Game
 data Game = Game
   { location :: String
   , stored :: [(String, Int)]
-  , upcomingEvents :: [(Int, String)]
+  , upcomingEvents :: [(Int, GameEvent, Game -> Game)]
   , events :: [String]
   , tickCount :: Int
   , uiState :: UIState
@@ -36,9 +36,11 @@ data Game = Game
   , temperatureValue :: Int
   , builderLevel :: Int
   , progressAmount :: Float
-  } deriving (Show)
+  }
 
-
-data GameEvents = AllowedOutside
+data GameEvent =
+    AllowedOutside
+  | FireStoked
+  deriving (Show, Eq)
 
 handleGameEvents g AllowedOutside = g {uiState = (uiState g) {showOutside = True}}
