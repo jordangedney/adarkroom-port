@@ -7,7 +7,7 @@ import           Brick.Widgets.Border.Style
 import qualified Graphics.Vty as V
 import Data.Bifunctor (second)
 
-import Util
+import Util (interleave)
 import Game
 import UIState
 
@@ -23,22 +23,30 @@ storeWindow stockpileItems =
      center $
      viewport StoreVP Vertical $ str toDisplay
 
-fireButton lastClicked =
+fireButton' lastClicked =
   viewport StokeFireButton Vertical $
   clickable StokeFireButton  $
   withDefAttr button1 $
   border $
   if lastClicked == Just StokeFireButton then str "stoke fire" else str "light fire"
 
+fireButton lastClicked =
+  viewport StokeFireButton Vertical $
+  clickable StokeFireButton  $
+  withDefAttr button1 $
+  border $
+  if lastClicked == Just StokeFireButton then str " turn him away " else str "light fire"
+
 actionWindow g =
   let lastClicked = fst <$> _lastReportedClick (_uiState g)
   in center $ padLeft (Pad 5) $
      fireButton lastClicked
 
+eventsWindow :: [String] -> Widget Name
 eventsWindow events = center $
   viewport EventsVP Vertical $
   hLimit 30 $
-  strWrap $ head events
+  strWrap $ unlines $ interleave [events, replicate (length events) " "]
 
 tickWindow ticks = str $ show ticks
 
@@ -48,6 +56,7 @@ drawUI g =
   center $ hLimit 77 $ vLimit 30 $
   withBorderStyle unicodeRounded $
     borderWithLabel (str $ " " <> _location g <> " ") $
+      padTop (Pad 1) $
       eventsWindow (_events g) <+>
       actionWindow g <+>
       storeWindow (_stored g) <+>

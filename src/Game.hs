@@ -19,7 +19,10 @@ initGame = return $ Game " A Dark Room "
                          ,("scales", 150)
                          ]
 
-                         ["the stranger is standing by the fire. she says she can help. says she builds things"]
+                         [-- "the stranger is standing by the fire. she says she can help. says she builds things"
+                           "the fire is dead."
+                         , "the room is freezing."
+                         ]
 
                          0
 
