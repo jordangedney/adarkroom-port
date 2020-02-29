@@ -36,6 +36,6 @@ main = do
         chan       <- newBChan 10
         forkIO $ forever $ do
                 writeBChan chan Tick
-                threadDelay 1000000 -- decides how fast your game moves; one second
+                threadDelay 100000 -- decides how fast your game moves; 1/10 second
 
         void $ customMain initialVty buildVty (Just chan) app g
