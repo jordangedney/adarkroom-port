@@ -7,7 +7,7 @@ import           Brick.Widgets.Border.Style
 import qualified Graphics.Vty as V
 import Data.Bifunctor (second)
 
-import Util (interleave)
+import Util
 import Game
 import UIState
 
@@ -51,9 +51,10 @@ eventsWindow events = center $
 locationsWindow g =
   hCenter $
   padAll 1 $
-  str $ " " <> underline (_location g) <> " | " <> show (_tickCount g) <> " "
-
-underline str = "\ESC[" <> "4" <> "m" <> str <> "\ESC[" <> "24" <> "m"
+  hBox [ str " "
+       , withAttr underlined $ str (_location g)
+       , str $ " | " <> show (_tickCount g) <> " "
+       ]
 
 drawUI :: Game -> [Widget Name]
 drawUI g =
@@ -69,8 +70,10 @@ drawUI g =
   ]
 
 blueBackground = attrName "blueBackground"
+underlined = attrName "underlined"
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
   [ (blueBackground, V.white `on` V.blue)
+  , (underlined, fg V.white `V.withStyle` V.underline)
   ]

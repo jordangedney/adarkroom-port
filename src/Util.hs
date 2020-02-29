@@ -1,7 +1,4 @@
 module Util
-        ( count
-        , interleave
-        )
 where
 
 import           Data.List
