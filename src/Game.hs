@@ -2,11 +2,32 @@ module Game where
 
 import UIState
 
-data GameEvent = Tick | UnlockOutside
+data Tick = Tick
+
+initGame :: IO Game
+initGame = return $ Game
+  { location = "A Dark Room"
+  , stored = [("wood", 10)
+             ,("scales", 150)
+             ]
+  , upcomingEvents = []
+  , events = [ "the fire is dead."
+             , "the room is freezing."
+             ]
+  , tickCount = 0
+  , uiState = UIState { lastReportedClick = Nothing
+                      , showStores = showStoresInit
+                      , showOutside = False
+                      }
+  , fireValue = 0
+  , temperatureValue = 0
+  , builderLevel = -1
+  }
 
 data Game = Game
   { location :: String
   , stored :: [(String, Int)]
+  , upcomingEvents :: [(Int, String)]
   , events :: [String]
   , tickCount :: Int
   , uiState :: UIState
@@ -15,23 +36,7 @@ data Game = Game
   , builderLevel :: Int
   } deriving (Show)
 
-initGame :: IO Game
-initGame = return $ Game "A Dark Room"
 
-                         [("wood", 10)
-                         ,("scales", 150)
-                         ]
+data GameEvents = AllowedOutside
 
-                         [ "the fire is dead."
-                         , "the room is freezing."
-                         ]
-
-                         0
-
-                         (UIState Nothing showStoresInit)
-
-                         0
-
-                         0
-
-                         (-1)
+handleGameEvents g AllowedOutside = g {uiState = (uiState g) {showOutside = True}}

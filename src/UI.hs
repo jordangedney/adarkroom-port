@@ -34,7 +34,7 @@ stokeFireButton = blueButton StokeButton "stoke fire"
 stokeButton fireLit = if fireLit then stokeFireButton else lightFireButton
 
 actionWindow g =
-  let lastClicked = fst <$> _lastReportedClick (uiState g)
+  let lastClicked = fst <$> lastReportedClick (uiState g)
   in padRight (Pad 3) $ vBox [stokeButton (fireValue g /= 0)]
 
 eventsWindow :: [String] -> Widget Name

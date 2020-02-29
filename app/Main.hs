@@ -17,7 +17,7 @@ import           UIState
 import           Game
 import           Event
 
-app :: App Game GameEvent Name
+app :: App Game Tick Name
 app = App { appDraw         = drawUI
           , appChooseCursor = neverShowCursor
           , appHandleEvent  = handleEvent

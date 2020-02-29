@@ -58,6 +58,7 @@ showStoresInit = ShowStores
   False False False False False False False False False False False False False False
 
 data UIState = UIState
-  { _lastReportedClick :: Maybe (Name, T.Location)
-  , _showStores :: ShowStores
+  { lastReportedClick :: Maybe (Name, T.Location)
+  , showStores :: ShowStores
+  , showOutside :: Bool
   } deriving (Show)

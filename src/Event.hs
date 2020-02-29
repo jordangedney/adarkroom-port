@@ -8,14 +8,13 @@ import qualified Graphics.Vty as V
 import           Game
 import           UIState
 
-updateLastClicked g n loc = g { uiState = (uiState g) { _lastReportedClick = Just (n , loc)}}
+updateLastClicked g n loc = g { uiState = (uiState g) { lastReportedClick = Just (n , loc)}}
 
-handleEvent :: Game -> BrickEvent Name GameEvent -> EventM Name (Next Game)
+handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEvent g (AppEvent Tick) =
-  continue g {tickCount = tickCount g + 1}
-
-handleEvent g (AppEvent UnlockOutside) =
-  continue g {tickCount = tickCount g + 1}
+  let tick = g {tickCount = tickCount g + 1,
+                upcomingEvents = map (\(a, b) -> (a - 1, b)) $ upcomingEvents g }
+  in continue g {tickCount = tickCount g + 1}
 
 handleEvent g (MouseDown LightButton _ _ loc) =
   let lightFire = (updateLastClicked g LightButton loc)
@@ -27,7 +26,7 @@ handleEvent g (MouseDown LightButton _ _ loc) =
 
 handleEvent g (MouseDown n _ _ loc) = continue $ updateLastClicked g n loc
 handleEvent g MouseUp {} =
-  continue $ g { uiState = (uiState g) { _lastReportedClick = Nothing }}
+  continue $ g { uiState = (uiState g) { lastReportedClick = Nothing }}
 
 handleEvent g (VtyEvent (V.EvKey V.KUp []))         = continue g
 handleEvent g (VtyEvent (V.EvKey V.KDown []))       = continue g
