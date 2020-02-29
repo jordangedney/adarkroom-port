@@ -37,6 +37,27 @@ data Name = StoreVP
 
   deriving (Eq, Show, Ord)
 
+data ShowStores = ShowStores
+  { showWood :: Bool
+  , showScales :: Bool
+  , showTeeth :: Bool
+  , showIron :: Bool
+  , showCoal :: Bool
+  , showSteel :: Bool
+  , showMedicine :: Bool
+  , showBullets :: Bool
+  , showEnergyCell :: Bool
+  , showBolas :: Bool
+  , showGrenade :: Bool
+  , showBayonet :: Bool
+  , showAlienAlloy :: Bool
+  , showCompass :: Bool
+  } deriving (Show)
+
+showStoresInit = ShowStores
+  False False False False False False False False False False False False False False
+
 data UIState = UIState
   { _lastReportedClick :: Maybe (Name, T.Location)
+  , _showStores :: ShowStores
   } deriving (Show)

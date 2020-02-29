@@ -2,14 +2,16 @@ module Game where
 
 import UIState
 
-data Tick = Tick
+data GameEvent = Tick | UnlockOutside
 
 data Game = Game
-  { _location :: String
-  , _stored :: [(String, Int)]
-  , _events :: [String]
-  , _tickCount :: Int
-  , _uiState :: UIState
+  { location :: String
+  , stored :: [(String, Int)]
+  , events :: [String]
+  , tickCount :: Int
+  , uiState :: UIState
+  , fireValue :: Int
+  , temperatureValue :: Int
   } deriving (Show)
 
 initGame :: IO Game
@@ -19,11 +21,14 @@ initGame = return $ Game "A Dark Room"
                          ,("scales", 150)
                          ]
 
-                         [-- "the stranger is standing by the fire. she says she can help. says she builds things"
-                           "the fire is dead."
+                         [ "the fire is dead."
                          , "the room is freezing."
                          ]
 
                          0
 
-                         (UIState Nothing)
+                         (UIState Nothing showStoresInit)
+
+                         0
+
+                         0

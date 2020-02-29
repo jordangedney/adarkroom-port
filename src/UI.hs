@@ -23,37 +23,31 @@ storeWindow stockpileItems =
      center $
      viewport StoreVP Vertical $ str toDisplay
 
-stokeButton lastClicked =
-  viewport StokeButton Vertical $
-  clickable StokeButton  $
+blueButton attr text =
+  clickable attr $
   withDefAttr blueBackground $
-  border $
-  if lastClicked == Just StokeButton
-  then str (justifyCenter15 "turn him away")
-  else str (justifyCenter15 "light fire")
+  border $ str (justifyCenter15 text)
 
-justifyCenter15 str =
-  let whitespace = replicate ((15 - length str) `div` 2) ' '
-      newStr = whitespace ++ str ++ whitespace
-  in if length newStr == 15 then newStr else newStr ++ " "
+lightFireButton = blueButton LightButton "light fire"
+stokeFireButton = blueButton StokeButton "stoke fire"
+
+stokeButton fireLit = if fireLit then stokeFireButton else lightFireButton
 
 actionWindow g =
-  let lastClicked = fst <$> _lastReportedClick (_uiState g)
-  in center $
-     fireButton lastClicked
+  let lastClicked = fst <$> _lastReportedClick (uiState g)
+  in padRight (Pad 6) $ vBox [stokeButton (fireValue g /= 0)]
 
 eventsWindow :: [String] -> Widget Name
 eventsWindow events =
   hLimit 30 $
-  center $
   viewport EventsVP Vertical $
   strWrap $ unlines $ interleave [events, replicate (length events) " "]
 
 locationsWindow g =
   padBottom (Pad 1 ) $
   hBox [ str " "
-       , withAttr underlined $ str (_location g)
-       , str $ " | " <> show (_tickCount g) <> " "
+       , withAttr underlined $ str (location g)
+       , str $ " | " <> show (tickCount g) <> " "
        ]
 
 drawUI :: Game -> [Widget Name]
@@ -62,19 +56,17 @@ drawUI g =
   center $ hLimit 77 $ vLimit 30 $
   withBorderStyle unicodeRounded $
      border $
-      hBox [eventsWindow (_events g)
+      hBox [eventsWindow (events g)
            , vBox [ locationsWindow g
-                  ,  actionWindow g <+> storeWindow (_stored g)]
+                  ,  actionWindow g <+> storeWindow (stored g)]
            ]
   ]
 
 blueBackground = attrName "blueBackground"
 underlined = attrName "underlined"
-faint = attrName "faint"
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
   [ (blueBackground, V.white `on` V.blue)
   , (underlined, fg V.white `V.withStyle` V.underline)
-  , (faint, fg V.white `V.withStyle` V.faint)
   ]
