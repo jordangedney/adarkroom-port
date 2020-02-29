@@ -23,12 +23,12 @@ storeWindow stockpileItems =
      center $
      viewport StoreVP Vertical $ str toDisplay
 
-fireButton lastClicked =
-  viewport StokeFireButton Vertical $
-  clickable StokeFireButton  $
+stokeButton lastClicked =
+  viewport StokeButton Vertical $
+  clickable StokeButton  $
   withDefAttr blueBackground $
   border $
-  if lastClicked == Just StokeFireButton
+  if lastClicked == Just StokeButton
   then str (justifyCenter15 "turn him away")
   else str (justifyCenter15 "light fire")
 
@@ -70,9 +70,11 @@ drawUI g =
 
 blueBackground = attrName "blueBackground"
 underlined = attrName "underlined"
+faint = attrName "faint"
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
   [ (blueBackground, V.white `on` V.blue)
   , (underlined, fg V.white `V.withStyle` V.underline)
+  , (faint, fg V.white `V.withStyle` V.faint)
   ]
