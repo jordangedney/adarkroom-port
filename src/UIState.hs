@@ -1,4 +1,8 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module UIState where
+
+import Control.Lens (makeLenses, set)
 
 import qualified Brick.Types as T
 import qualified Brick.Widgets.Edit as E
@@ -34,32 +38,33 @@ data Name = StoreVP
           | IronswordButton
           | SteelswordButton
           | RifleButton
-
   deriving (Eq, Show, Ord)
 
 data ShowStores = ShowStores
-  { showWood :: Bool
-  , showScales :: Bool
-  , showTeeth :: Bool
-  , showIron :: Bool
-  , showCoal :: Bool
-  , showSteel :: Bool
-  , showMedicine :: Bool
-  , showBullets :: Bool
-  , showEnergyCell :: Bool
-  , showBolas :: Bool
-  , showGrenade :: Bool
-  , showBayonet :: Bool
-  , showAlienAlloy :: Bool
-  , showCompass :: Bool
+  { _showWood :: Bool
+  , _showScales :: Bool
+  , _showTeeth :: Bool
+  , _showIron :: Bool
+  , _showCoal :: Bool
+  , _showSteel :: Bool
+  , _showMedicine :: Bool
+  , _showBullets :: Bool
+  , _showEnergyCell :: Bool
+  , _showBolas :: Bool
+  , _showGrenade :: Bool
+  , _showBayonet :: Bool
+  , _showAlienAlloy :: Bool
+  , _showCompass :: Bool
   } deriving (Show)
 
 showStoresInit = ShowStores
   False False False False False False False False False False False False False False
 
 data UIState = UIState
-  { lastReportedClick :: Maybe (Name, T.Location)
-  , showStores :: ShowStores
-  , showOutside :: Bool
-  , stokeButtonTimer :: Int
+  { _lastReportedClick :: Maybe (Name, T.Location)
+  , _showStores :: ShowStores
+  , _showOutside :: Bool
   } deriving (Show)
+
+makeLenses ''ShowStores
+makeLenses ''UIState

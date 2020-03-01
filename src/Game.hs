@@ -1,4 +1,9 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Game where
+
+-- import Control.Lens hiding (element)
+import Control.Lens (makeLenses, set)
 
 import UIState
 
@@ -6,43 +11,41 @@ data Tick = Tick
 
 initGame :: IO Game
 initGame = return $ Game
-  { location = "A Dark Room"
-  , stored = [("wood", 10)
-             ,("scales", 150)
-             ]
-  , upcomingEvents = []
-  , events = [ "the fire is dead."
-             , "the room is freezing."
-             ]
-  , tickCount = 0
-  , uiState = UIState { lastReportedClick = Nothing
-                      , showStores = showStoresInit
-                      , showOutside = False
-                      }
-  , fireValue = 0
-  , temperatureValue = 0
-  , builderLevel = 0
-  , progressAmount = 0.5
-  , milestones = Milestones {fireLit = False}
+  { _location = "A Dark Room"
+  , _stored = [("wood", 10)
+              ,("scales", 150)
+              ]
+  , _upcomingEvents = []
+  , _events = [ "the fire is dead."
+              , "the room is freezing."
+              ]
+  , _tickCount = 0
+  , _uiState = UIState { _lastReportedClick = Nothing
+                       , _showStores = showStoresInit
+                       , _showOutside = False
+                       }
+  , _fireValue = 0
+  , _temperatureValue = 0
+  , _builderLevel = 0
+  , _progressAmount = 0.5
+  , _milestones = Milestones {_fireLit = False}
   }
 
 data Milestones = Milestones
-  { fireLit :: Bool
-
-  }
+  { _fireLit :: Bool }
 
 data Game = Game
-  { location :: String
-  , stored :: [(String, Int)]
-  , upcomingEvents :: [(Int, GameEvent, Game -> Game)]
-  , events :: [String]
-  , tickCount :: Int
-  , uiState :: UIState
-  , fireValue :: Int
-  , temperatureValue :: Int
-  , builderLevel :: Int
-  , progressAmount :: Float
-  , milestones :: Milestones
+  { _location :: String
+  , _stored :: [(String, Int)]
+  , _upcomingEvents :: [(Int, GameEvent, Game -> Game)]
+  , _events :: [String]
+  , _tickCount :: Int
+  , _uiState :: UIState
+  , _fireValue :: Int
+  , _temperatureValue :: Int
+  , _builderLevel :: Int
+  , _progressAmount :: Float
+  , _milestones :: Milestones
   }
 
 data GameEvent =
@@ -50,4 +53,8 @@ data GameEvent =
   | FireStoked
   deriving (Show, Eq)
 
-handleGameEvents g AllowedOutside = g {uiState = (uiState g) {showOutside = True}}
+makeLenses ''Milestones
+makeLenses ''Game
+
+handleGameEvents :: GameEvent -> Game -> Game
+handleGameEvents AllowedOutside = set (uiState . showOutside) True

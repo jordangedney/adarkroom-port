@@ -12,9 +12,10 @@ import Util
 import Game
 import UIState
 
-storeWindow :: [(String, Int)] -> Widget Name
-storeWindow stockpileItems =
-  let (width, height) = (20, length stockpileItems)
+storeWindow :: Game -> Widget Name
+storeWindow g =
+  let stockpileItems = _stored g
+      (width, height) = (20, length stockpileItems)
       toString = second show
       countWhitespace (a, b) = (a, width - (length a + length b), b)
       withWhitespace (a, b, c) = a ++ replicate b ' ' ++ c
@@ -32,7 +33,7 @@ progress g =
                            ]
              ) $ bar $ getAmountDone g
       getAmountDone g =
-        let t = head [time | (time, event, _) <- upcomingEvents g, FireStoked == event]
+        let t = head [time | (time, event, _) <- _upcomingEvents g, FireStoked == event]
         in 0.01 * fromIntegral t
       in if hasEvent FireStoked g
          then clickable StokeButton $
@@ -49,7 +50,7 @@ blueButton attr text =
 
 lightFireButton = blueButton LightButton "light fire"
 
-hasEvent e g = length [e | (_, event, _) <- upcomingEvents g, e == event] > 0
+hasEvent e g = length [e | (_, event, _) <- _upcomingEvents g, e == event] > 0
 
 stokeFireButton :: Game -> Widget Name
 stokeFireButton g =
@@ -57,10 +58,10 @@ stokeFireButton g =
   then progress g
   else blueButton StokeButton "stoke fire"
 
-stokeButton g = if fireValue g /= 0 then stokeFireButton g else lightFireButton
+stokeButton g = if _fireValue g /= 0 then stokeFireButton g else lightFireButton
 
 actionWindow g =
-  let lastClicked = fst <$> lastReportedClick (uiState g)
+  let lastClicked = fst <$> _lastReportedClick (_uiState g)
   in padRight (Pad 3) $ vBox [stokeButton g
                              -- , progress g
                              ]
@@ -71,11 +72,12 @@ eventsWindow events =
   viewport EventsVP Vertical $
   strWrap $ unlines $ interleave [events, replicate (length events) " "]
 
+locationsWindow :: Game -> Widget Name
 locationsWindow g =
   padBottom (Pad 1 ) $
   hBox [ str " "
-       , withAttr underlined $ str (location g)
-       , str $ " | " <> show (tickCount g) <> " "
+       , withAttr underlined $ str (_location g)
+       , str $ " | " <> show (_tickCount g) <> " "
        ]
 
 drawUI :: Game -> [Widget Name]
@@ -84,10 +86,10 @@ drawUI g =
   center $ hLimit 77 $ vLimit 30 $
   withBorderStyle unicodeRounded $
      border $
-      hBox [eventsWindow (events g)
+      hBox [eventsWindow (_events g)
            , padLeft (Pad 3)$
              vBox [ locationsWindow g
-                  ,  actionWindow g <+> storeWindow (stored g)]
+                  , actionWindow g <+> storeWindow g]
            ]
   ]
 
