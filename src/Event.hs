@@ -29,8 +29,10 @@ handleEvent g (MouseDown LightButton _ _ loc) =
                   , upcomingEvents = (100, FireStoked, id) : upcomingEvents g
                   }
       fstLight = "the light from the fire spills from the windows, out into the dark."
-      firstLightInGame = lightFire {builderLevel = 0, events = fstLight : events lightFire}
-  in continue $ if builderLevel g == -1 then firstLightInGame else lightFire
+      firstLightInGame = lightFire { milestones = (milestones lightFire) {fireLit = True}
+                                   , events = fstLight : events lightFire
+                                   }
+  in continue $ if (fireLit . milestones) g then lightFire else firstLightInGame
 
 handleEvent g (MouseDown StokeButton _ _ loc) =
   let lightFire = (updateLastClicked g StokeButton loc)

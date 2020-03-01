@@ -21,8 +21,14 @@ initGame = return $ Game
                       }
   , fireValue = 0
   , temperatureValue = 0
-  , builderLevel = -1
+  , builderLevel = 0
   , progressAmount = 0.5
+  , milestones = Milestones {fireLit = False}
+  }
+
+data Milestones = Milestones
+  { fireLit :: Bool
+
   }
 
 data Game = Game
@@ -36,6 +42,7 @@ data Game = Game
   , temperatureValue :: Int
   , builderLevel :: Int
   , progressAmount :: Float
+  , milestones :: Milestones
   }
 
 data GameEvent =
