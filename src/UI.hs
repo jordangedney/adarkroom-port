@@ -14,32 +14,36 @@ import UIState
 
 storeWindow :: Game -> Widget Name
 storeWindow g =
-  let stockpileItems = _stored g
+  let stockpileItems =
+        [ ("wood", _wood . _stored $ g)
+        , ("scales", _scales . _stored $ g)
+        ]
       (width, height) = (20, length stockpileItems)
       toString = second show
       countWhitespace (a, b) = (a, width - (length a + length b), b)
+
       withWhitespace (a, b, c) = a ++ replicate b ' ' ++ c
       toDisplay = unlines $ map (withWhitespace . countWhitespace . toString) stockpileItems
+
   in vLimit (height + 2) $ hLimit (width + 2) $ -- Extra padding for the border
      borderWithLabel (str " stores ") $
      center $
      viewport StoreVP Vertical $ str toDisplay
 
 progress g =
-  let bar amountDone = P.progressBar (Just $ "stoke fire") amountDone
+  let bar = P.progressBar (Just "stoke fire")
       pBar = updateAttrMap
              (mapAttrNames [ (progressBarDone, P.progressCompleteAttr)
                            , (progressBarToDo, P.progressIncompleteAttr)
                            ]
              ) $ bar $ getAmountDone g
       getAmountDone g =
-        let t = head [time | (time, event, _) <- _upcomingEvents g, FireStoked == event]
+        let t = fst . _fireStoked . _upcomingEvents $ g
         in 0.01 * fromIntegral t
-      in if hasEvent FireStoked g
+      in if isActive $ _fireStoked . _upcomingEvents $ g
          then clickable StokeButton $
               withDefAttr blueBackground $
-              border $
-              pBar
+              border pBar
          else str "fk"
 
 blueButton attr text =
@@ -50,15 +54,15 @@ blueButton attr text =
 
 lightFireButton = blueButton LightButton "light fire"
 
-hasEvent e g = length [e | (_, event, _) <- _upcomingEvents g, e == event] > 0
+-- hasEvent e g = not . null $ [e | (_, event, _) <- _upcomingEvents g, e == event]
 
 stokeFireButton :: Game -> Widget Name
 stokeFireButton g =
-  if (hasEvent FireStoked g)
+  if isActive $ _fireStoked . _upcomingEvents $ g
   then progress g
   else blueButton StokeButton "stoke fire"
 
-stokeButton g = if _fireValue g /= 0 then stokeFireButton g else lightFireButton
+stokeButton g = if _fireValue g == Dead then lightFireButton else stokeFireButton g
 
 actionWindow g =
   let lastClicked = fst <$> _lastReportedClick (_uiState g)

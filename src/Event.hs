@@ -4,29 +4,23 @@ import           Brick
 import qualified Brick.Main as M
 import qualified Brick.Widgets.Edit as E
 import qualified Graphics.Vty as V
-import Control.Lens (makeLenses, (%~), (.~), set, (&))
+import           Control.Lens
 
 import           Game
 import           UIState
 
-updateLastClicked g n loc = g & (uiState . lastReportedClick) .~ Just (n, loc)
-
 handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEvent g (AppEvent Tick) =
-  let tick = g & tickCount %~ (+1)
-               & upcomingEvents %~ map (\(a, b, c) -> (a - 1, b, c))
-      finishedEventTodos = [toDo | (time, event, toDo) <- _upcomingEvents tick, time == 0]
-      unfinishedEvents = [e | e@(time, event, toDo) <- _upcomingEvents tick, time /= 0]
-      withoutFinishedEvents = tick { _upcomingEvents = unfinishedEvents }
-      doEvents [] game = game
-      doEvents (e:es) game = doEvents es $ e game
-  in continue $ doEvents finishedEventTodos withoutFinishedEvents
+  let tickGame = g & tickCount %~ (+1)
+               & upcomingEvents %~ tick
+      finishedEventTodos = [toDo | (time, toDo) <- toList $ _upcomingEvents tickGame, time == 0]
+  in continue $ foldr ($) tickGame finishedEventTodos
 
 handleEvent g (MouseDown LightButton _ _ loc) =
-  let lightFire = (updateLastClicked g StokeButton loc)
-                  & fireValue .~ 1
-                  & events %~ ("the fire is burning.":)
-                  & upcomingEvents %~ ((100, FireStoked, id):)
+  let lightFire = g & (uiState . lastReportedClick) ?~ (LightButton, loc)
+                    & fireValue .~ Burning
+                    & stored . wood %~ (+ (-5))
+                    & upcomingEvents . fireStoked .~ (100, id)
       fstLight = "the light from the fire spills from the windows, out into the dark."
       firstLightInGame = lightFire
                          & (milestones . fireLit) .~ True
@@ -34,17 +28,12 @@ handleEvent g (MouseDown LightButton _ _ loc) =
   in continue $ if (_fireLit . _milestones) g then lightFire else firstLightInGame
 
 handleEvent g (MouseDown StokeButton _ _ loc) =
-  -- let lightFire = (updateLastClicked g StokeButton loc)
-  --                 { fireValue = 1
-  --                 , events = "the fire is burning." : events g
-  --                 , upcomingEvents = (100, FireStoked, id) : upcomingEvents g
-  --                 }
-  let lightFire = (updateLastClicked g StokeButton loc)
-                  & fireValue .~ 1
-                  & upcomingEvents %~ ((100, FireStoked, id):)
-  in continue $ lightFire
+  continue $ g & (uiState . lastReportedClick) ?~ (StokeButton, loc)
+               & fireValue %~ fireSucc
+               & stored . wood %~ (+ (-1))
+               & upcomingEvents . fireStoked .~ (100, id)
 
-handleEvent g (MouseDown n _ _ loc) = continue $ updateLastClicked g n loc
+handleEvent g (MouseDown n _ _ loc) = continue $ g & (uiState . lastReportedClick) ?~ (n, loc)
 handleEvent g MouseUp {} = continue $ set (uiState . lastReportedClick) Nothing g
 
 -- handleEvent g (VtyEvent (V.EvKey V.KUp []))         = continue g
@@ -59,4 +48,4 @@ handleEvent g MouseUp {} = continue $ set (uiState . lastReportedClick) Nothing 
 -- handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') [])) = continue g
 -- handleEvent g (VtyEvent (V.EvKey V.KEsc []))        = continue g
 
-handleEvent g _ = continue  g
+handleEvent g _ = continue g
