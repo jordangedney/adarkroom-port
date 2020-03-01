@@ -27,6 +27,7 @@ library:
   dependencies:
   - brick
   - vty
+  - lens
 
 executables:
   a-dark-room-exe:
