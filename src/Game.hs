@@ -87,8 +87,9 @@ addEvent e es = (e, 0) : es
 
 fireChanged g =
   let showFire = g & events %~ addEvent (fireState $ _fireValue g)
-      fire = if _fireValue g == Dead then showFire
+      fire = if _fireValue g == Dead then showFire & location .~ "A Dark Room"
              else showFire & upcomingEvents . fireShrinking .~ (100, fireBurned)
+                           & location .~ "A Firelit Room"
 
       fstLight = "the light from the fire spills from the windows, out into the dark."
       firstLightInGame = fire & (milestones . fireLit) .~ True
