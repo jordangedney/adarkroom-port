@@ -102,9 +102,19 @@ tick gameEvent =
 
 addEvent e es = (e, 0) : es
 
+needWood g = g & uiState . showStores . showWood .~ True
+               & stored . wood .~ 4
+               & events %~ addEvent "the wood is running out."
+
 updateBuilder g =
-  let first = "a ragged stranger stumbles through the door and collapses in the corner."
-  in g & events %~ addEvent first
+  let fstTxt = "a ragged stranger stumbles through the door and collapses in the corner."
+      firstTime = _builderLevel g == 0
+      g' = if firstTime
+           then g & events %~ addEvent fstTxt
+                  & upcomingEvents %~ allowedOutside .~ (needWoodDelay, needWood)
+                  & builderLevel +~ 1
+           else g
+  in g' & upcomingEvents %~ builderUpdate .~ (builderStateDelay, updateBuilder)
 
 fireChanged g =
   let showFire = g & events %~ addEvent (fireState $ _fireValue g)
@@ -130,8 +140,8 @@ fireBurned g = fireChanged $ g & fireValue %~ firePred
 initGame :: IO Game
 initGame = return $ Game
   { _location = Room
-  , _stored = Stored { _wood = 10
-                     , _scales = 150
+  , _stored = Stored { _wood = 100
+                     , _scales = 0
                      }
   , _upcomingEvents = GameEvent { _allowedOutside = (-1, allowedOutsideFn)
                                 , _fireStoked = (-1, id)
