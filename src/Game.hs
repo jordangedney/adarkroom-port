@@ -31,7 +31,7 @@ data Stored = Stored
 
 -- Hacky, but >0 means active, 0 triggers, and <0 means inactive
 data GameEvent = GameEvent
-  { _allowedOutside :: (Int, Game -> Game)
+  { _unlockForest :: (Int, Game -> Game)
   , _fireStoked :: (Int, Game -> Game)
   , _fireShrinking :: (Int, Game -> Game)
   , _builderUpdate :: (Int, Game -> Game)
@@ -40,7 +40,7 @@ data GameEvent = GameEvent
 toList :: GameEvent -> [(Int, Game -> Game )]
 toList gameEvent  =
   map ($ gameEvent)
-  [ _allowedOutside
+  [ _unlockForest
   , _fireStoked
   , _fireShrinking
   , _builderUpdate
@@ -95,7 +95,7 @@ makeLenses ''Game
 
 tick :: GameEvent -> GameEvent
 tick gameEvent =
-  gameEvent & allowedOutside . _1 -~ 1
+  gameEvent & unlockForest . _1 -~ 1
             & fireStoked . _1 -~ 1
             & fireShrinking . _1 -~ 1
             & builderUpdate . _1 -~ 1
@@ -111,7 +111,7 @@ updateBuilder g =
       firstTime = _builderLevel g == 0
       g' = if firstTime
            then g & events %~ addEvent fstTxt
-                  & upcomingEvents %~ allowedOutside .~ (needWoodDelay, needWood)
+                  & upcomingEvents %~ unlockForest .~ (needWoodDelay, needWood)
                   & builderLevel +~ 1
            else g
   in g' & upcomingEvents %~ builderUpdate .~ (builderStateDelay, updateBuilder)
@@ -133,7 +133,7 @@ fireChanged g =
 -- handleGameEvents :: GameEvent -> Game -> Game
 -- handleGameEvents AllowedOutside = set (uiState . showOutside) True
 
-allowedOutsideFn = set (uiState . showOutside) True
+unlockForestFn = set (uiState . showOutside) True
 
 fireBurned g = fireChanged $ g & fireValue %~ firePred
 
@@ -143,7 +143,7 @@ initGame = return $ Game
   , _stored = Stored { _wood = 100
                      , _scales = 0
                      }
-  , _upcomingEvents = GameEvent { _allowedOutside = (-1, allowedOutsideFn)
+  , _upcomingEvents = GameEvent { _unlockForest = (-1, unlockForestFn)
                                 , _fireStoked = (-1, id)
                                 , _fireShrinking = (-1, fireBurned)
                                 , _builderUpdate = (-1, updateBuilder)
