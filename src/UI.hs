@@ -25,41 +25,31 @@ storeWindow g =
       withWhitespace (a, b, c) = a ++ replicate b ' ' ++ c
       toDisplay = unlines $ map (withWhitespace . countWhitespace . toString) stockpileItems
 
-  in vLimit (height + 2) $ hLimit (width + 2) $ -- Extra padding for the border
-     borderWithLabel (str " stores ") $
-     center $
-     viewport StoreVP Vertical $ str toDisplay
+  in vLimit (height + 2) $ hLimit (width + 2) -- Extra padding for the border
+     $ borderWithLabel (str " stores ")
+     $ center
+     $ viewport StoreVP Vertical $ str toDisplay
 
-progress g =
-  let bar = P.progressBar (Just "stoke fire")
-      pBar = updateAttrMap
-             (mapAttrNames [ (progressBarDone, P.progressCompleteAttr)
-                           , (progressBarToDo, P.progressIncompleteAttr)
-                           ]
-             ) $ bar $ getAmountDone g
-      getAmountDone g =
-        let t = fst . _fireStoked . _upcomingEvents $ g
-        in 0.01 * fromIntegral t
-      in if isActive $ _fireStoked . _upcomingEvents $ g
-         then clickable StokeButton $
-              withDefAttr blueBackground $
-              border pBar
-         else str "fk"
+buttonWithCoolDown g label coolDownGetter =
+  withDefAttr blueBackground
+  $ border
+  $ updateAttrMap (mapAttrNames [ (progressBarDone, P.progressCompleteAttr)
+                                , (progressBarToDo, P.progressIncompleteAttr)])
+  $ P.progressBar (Just label)
+                  (0.01 * fromIntegral (fst . coolDownGetter . _upcomingEvents $ g))
 
-blueButton attr text =
-  clickable attr $
-  withDefAttr blueBackground $
-  border $
-  str (justifyCenter15 text)
+blueButton buttonId label =
+  clickable buttonId
+  $ withDefAttr blueBackground
+  $ border
+  $ str $ justifyCenter15 label
 
 lightFireButton = blueButton LightButton "light fire"
-
--- hasEvent e g = not . null $ [e | (_, event, _) <- _upcomingEvents g, e == event]
 
 stokeFireButton :: Game -> Widget Name
 stokeFireButton g =
   if isActive $ _fireStoked . _upcomingEvents $ g
-  then progress g
+  then buttonWithCoolDown g "stoke fire" _fireStoked
   else blueButton StokeButton "stoke fire"
 
 stokeButton g = if _fireValue g == Dead then lightFireButton else stokeFireButton g
@@ -67,14 +57,13 @@ stokeButton g = if _fireValue g == Dead then lightFireButton else stokeFireButto
 actionWindow g =
   let lastClicked = fst <$> _lastReportedClick (_uiState g)
   in padRight (Pad 3) $ vBox [stokeButton g
-                             -- , progress g
                              ]
 
 eventsWindow :: [String] -> Widget Name
 eventsWindow events =
-  hLimit 30 $
-  viewport EventsVP Vertical $
-  strWrap $ unlines $ interleave [events, replicate (length events) " "]
+  hLimit 30
+  $ viewport EventsVP Vertical
+  $ strWrap $ unlines $ interleave [events, replicate (length events) " "]
 
 locationsWindow :: Game -> Widget Name
 locationsWindow g =
@@ -86,14 +75,13 @@ locationsWindow g =
 
 drawUI :: Game -> [Widget Name]
 drawUI g =
-  [
-  center $ hLimit 77 $ vLimit 30 $
-  withBorderStyle unicodeRounded $
-     border $
-      hBox [eventsWindow (_events g)
-           , padLeft (Pad 3)$
-             vBox [ locationsWindow g
-                  , actionWindow g <+> storeWindow g]
+  [ center $ hLimit 77 $ vLimit 30
+    $ withBorderStyle unicodeRounded
+    $ border
+    $ hBox [ eventsWindow (_events g)
+           , padLeft (Pad 3)
+             $ vBox [ locationsWindow g
+                    , actionWindow g <+> storeWindow g]
            ]
   ]
 
