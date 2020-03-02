@@ -19,25 +19,33 @@ builderStateDelay = seconds 30 -- time between builder state updates
 stokeCooldown     = seconds 10 -- cooldown to stoke the fire
 needWoodDelay     = seconds 15 -- from the stranger arrival, to when you need wood
 
-data Tick = Tick
+data Tick = Tick deriving (Show, Eq, Ord)
 
-data Milestones = Milestones
-  { _fireLit :: Bool }
+newtype Milestones = Milestones
+  { _fireLit :: Bool
+  } deriving (Show, Eq, Ord)
 
 data Stored = Stored
   { _wood :: Int
   , _scales :: Int
   } deriving (Show, Eq, Ord)
 
--- Hacky, but >0 means active, 0 triggers, and <0 means inactive
-data GameEvent = GameEvent
-  { _unlockForest :: (Int, Game -> Game)
-  , _fireStoked :: (Int, Game -> Game)
-  , _fireShrinking :: (Int, Game -> Game)
-  , _builderUpdate :: (Int, Game -> Game)
-  }
+data GameEvent
+  = UnlockForest Int
+  | FireStoked Int
+  | FireShrinking Int
+  | BuilderUpdate Int
+  deriving (Show, Eq, Ord)
 
-toList :: GameEvent -> [(Int, Game -> Game )]
+-- Hacky, but >0 means active, 0 triggers, and <0 means inactive
+data GameEvents = GameEvents
+  { _unlockForest  :: GameEvent
+  , _fireStoked    :: GameEvent
+  , _fireShrinking :: GameEvent
+  , _builderUpdate :: GameEvent
+  } deriving (Show, Eq, Ord)
+
+toList :: GameEvents -> [GameEvent]
 toList gameEvent  =
   map ($ gameEvent)
   [ _unlockForest
@@ -46,19 +54,12 @@ toList gameEvent  =
   , _builderUpdate
   ]
 
-isTriggered :: (Int, Game -> Game) -> Bool
-isTriggered (time, _) = time == 0
-
-isActive :: (Int, Game -> Game) -> Bool
-isActive (time, _) = time > 0
-
-data Location = Room | Outside
+data Location = Room | Outside deriving (Eq, Show, Ord)
 
 data Game = Game
   { _location :: Location
   , _stored :: Stored
-  -- , _upcomingEvents :: [(Int, GameEvent, Game -> Game)]
-  , _upcomingEvents :: GameEvent
+  , _upcomingEvents :: GameEvents
   , _events :: [(String, Int)]
   , _tickCount :: Int
   , _uiState :: UIState
@@ -67,7 +68,7 @@ data Game = Game
   , _builderLevel :: Int
   , _progressAmount :: Float
   , _milestones :: Milestones
-  }
+  } deriving (Eq, Show, Ord)
 
 data FireState
   = Dead
@@ -89,53 +90,73 @@ fireSucc Roaring = Roaring
 fireSucc x = succ x
 
 makeLenses ''Milestones
-makeLenses ''GameEvent
+makeLenses ''GameEvents
 makeLenses ''Stored
 makeLenses ''Game
 
-tick :: GameEvent -> GameEvent
+getTime  (UnlockForest    x) = x
+getTime  (FireStoked      x) = x
+getTime  (FireShrinking   x) = x
+getTime  (BuilderUpdate   x) = x
+
+isActive (UnlockForest    x) = x > 0
+isActive (FireStoked      x) = x > 0
+isActive (FireShrinking   x) = x > 0
+isActive (BuilderUpdate   x) = x > 0
+
+eventDec (UnlockForest    x) = UnlockForest    (x - 1)
+eventDec (FireStoked      x) = FireStoked      (x - 1)
+eventDec (FireShrinking   x) = FireShrinking   (x - 1)
+eventDec (BuilderUpdate   x) = BuilderUpdate   (x - 1)
+
+tick :: GameEvents -> GameEvents
 tick gameEvent =
-  gameEvent & unlockForest . _1 -~ 1
-            & fireStoked . _1 -~ 1
-            & fireShrinking . _1 -~ 1
-            & builderUpdate . _1 -~ 1
+  gameEvent & unlockForest  %~ eventDec
+            & fireStoked    %~ eventDec
+            & fireShrinking %~ eventDec
+            & builderUpdate %~ eventDec
 
 addEvent e es = (e, 0) : es
 
-needWood g = g & uiState . showStores . showWood .~ True
-               & stored . wood .~ 4
-               & events %~ addEvent "the wood is running out."
+eventGetter (UnlockForest  _) = unlockForest
+eventGetter (FireStoked    _) = fireStoked
+eventGetter (FireShrinking _) = fireShrinking
+eventGetter (BuilderUpdate _) = builderUpdate
 
-updateBuilder g =
-  let fstTxt = "a ragged stranger stumbles through the door and collapses in the corner."
-      firstTime = _builderLevel g == 0
-      g' = if firstTime
-           then g & events %~ addEvent fstTxt
-                  & upcomingEvents %~ unlockForest .~ (needWoodDelay, needWood)
-                  & builderLevel +~ 1
-           else g
-  in g' & upcomingEvents %~ builderUpdate .~ (builderStateDelay, updateBuilder)
+updateEvents event events = events & eventGetter event .~ event
 
 fireChanged g =
   let showFire = g & events %~ addEvent (fireState $ _fireValue g)
       fire = if _fireValue g == Dead then showFire
-             else showFire & upcomingEvents . fireShrinking .~ (fireCoolDelay, fireBurned)
+             else showFire & upcomingEvents %~ updateEvents (FireShrinking fireCoolDelay)
 
       fstLight = "the light from the fire spills from the windows, out into the dark."
       firstLightInGame =
         fire & (milestones . fireLit) .~ True
              & events %~ addEvent fstLight
-             & upcomingEvents %~ builderUpdate .~ (builderStateDelay, updateBuilder)
+             & upcomingEvents %~ updateEvents (BuilderUpdate builderStateDelay)
 
   in if (_fireLit . _milestones) g then fire else firstLightInGame
 
+getGameEvent (UnlockForest  _) g =
+  g & uiState . showStores . showWood .~ True
+    & uiState . showOutside .~ True
+    & stored . wood .~ 4
+    & events %~ addEvent "the wood is running out."
 
--- handleGameEvents :: GameEvent -> Game -> Game
--- handleGameEvents AllowedOutside = set (uiState . showOutside) True
+getGameEvent (FireStoked    _) g = g
 
-unlockForestFn = set (uiState . showOutside) True
+getGameEvent (FireShrinking _) g = fireChanged $ g & fireValue %~ firePred
 
-fireBurned g = fireChanged $ g & fireValue %~ firePred
+getGameEvent (BuilderUpdate _) g =
+  let fstTxt = "a ragged stranger stumbles through the door and collapses in the corner."
+      firstTime = _builderLevel g == 0
+      g' = if firstTime
+           then g & events %~ addEvent fstTxt
+                  & upcomingEvents %~ updateEvents (UnlockForest needWoodDelay)
+                  & builderLevel +~ 1
+           else g
+  in g' & upcomingEvents %~ updateEvents (BuilderUpdate builderStateDelay)
 
 initGame :: IO Game
 initGame = return $ Game
@@ -143,10 +164,10 @@ initGame = return $ Game
   , _stored = Stored { _wood = 100
                      , _scales = 0
                      }
-  , _upcomingEvents = GameEvent { _unlockForest = (-1, unlockForestFn)
-                                , _fireStoked = (-1, id)
-                                , _fireShrinking = (-1, fireBurned)
-                                , _builderUpdate = (-1, updateBuilder)
+  , _upcomingEvents = GameEvents { _unlockForest  = UnlockForest  (-1)
+                                 , _fireStoked    = FireStoked    (-1)
+                                 , _fireShrinking = FireShrinking (-1)
+                                 , _builderUpdate = BuilderUpdate (-1)
                                 }
   , _events = [ ("the fire is dead.", 0)
               , ("the room is freezing.", 0)

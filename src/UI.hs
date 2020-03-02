@@ -13,7 +13,6 @@ import Game
 import UIState
 
 
-
 storeWindow :: Game -> Widget Name
 storeWindow g =
   let stockpileItems = [(a, b)| (a, b, c) <-
@@ -41,7 +40,7 @@ buttonWithCoolDown g label coolDownGetter =
   $ updateAttrMap (mapAttrNames [ (progressBarDone, P.progressCompleteAttr)
                                 , (progressBarToDo, P.progressIncompleteAttr)])
   $ P.progressBar (Just label)
-                  (0.01 * fromIntegral (fst . coolDownGetter . _upcomingEvents $ g))
+                  (0.01 * fromIntegral (getTime . coolDownGetter . _upcomingEvents $ g))
 
 blueButton buttonId label =
   clickable buttonId

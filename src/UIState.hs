@@ -55,7 +55,7 @@ data ShowStores = ShowStores
   , _showBayonet :: Bool
   , _showAlienAlloy :: Bool
   , _showCompass :: Bool
-  } deriving (Show)
+  } deriving (Show, Eq, Ord)
 
 showStoresInit = ShowStores
   False False False False False False False False False False False False False False
@@ -64,7 +64,7 @@ data UIState = UIState
   { _lastReportedClick :: Maybe (Name, T.Location)
   , _showStores :: ShowStores
   , _showOutside :: Bool
-  } deriving (Show)
+  } deriving (Show, Eq, Ord)
 
 makeLenses ''ShowStores
 makeLenses ''UIState
