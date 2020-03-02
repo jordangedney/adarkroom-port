@@ -18,27 +18,26 @@ handleEvent g (AppEvent Tick) =
                             time == 0]
   in continue $ foldr ($) tickGame finishedEventTodos
 
-handleEvent g (MouseDown LightButton _ _ loc) =
-  let lightFire = g & (uiState . lastReportedClick) ?~ (LightButton, loc)
-                    & fireValue .~ Burning
-                    & stored . wood %~ (+ (-5))
+handleEvent g' (MouseDown LightButton _ _ loc) =
+  let g = g' & (uiState . lastReportedClick) ?~ (LightButton, loc)
+      lightFire = g & fireValue .~ Burning
+                    & stored . wood -~ 5
                     & upcomingEvents . fireStoked .~ (100, id)
   in continue $
-  if (_wood . _stored $ g) > 4 then fireChanged lightFire
-  else g & (uiState . lastReportedClick) ?~ (LightButton, loc)
-         & events %~ addEvent "not enough wood to get the fire going."
+     if (_wood . _stored $ g ) > 4 then fireChanged lightFire
+     else g & events %~ addEvent "not enough wood to get the fire going."
 
-handleEvent g (MouseDown StokeButton _ _ loc) =
-  continue $
-  if (_wood . _stored $ g) > 0
-  then fireChanged $ g & (uiState . lastReportedClick) ?~ (StokeButton, loc)
-                       & fireValue %~ fireSucc
-                       & stored . wood %~ (+ (-1))
-                       & upcomingEvents . fireStoked .~ (100, id)
-  else g & (uiState . lastReportedClick) ?~ (StokeButton, loc)
-         & events %~ addEvent "the wood has run out."
+handleEvent g' (MouseDown StokeButton _ _ loc) =
+  let g = g' & (uiState . lastReportedClick) ?~ (StokeButton, loc)
+  in continue $
+     if (_wood . _stored $ g) > 0
+     then fireChanged $ g & fireValue %~ fireSucc
+                          & stored . wood -~ 1
+                          & upcomingEvents . fireStoked .~ (100, id)
+     else g & events %~ addEvent "the wood has run out."
 
-handleEvent g (MouseDown n _ _ loc) = continue $ g & (uiState . lastReportedClick) ?~ (n, loc)
+handleEvent g (MouseDown n _ _ loc) =
+  continue $ g & (uiState . lastReportedClick) ?~ (n, loc)
 handleEvent g MouseUp {} = continue $ set (uiState . lastReportedClick) Nothing g
 
 -- handleEvent g (VtyEvent (V.EvKey V.KUp []))         = continue g

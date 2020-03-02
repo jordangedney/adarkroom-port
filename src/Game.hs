@@ -21,6 +21,7 @@ data Stored = Stored
 data GameEvent = GameEvent
   { _allowedOutside :: (Int, Game -> Game)
   , _fireStoked :: (Int, Game -> Game)
+  , _fireShrinking :: (Int, Game -> Game)
   }
 
 toList :: GameEvent -> [(Int, Game -> Game )]
@@ -28,6 +29,7 @@ toList gameEvent  =
   map ($ gameEvent)
   [ _allowedOutside
   , _fireStoked
+  , _fireShrinking
   ]
 
 isTriggered :: (Int, Game -> Game) -> Bool
@@ -79,23 +81,28 @@ tick :: GameEvent -> GameEvent
 tick gameEvent =
   gameEvent & allowedOutside . _1 -~ 1
             & fireStoked . _1 -~ 1
+            & fireShrinking . _1 -~ 1
 
 addEvent e es = (e, 0) : es
 
 fireChanged g =
   let showFire = g & events %~ addEvent (fireState $ _fireValue g)
+      fire = if _fireValue g == Dead then showFire
+             else showFire & upcomingEvents . fireShrinking .~ (100, fireBurned)
 
       fstLight = "the light from the fire spills from the windows, out into the dark."
-      firstLightInGame = showFire & (milestones . fireLit) .~ True
+      firstLightInGame = fire & (milestones . fireLit) .~ True
                                   & events %~ addEvent fstLight
 
-  in if (_fireLit . _milestones) g then showFire else firstLightInGame
+  in if (_fireLit . _milestones) g then fire else firstLightInGame
 
 
 -- handleGameEvents :: GameEvent -> Game -> Game
 -- handleGameEvents AllowedOutside = set (uiState . showOutside) True
 
 allowedOutsideFn = set (uiState . showOutside) True
+
+fireBurned g = fireChanged $ g & fireValue %~ firePred
 
 initGame :: IO Game
 initGame = return $ Game
@@ -105,6 +112,7 @@ initGame = return $ Game
                      }
   , _upcomingEvents = GameEvent { _allowedOutside = (-1, allowedOutsideFn)
                                 , _fireStoked = (-1, id)
+                                , _fireShrinking = (-1, fireBurned)
                                 }
   , _events = [ ("the fire is dead.", 0)
               , ("the room is freezing.", 0)
