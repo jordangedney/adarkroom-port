@@ -58,12 +58,22 @@ actionWindow g =
   let lastClicked = fst <$> _lastReportedClick (_uiState g)
   in padRight (Pad 3) $ vBox [stokeButton g
                              ]
-
-eventsWindow :: [String] -> Widget Name
+eventsWindow :: [(String, Int)] -> Widget Name
 eventsWindow events =
-  hLimit 30
+  let withWhitespace = interleave [events, replicate (length events) (" ", 0)]
+      withStyling = [(s, case t of
+                           0 -> blackText
+                           1 -> blackText
+                           2 -> blueText
+                           _ -> whiteText)
+                    | (s, t) <- withWhitespace]
+      topEvents = map (\(s, style) -> withAttr  style (strWrap s)) $ take 9 withStyling
+      topEvents' = foldl1 (<=>) topEvents
+      bottomEvents = unlines $ drop 9 $ map fst withWhitespace
+  in hLimit 30
   $ viewport EventsVP Vertical
-  $ strWrap $ unlines $ interleave [events, replicate (length events) " "]
+  $ topEvents'
+  <=> withAttr blueText (strWrap bottomEvents)
 
 locationsWindow :: Game -> Widget Name
 locationsWindow g =
@@ -89,6 +99,9 @@ blueBackground = attrName "blueBackground"
 underlined = attrName "underlined"
 progressBarDone = attrName "progressBarDone"
 progressBarToDo = attrName "progressBarToDo"
+whiteText = attrName "whiteText"
+blueText = attrName "blueText"
+blackText = attrName "blackText"
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
@@ -96,4 +109,7 @@ theMap = attrMap V.defAttr
   , (underlined, fg V.white `V.withStyle` V.underline)
   , (progressBarDone, V.black `on` V.white)
   , (progressBarToDo, V.black `on` V.blue)
+  , (whiteText, V.white `on` V.black)
+  , (blueText, V.blue `on` V.black)
+  , (blackText, V.black `on` V.black)
   ]

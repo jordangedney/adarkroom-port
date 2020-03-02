@@ -41,7 +41,7 @@ data Game = Game
   , _stored :: Stored
   -- , _upcomingEvents :: [(Int, GameEvent, Game -> Game)]
   , _upcomingEvents :: GameEvent
-  , _events :: [String]
+  , _events :: [(String, Int)]
   , _tickCount :: Int
   , _uiState :: UIState
   , _fireValue :: FireState
@@ -83,7 +83,7 @@ tick gameEvent =
 fireChanged g =
   let fstLight = "the light from the fire spills from the windows, out into the dark."
       firstLightInGame = g & (milestones . fireLit) .~ True
-                         & events %~ (fstLight:)
+                         & events %~ ((fstLight, 0):)
   in undefined
 
                     -- & events %~ ("the fire is burning.":)
@@ -95,18 +95,17 @@ fireChanged g =
 
 allowedOutsideFn = set (uiState . showOutside) True
 
-
 initGame :: IO Game
 initGame = return $ Game
   { _location = "A Dark Room"
-  , _stored = Stored { _wood = 10
+  , _stored = Stored { _wood = 5
                      , _scales = 150
                      }
   , _upcomingEvents = GameEvent {_allowedOutside = (-1, allowedOutsideFn)
                                 ,_fireStoked = (-1, id)
                                 }
-  , _events = [ "the fire is dead."
-              , "the room is freezing."
+  , _events = [ ("the fire is dead.", 0)
+              , ("the room is freezing.", 0)
               ]
   , _tickCount = 0
   , _uiState = UIState { _lastReportedClick = Nothing

@@ -13,7 +13,9 @@ handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEvent g (AppEvent Tick) =
   let tickGame = g & tickCount %~ (+1)
                & upcomingEvents %~ tick
-      finishedEventTodos = [toDo | (time, toDo) <- toList $ _upcomingEvents tickGame, time == 0]
+               & events %~ take 15 . map (\(a, b) -> (a, b + 1))
+      finishedEventTodos = [toDo | (time, toDo) <- toList $ _upcomingEvents tickGame,
+                            time == 0]
   in continue $ foldr ($) tickGame finishedEventTodos
 
 handleEvent g (MouseDown LightButton _ _ loc) =
@@ -24,14 +26,22 @@ handleEvent g (MouseDown LightButton _ _ loc) =
       fstLight = "the light from the fire spills from the windows, out into the dark."
       firstLightInGame = lightFire
                          & (milestones . fireLit) .~ True
-                         & events %~ (fstLight:)
-  in continue $ if (_fireLit . _milestones) g then lightFire else firstLightInGame
+                         & events %~ ((fstLight, 0):)
+  in continue $
+  if (_wood . _stored $ g) > 4
+  then if (_fireLit . _milestones) g then lightFire else firstLightInGame
+  else g & (uiState . lastReportedClick) ?~ (LightButton, loc)
+         & events %~ (("not enough wood to get the fire going.", 0):)
 
 handleEvent g (MouseDown StokeButton _ _ loc) =
-  continue $ g & (uiState . lastReportedClick) ?~ (StokeButton, loc)
-               & fireValue %~ fireSucc
-               & stored . wood %~ (+ (-1))
-               & upcomingEvents . fireStoked .~ (100, id)
+  continue $
+  if (_wood . _stored $ g) > 0
+  then g & (uiState . lastReportedClick) ?~ (StokeButton, loc)
+         & fireValue %~ fireSucc
+         & stored . wood %~ (+ (-1))
+         & upcomingEvents . fireStoked .~ (100, id)
+  else g & (uiState . lastReportedClick) ?~ (StokeButton, loc)
+         & events %~ (("the wood has run out.", 0):)
 
 handleEvent g (MouseDown n _ _ loc) = continue $ g & (uiState . lastReportedClick) ?~ (n, loc)
 handleEvent g MouseUp {} = continue $ set (uiState . lastReportedClick) Nothing g
