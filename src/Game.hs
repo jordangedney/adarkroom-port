@@ -80,29 +80,31 @@ tick gameEvent =
   gameEvent & allowedOutside . _1 -~ 1
             & fireStoked . _1 -~ 1
 
-fireChanged g =
-  let fstLight = "the light from the fire spills from the windows, out into the dark."
-      firstLightInGame = g & (milestones . fireLit) .~ True
-                         & events %~ ((fstLight, 0):)
-  in undefined
+addEvent e es = (e, 0) : es
 
-                    -- & events %~ ("the fire is burning.":)
+fireChanged g =
+  let showFire = g & events %~ addEvent (fireState $ _fireValue g)
+
+      fstLight = "the light from the fire spills from the windows, out into the dark."
+      firstLightInGame = showFire & (milestones . fireLit) .~ True
+                                  & events %~ addEvent fstLight
+
+  in if (_fireLit . _milestones) g then showFire else firstLightInGame
 
 
 -- handleGameEvents :: GameEvent -> Game -> Game
 -- handleGameEvents AllowedOutside = set (uiState . showOutside) True
-
 
 allowedOutsideFn = set (uiState . showOutside) True
 
 initGame :: IO Game
 initGame = return $ Game
   { _location = "A Dark Room"
-  , _stored = Stored { _wood = 5
+  , _stored = Stored { _wood = 10
                      , _scales = 150
                      }
-  , _upcomingEvents = GameEvent {_allowedOutside = (-1, allowedOutsideFn)
-                                ,_fireStoked = (-1, id)
+  , _upcomingEvents = GameEvent { _allowedOutside = (-1, allowedOutsideFn)
+                                , _fireStoked = (-1, id)
                                 }
   , _events = [ ("the fire is dead.", 0)
               , ("the room is freezing.", 0)

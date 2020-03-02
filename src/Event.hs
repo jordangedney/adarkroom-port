@@ -23,25 +23,20 @@ handleEvent g (MouseDown LightButton _ _ loc) =
                     & fireValue .~ Burning
                     & stored . wood %~ (+ (-5))
                     & upcomingEvents . fireStoked .~ (100, id)
-      fstLight = "the light from the fire spills from the windows, out into the dark."
-      firstLightInGame = lightFire
-                         & (milestones . fireLit) .~ True
-                         & events %~ ((fstLight, 0):)
   in continue $
-  if (_wood . _stored $ g) > 4
-  then if (_fireLit . _milestones) g then lightFire else firstLightInGame
+  if (_wood . _stored $ g) > 4 then fireChanged lightFire
   else g & (uiState . lastReportedClick) ?~ (LightButton, loc)
-         & events %~ (("not enough wood to get the fire going.", 0):)
+         & events %~ addEvent "not enough wood to get the fire going."
 
 handleEvent g (MouseDown StokeButton _ _ loc) =
   continue $
   if (_wood . _stored $ g) > 0
-  then g & (uiState . lastReportedClick) ?~ (StokeButton, loc)
-         & fireValue %~ fireSucc
-         & stored . wood %~ (+ (-1))
-         & upcomingEvents . fireStoked .~ (100, id)
+  then fireChanged $ g & (uiState . lastReportedClick) ?~ (StokeButton, loc)
+                       & fireValue %~ fireSucc
+                       & stored . wood %~ (+ (-1))
+                       & upcomingEvents . fireStoked .~ (100, id)
   else g & (uiState . lastReportedClick) ?~ (StokeButton, loc)
-         & events %~ (("the wood has run out.", 0):)
+         & events %~ addEvent "the wood has run out."
 
 handleEvent g (MouseDown n _ _ loc) = continue $ g & (uiState . lastReportedClick) ?~ (n, loc)
 handleEvent g MouseUp {} = continue $ set (uiState . lastReportedClick) Nothing g
