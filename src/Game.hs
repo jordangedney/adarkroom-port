@@ -7,6 +7,18 @@ import Control.Lens
 
 import UIState
 
+-- ticks are 1/100 of a second, so adjust all times
+minutes :: Int -> Int
+minutes t = 10 * 60 * t
+seconds :: Int -> Int
+seconds t = 10 * t
+
+fireCoolDelay     = minutes 5  -- time after a stoke before the fire cools
+roomWarmDelay     = seconds 30 -- time between room temperature updates
+builderStateDelay = seconds 30 -- time between builder state updates
+stokeCooldown     = seconds 10 -- cooldown to stoke the fire
+needWoodDelay     = seconds 15 -- from the stranger arrival, to when you need wood
+
 data Tick = Tick
 
 data Milestones = Milestones
@@ -90,7 +102,7 @@ addEvent e es = (e, 0) : es
 fireChanged g =
   let showFire = g & events %~ addEvent (fireState $ _fireValue g)
       fire = if _fireValue g == Dead then showFire
-             else showFire & upcomingEvents . fireShrinking .~ (100, fireBurned)
+             else showFire & upcomingEvents . fireShrinking .~ (fireCoolDelay, fireBurned)
 
       fstLight = "the light from the fire spills from the windows, out into the dark."
       firstLightInGame = fire & (milestones . fireLit) .~ True

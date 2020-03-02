@@ -12,12 +12,15 @@ import Util
 import Game
 import UIState
 
+
+
 storeWindow :: Game -> Widget Name
 storeWindow g =
-  let stockpileItems =
-        [ ("wood", _wood . _stored $ g)
-        , ("scales", _scales . _stored $ g)
-        ]
+  let stockpileItems = [(a, b)| (a, b, c) <-
+        [ ("wood",   _wood   . _stored $ g,  _showWood   . _showStores . _uiState $ g)
+        , ("scales", _scales . _stored $ g,  _showScales . _showStores . _uiState $ g)
+        ], c]
+      showWindow = not . null $ stockpileItems
       (width, height) = (20, length stockpileItems)
       toString = second show
       countWhitespace (a, b) = (a, width - (length a + length b), b)
@@ -26,9 +29,11 @@ storeWindow g =
       toDisplay = unlines $ map (withWhitespace . countWhitespace . toString) stockpileItems
 
   in vLimit (height + 2) $ hLimit (width + 2) -- Extra padding for the border
-     $ borderWithLabel (str " stores ")
-     $ center
-     $ viewport StoreVP Vertical $ str toDisplay
+     (if showWindow then
+       borderWithLabel (str " stores ")
+       $ center
+       $ viewport StoreVP Vertical $ str toDisplay
+     else str (replicate (width + 5) ' '))
 
 buttonWithCoolDown g label coolDownGetter =
   withDefAttr blueBackground

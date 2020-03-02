@@ -22,7 +22,7 @@ handleEvent g' (MouseDown LightButton _ _ loc) =
   let g = g' & (uiState . lastReportedClick) ?~ (LightButton, loc)
       lightFire = g & fireValue .~ Burning
                     & stored . wood -~ 5
-                    & upcomingEvents . fireStoked .~ (100, id)
+                    & upcomingEvents . fireStoked .~ (stokeCooldown, id)
   in continue $
      if (_wood . _stored $ g ) > 4 then fireChanged lightFire
      else g & events %~ addEvent "not enough wood to get the fire going."
@@ -33,7 +33,7 @@ handleEvent g' (MouseDown StokeButton _ _ loc) =
      if (_wood . _stored $ g) > 0
      then fireChanged $ g & fireValue %~ fireSucc
                           & stored . wood -~ 1
-                          & upcomingEvents . fireStoked .~ (100, id)
+                          & upcomingEvents . fireStoked .~ (stokeCooldown, id)
      else g & events %~ addEvent "the wood has run out."
 
 handleEvent g (MouseDown n _ _ loc) =
