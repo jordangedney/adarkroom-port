@@ -34,6 +34,7 @@ data GameEvent = GameEvent
   { _allowedOutside :: (Int, Game -> Game)
   , _fireStoked :: (Int, Game -> Game)
   , _fireShrinking :: (Int, Game -> Game)
+  , _builderUpdate :: (Int, Game -> Game)
   }
 
 toList :: GameEvent -> [(Int, Game -> Game )]
@@ -42,6 +43,7 @@ toList gameEvent  =
   [ _allowedOutside
   , _fireStoked
   , _fireShrinking
+  , _builderUpdate
   ]
 
 isTriggered :: (Int, Game -> Game) -> Bool
@@ -96,8 +98,13 @@ tick gameEvent =
   gameEvent & allowedOutside . _1 -~ 1
             & fireStoked . _1 -~ 1
             & fireShrinking . _1 -~ 1
+            & builderUpdate . _1 -~ 1
 
 addEvent e es = (e, 0) : es
+
+updateBuilder g =
+  let first = "a ragged stranger stumbles through the door and collapses in the corner."
+  in g & events %~ addEvent first
 
 fireChanged g =
   let showFire = g & events %~ addEvent (fireState $ _fireValue g)
@@ -105,8 +112,10 @@ fireChanged g =
              else showFire & upcomingEvents . fireShrinking .~ (fireCoolDelay, fireBurned)
 
       fstLight = "the light from the fire spills from the windows, out into the dark."
-      firstLightInGame = fire & (milestones . fireLit) .~ True
-                                  & events %~ addEvent fstLight
+      firstLightInGame =
+        fire & (milestones . fireLit) .~ True
+             & events %~ addEvent fstLight
+             & upcomingEvents %~ builderUpdate .~ (builderStateDelay, updateBuilder)
 
   in if (_fireLit . _milestones) g then fire else firstLightInGame
 
@@ -127,6 +136,7 @@ initGame = return $ Game
   , _upcomingEvents = GameEvent { _allowedOutside = (-1, allowedOutsideFn)
                                 , _fireStoked = (-1, id)
                                 , _fireShrinking = (-1, fireBurned)
+                                , _builderUpdate = (-1, updateBuilder)
                                 }
   , _events = [ ("the fire is dead.", 0)
               , ("the room is freezing.", 0)
