@@ -38,8 +38,10 @@ isTriggered (time, _) = time == 0
 isActive :: (Int, Game -> Game) -> Bool
 isActive (time, _) = time > 0
 
+data Location = Room | Outside
+
 data Game = Game
-  { _location :: String
+  { _location :: Location
   , _stored :: Stored
   -- , _upcomingEvents :: [(Int, GameEvent, Game -> Game)]
   , _upcomingEvents :: GameEvent
@@ -87,9 +89,8 @@ addEvent e es = (e, 0) : es
 
 fireChanged g =
   let showFire = g & events %~ addEvent (fireState $ _fireValue g)
-      fire = if _fireValue g == Dead then showFire & location .~ "A Dark Room"
+      fire = if _fireValue g == Dead then showFire
              else showFire & upcomingEvents . fireShrinking .~ (100, fireBurned)
-                           & location .~ "A Firelit Room"
 
       fstLight = "the light from the fire spills from the windows, out into the dark."
       firstLightInGame = fire & (milestones . fireLit) .~ True
@@ -107,7 +108,7 @@ fireBurned g = fireChanged $ g & fireValue %~ firePred
 
 initGame :: IO Game
 initGame = return $ Game
-  { _location = "A Dark Room"
+  { _location = Room
   , _stored = Stored { _wood = 10
                      , _scales = 150
                      }

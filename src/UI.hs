@@ -77,9 +77,11 @@ eventsWindow events =
 
 locationsWindow :: Game -> Widget Name
 locationsWindow g =
+  let locationTxt Room = if _fireValue g == Dead then "A Dark Room" else "A Firelit Room"
+  in
   padBottom (Pad 1 ) $
   hBox [ str " "
-       , withAttr underlined $ str (_location g)
+       , withAttr underlined $ str (locationTxt $ _location g)
        , str $ " | " <> show (_tickCount g) <> " "
        ]
 
