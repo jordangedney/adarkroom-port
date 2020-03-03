@@ -26,7 +26,8 @@ storeWindow g =
       countWhitespace (a, b) = (a, width - (length a + length b), b)
 
       withWhitespace (a, b, c) = a ++ replicate b ' ' ++ c
-      toDisplay = unlines $ map (withWhitespace . countWhitespace . toString) stockpileItems
+      toDisplay =
+        unlines $ map (withWhitespace . countWhitespace . toString) stockpileItems
 
   in vLimit (height + 2) $ hLimit (width + 2) -- Extra padding for the border
      (if showWindow then
@@ -35,20 +36,24 @@ storeWindow g =
        $ viewport StoreVP Vertical $ str toDisplay
      else str (replicate (width + 5) ' '))
 
+buttonWithCoolDown :: Game -> String -> (GameEvents -> GameEvent) -> Widget n
 buttonWithCoolDown g label coolDownGetter =
   withDefAttr blueBackground
   $ border
   $ updateAttrMap (mapAttrNames [ (progressBarDone, P.progressCompleteAttr)
                                 , (progressBarToDo, P.progressIncompleteAttr)])
   $ P.progressBar (Just label)
-                  (0.01 * fromIntegral (getTime . coolDownGetter . _upcomingEvents $ g))
+                  (0.01 * fromIntegral
+                          (getTime . coolDownGetter . _upcomingEvents $ g))
 
+blueButton :: Name -> String -> Widget Name
 blueButton buttonId label =
   clickable buttonId
   $ withDefAttr blueBackground
   $ border
   $ str $ justifyCenter15 label
 
+lightFireButton :: Widget Name
 lightFireButton = blueButton LightButton "light fire"
 
 stokeFireButton :: Game -> Widget Name
@@ -57,15 +62,16 @@ stokeFireButton g =
   then buttonWithCoolDown g "stoke fire" _fireStoked
   else blueButton StokeButton "stoke fire"
 
+stokeButton :: Game -> Widget Name
 stokeButton g = if _fireValue g == Dead then lightFireButton else stokeFireButton g
 
-actionWindow g =
-  let lastClicked = fst <$> _lastReportedClick (_uiState g)
-  in padRight (Pad 3) $ vBox [stokeButton g
+actionWindow :: Game -> Widget Name
+actionWindow g = padRight (Pad 3) $ vBox [stokeButton g
                              ]
-eventsWindow :: [(String, Int)] -> Widget Name
-eventsWindow events =
-  let withWhitespace = interleave [events, replicate (length events) (" ", 0)]
+eventsWindow :: Game -> Widget Name
+eventsWindow g =
+  let events' = _events g
+      withWhitespace = interleave [events', replicate (length events') (" ", 0)]
       withStyling = [(s, case t of
                            0 -> blackText
                            1 -> blackText
@@ -82,7 +88,7 @@ eventsWindow events =
 
 locationsWindow :: Game -> Widget Name
 locationsWindow g =
-  let shouldShow showP txt = if showP . _uiState $ g then txt else ""
+  let shouldShow showP label = if showP . _uiState $ g then label else ""
 
       locationTxt Room    = if _fireValue g == Dead then "A Dark Room"
                             else "A Firelit Room"
@@ -90,10 +96,10 @@ locationsWindow g =
       locationTxt Path    = shouldShow _showPath    "A Dusty Path"
       locationTxt Ship    = shouldShow _showShip    "An Old Starship"
 
-      stylize loc = if _location g == loc
-                    then (withAttr underlined . str $ locationTxt loc)
-                         <+> str (replicate (16 - length (locationTxt loc)) ' ')
-                    else str $ justifyLeft16 $ locationTxt loc
+      stylize locat = if _location g == locat
+                    then (withAttr underlined . str $ locationTxt locat)
+                         <+> str (replicate (16 - length (locationTxt locat)) ' ')
+                    else str $ justifyLeft16 $ locationTxt locat
 
       top    = if _showOutside . _uiState $ g
                then stylize Room <+> str "|   " <+> stylize Outside
@@ -108,7 +114,8 @@ locationsWindow g =
      $ hBox [vBox [top, bottom]]
      <=> str " "
 
-bottomMenu g =
+bottomMenu :: Game -> Widget Name
+bottomMenu _g =
   hBox [ str "debug.  "
        , str "save.  "
        , str "hyper.  "
@@ -119,7 +126,7 @@ drawUI g =
   [ center $ hLimit 77 $ vLimit 30
     $ withBorderStyle unicodeRounded
     $ border
-    $ hBox [ eventsWindow (_events g)
+    $ hBox [ eventsWindow g
            , padLeft (Pad 3)
              $ vBox [ locationsWindow g
                     , vLimit 24 (actionWindow g <+> storeWindow g
@@ -129,6 +136,8 @@ drawUI g =
            ]
   ]
 
+blueBackground, underlined, progressBarDone, progressBarToDo, whiteText :: AttrName
+blueText, blackText :: AttrName
 blueBackground = attrName "blueBackground"
 underlined = attrName "underlined"
 progressBarDone = attrName "progressBarDone"

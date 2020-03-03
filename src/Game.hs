@@ -11,6 +11,7 @@ minutes t = 10 * 60 * t
 seconds :: Int -> Int
 seconds t = 10 * t
 
+fireCoolDelay, roomWarmDelay, builderStateDelay, stokeCooldown, needWoodDelay :: Int
 fireCoolDelay     = minutes 5  -- time after a stoke before the fire cools
 roomWarmDelay     = seconds 30 -- time between room temperature updates
 builderStateDelay = seconds 30 -- time between builder state updates
@@ -26,26 +27,34 @@ toList gameEvent  =
   , _builderUpdate
   ]
 
+fireState :: FireState -> String
 fireState Dead = "the fire is dead."
 fireState Smouldering = "the fire is smouldering."
 fireState Flickering = "the fire is flickering."
 fireState Burning = "the fire is burning."
 fireState Roaring = "the fire is roaring."
 
+firePred :: FireState -> FireState
 firePred Dead = Dead
 firePred x = pred x
+
+fireSucc :: FireState -> FireState
 fireSucc Roaring = Roaring
 fireSucc x = succ x
+
+getTime :: GameEvent -> Int
 getTime  (UnlockForest    x) = x
 getTime  (FireStoked      x) = x
 getTime  (FireShrinking   x) = x
 getTime  (BuilderUpdate   x) = x
 
+isActive :: GameEvent -> Bool
 isActive (UnlockForest    x) = x > 0
 isActive (FireStoked      x) = x > 0
 isActive (FireShrinking   x) = x > 0
 isActive (BuilderUpdate   x) = x > 0
 
+eventDec :: GameEvent -> GameEvent
 eventDec (UnlockForest    x) = UnlockForest    (x - 1)
 eventDec (FireStoked      x) = FireStoked      (x - 1)
 eventDec (FireShrinking   x) = FireShrinking   (x - 1)
@@ -58,19 +67,28 @@ tick gameEvent =
             & fireShrinking %~ eventDec
             & builderUpdate %~ eventDec
 
+addEvent :: String -> [(String, Int)] -> [(String, Int)]
 addEvent e es = (e, 0) : es
 
+eventGetter
+  :: Functor f
+  => GameEvent
+  -> ((GameEvent -> f GameEvent) -> GameEvents -> f GameEvents)
 eventGetter (UnlockForest  _) = unlockForest
 eventGetter (FireStoked    _) = fireStoked
 eventGetter (FireShrinking _) = fireShrinking
 eventGetter (BuilderUpdate _) = builderUpdate
 
-updateEvents event events = events & eventGetter event .~ event
+updateEvents :: GameEvent -> GameEvents -> GameEvents
+updateEvents event gameEvents = gameEvents & eventGetter event .~ event
 
+fireChanged :: Game -> Game
 fireChanged g =
   let showFire = g & events %~ addEvent (fireState $ _fireValue g)
-      fire = if _fireValue g == Dead then showFire
-             else showFire & upcomingEvents %~ updateEvents (FireShrinking fireCoolDelay)
+
+      fire =
+        if _fireValue g == Dead then showFire
+        else showFire & upcomingEvents %~ updateEvents (FireShrinking fireCoolDelay)
 
       fstLight = "the light from the fire spills from the windows, out into the dark."
       firstLightInGame =
@@ -80,6 +98,7 @@ fireChanged g =
 
   in if (_fireLit . _milestones) g then fire else firstLightInGame
 
+getGameEvent :: GameEvent -> Game -> Game
 getGameEvent (UnlockForest  _) g =
   g & uiState . showStores . showWood .~ True
     & uiState . showOutside .~ True

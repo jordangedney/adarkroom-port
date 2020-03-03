@@ -1,9 +1,6 @@
 module Event (handleEvent) where
 
 import           Brick
-import qualified Brick.Main as M
-import qualified Brick.Widgets.Edit as E
-import qualified Graphics.Vty as V
 import           Control.Lens
 
 import           Game
@@ -18,8 +15,8 @@ handleEvent g (AppEvent Tick) =
       doReadyEvent e = if getTime e == 0 then getGameEvent e else id
   in continue $ foldr doReadyEvent tickGame (toList $  _upcomingEvents tickGame)
 
-handleEvent g' (MouseDown LightButton _ _ loc) =
-  let g = g' & (uiState . lastReportedClick) ?~ (LightButton, loc)
+handleEvent g' (MouseDown LightButton _ _ mouseLocation) =
+  let g = g' & (uiState . lastReportedClick) ?~ (LightButton, mouseLocation)
       lightFire = g & fireValue .~ Burning
                     & stored . wood -~ 5
                     & upcomingEvents %~ updateEvents (FireStoked stokeCooldown)
@@ -27,8 +24,8 @@ handleEvent g' (MouseDown LightButton _ _ loc) =
      if (_wood . _stored $ g ) > 4 then fireChanged lightFire
      else g & events %~ addEvent "not enough wood to get the fire going."
 
-handleEvent g' (MouseDown StokeButton _ _ loc) =
-  let g = g' & (uiState . lastReportedClick) ?~ (StokeButton, loc)
+handleEvent g' (MouseDown StokeButton _ _ mouseLocation) =
+  let g = g' & (uiState . lastReportedClick) ?~ (StokeButton, mouseLocation)
   in continue $
      if (_wood . _stored $ g) > 0
      then fireChanged $ g & fireValue %~ fireSucc
@@ -36,8 +33,8 @@ handleEvent g' (MouseDown StokeButton _ _ loc) =
                           & upcomingEvents %~ updateEvents (FireStoked stokeCooldown)
      else g & events %~ addEvent "the wood has run out."
 
-handleEvent g (MouseDown n _ _ loc) =
-  continue $ g & (uiState . lastReportedClick) ?~ (n, loc)
+handleEvent g (MouseDown n _ _ mouseLocation) =
+  continue $ g & (uiState . lastReportedClick) ?~ (n, mouseLocation)
 handleEvent g MouseUp {} = continue $ set (uiState . lastReportedClick) Nothing g
 
 -- handleEvent g (VtyEvent (V.EvKey V.KUp []))         = continue g

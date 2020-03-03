@@ -24,6 +24,14 @@ dependencies:
 
 library:
   source-dirs: src
+  ghc-options:
+  - -Wall
+  - -Wcompat
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
+  - -Wredundant-constraints
+  - -fno-warn-orphans
+  - -Wmissing-signatures
   dependencies:
   - brick
   - vty
