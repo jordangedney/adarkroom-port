@@ -81,13 +81,31 @@ eventsWindow events =
 
 locationsWindow :: Game -> Widget Name
 locationsWindow g =
-  let locationTxt Room = if _fireValue g == Dead then "A Dark Room" else "A Firelit Room"
-  in
-  padBottom (Pad 1 ) $
-  hBox [ str " "
-       , withAttr underlined $ str (locationTxt $ _location g)
-       , str $ " | " <> show (_tickCount g) <> " "
-       ]
+  let shouldShow showP txt = if showP . _uiState $ g then txt else ""
+
+      locationTxt Room    = if _fireValue g == Dead then "A Dark Room"
+                            else "A Firelit Room"
+      locationTxt Outside = shouldShow _showOutside "A Silent Forest"
+      locationTxt Path    = shouldShow _showPath    "A Dusty Path"
+      locationTxt Ship    = shouldShow _showShip    "An Old Starship"
+
+      stylize loc = if _location g == loc
+                    then (withAttr underlined . str $ locationTxt loc)
+                         <+> str (replicate (16 - length (locationTxt loc)) ' ')
+                    else str $ justifyLeft16 $ locationTxt loc
+
+      top    = if _showOutside . _uiState $ g
+               then stylize Room <+> str "|   " <+> stylize Outside
+               else stylize Room
+
+      bottom = if _showPath . _uiState $ g
+               then stylize Path <+> str "|   " <+> stylize Ship
+               else str ""
+
+  in padBottom (Pad 1)
+     $ vLimit 2
+     $ hBox [vBox [top, bottom]]
+     <=> str " "
 
 drawUI :: Game -> [Widget Name]
 drawUI g =

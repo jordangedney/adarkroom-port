@@ -54,7 +54,7 @@ toList gameEvent  =
   , _builderUpdate
   ]
 
-data Location = Room | Outside deriving (Eq, Show, Ord)
+data Location = Room | Outside | Path | Ship deriving (Eq, Show, Ord)
 
 data Game = Game
   { _location :: Location
@@ -142,6 +142,7 @@ getGameEvent (UnlockForest  _) g =
   g & uiState . showStores . showWood .~ True
     & uiState . showOutside .~ True
     & stored . wood .~ 4
+    & events %~ addEvent "the wind howls outside."
     & events %~ addEvent "the wood is running out."
 
 getGameEvent (FireStoked    _) g = g
@@ -176,6 +177,8 @@ initGame = return $ Game
   , _uiState = UIState { _lastReportedClick = Nothing
                        , _showStores = showStoresInit
                        , _showOutside = False
+                       , _showPath = False
+                       , _showShip = False
                        }
   , _fireValue = Dead
   , _temperatureValue = 0

@@ -64,6 +64,8 @@ data UIState = UIState
   { _lastReportedClick :: Maybe (Name, T.Location)
   , _showStores :: ShowStores
   , _showOutside :: Bool
+  , _showPath :: Bool
+  , _showShip :: Bool
   } deriving (Show, Eq, Ord)
 
 makeLenses ''ShowStores
