@@ -14,7 +14,8 @@ import           Control.Concurrent             ( threadDelay
 
 import           UI
 import           UIState
-import           Game
+import           GameTypes
+import           Game (initGame)
 import           Event
 
 app :: App Game Tick Name

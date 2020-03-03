@@ -1,11 +1,9 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 module Game where
 
--- import Control.Lens hiding (element)
 import Control.Lens
 
 import UIState
+import GameTypes
 
 -- ticks are 1/100 of a second, so adjust all times
 minutes :: Int -> Int
@@ -19,32 +17,6 @@ builderStateDelay = seconds 30 -- time between builder state updates
 stokeCooldown     = seconds 10 -- cooldown to stoke the fire
 needWoodDelay     = seconds 15 -- from the stranger arrival, to when you need wood
 
-data Tick = Tick deriving (Show, Eq, Ord)
-
-newtype Milestones = Milestones
-  { _fireLit :: Bool
-  } deriving (Show, Eq, Ord)
-
-data Stored = Stored
-  { _wood :: Int
-  , _scales :: Int
-  } deriving (Show, Eq, Ord)
-
-data GameEvent
-  = UnlockForest Int
-  | FireStoked Int
-  | FireShrinking Int
-  | BuilderUpdate Int
-  deriving (Show, Eq, Ord)
-
--- Hacky, but >0 means active, 0 triggers, and <0 means inactive
-data GameEvents = GameEvents
-  { _unlockForest  :: GameEvent
-  , _fireStoked    :: GameEvent
-  , _fireShrinking :: GameEvent
-  , _builderUpdate :: GameEvent
-  } deriving (Show, Eq, Ord)
-
 toList :: GameEvents -> [GameEvent]
 toList gameEvent  =
   map ($ gameEvent)
@@ -53,30 +25,6 @@ toList gameEvent  =
   , _fireShrinking
   , _builderUpdate
   ]
-
-data Location = Room | Outside | Path | Ship deriving (Eq, Show, Ord)
-
-data Game = Game
-  { _location :: Location
-  , _stored :: Stored
-  , _upcomingEvents :: GameEvents
-  , _events :: [(String, Int)]
-  , _tickCount :: Int
-  , _uiState :: UIState
-  , _fireValue :: FireState
-  , _temperatureValue :: Int
-  , _builderLevel :: Int
-  , _progressAmount :: Float
-  , _milestones :: Milestones
-  } deriving (Eq, Show, Ord)
-
-data FireState
-  = Dead
-  | Smouldering
-  | Flickering
-  | Burning
-  | Roaring
-  deriving (Eq, Show, Enum, Ord)
 
 fireState Dead = "the fire is dead."
 fireState Smouldering = "the fire is smouldering."
@@ -88,12 +36,6 @@ firePred Dead = Dead
 firePred x = pred x
 fireSucc Roaring = Roaring
 fireSucc x = succ x
-
-makeLenses ''Milestones
-makeLenses ''GameEvents
-makeLenses ''Stored
-makeLenses ''Game
-
 getTime  (UnlockForest    x) = x
 getTime  (FireStoked      x) = x
 getTime  (FireShrinking   x) = x

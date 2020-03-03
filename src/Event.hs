@@ -7,6 +7,7 @@ import qualified Graphics.Vty as V
 import           Control.Lens
 
 import           Game
+import           GameTypes
 import           UIState
 
 handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)

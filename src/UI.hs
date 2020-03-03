@@ -9,7 +9,8 @@ import qualified Graphics.Vty as V
 import Data.Bifunctor (second)
 
 import Util
-import Game
+import GameTypes
+import Game (getTime, isActive)
 import UIState
 
 
@@ -107,6 +108,12 @@ locationsWindow g =
      $ hBox [vBox [top, bottom]]
      <=> str " "
 
+bottomMenu g =
+  hBox [ str "debug.  "
+       , str "save.  "
+       , str "hyper.  "
+       ]
+
 drawUI :: Game -> [Widget Name]
 drawUI g =
   [ center $ hLimit 77 $ vLimit 30
@@ -115,7 +122,10 @@ drawUI g =
     $ hBox [ eventsWindow (_events g)
            , padLeft (Pad 3)
              $ vBox [ locationsWindow g
-                    , actionWindow g <+> storeWindow g]
+                    , vLimit 24 (actionWindow g <+> storeWindow g
+                                <=> str (replicate 30 '\n'))
+                    , bottomMenu g
+                    ]
            ]
   ]
 
