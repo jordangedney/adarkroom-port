@@ -2,21 +2,16 @@ module Game where
 
 import Control.Lens
 
-import UIState
 import GameTypes
 import GameEvent
 import Constants
 import Util
 
 import qualified Fire
+import qualified Outside
 
 getGameEvent :: GameEvent -> Game -> Game
-getGameEvent (UnlockForest  _) g =
-  g & uiState . showStores . showWood .~ True
-    & uiState . showOutside .~ True
-    & stored . wood .~ 4
-    & events %~ addEvent "the wind howls outside."
-    & events %~ addEvent "the wood is running out."
+getGameEvent (UnlockForest  _) g = Outside.unlock g
 
 getGameEvent (FireStoked    _) g = g
 
