@@ -1,12 +1,12 @@
 module Event (handleEvent) where
 
-import           Brick (BrickEvent(..), EventM, Next, Location, continue)
-import           Control.Lens (over, set, _2, (&))
+import Brick (BrickEvent(..), EventM, Next, Location, continue)
+import Control.Lens (over, set, view, _2, (&))
 
-import           Game
-import           GameTypes
-import           GameEvent
-import           UIState
+import Game (getGameEvent)
+import GameTypes (Game, Tick(..), tickCount, upcomingEvents, events, uiState)
+import GameEvent (tickEvents, getTime, toList)
+import UIState (Name(..), lastReportedClick)
 import qualified Fire
 
 handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
@@ -16,7 +16,7 @@ handleEvent game (AppEvent Tick) =
              & over upcomingEvents tickEvents
              & over events (take 15 . map (over _2 (+1)))
       doEventIfReady e = if getTime e == 0 then getGameEvent e else id
-      allEvents = toList (_upcomingEvents updatedTickers)
+      allEvents = toList (view upcomingEvents updatedTickers)
       withStateAfterIngameEvents = foldr doEventIfReady updatedTickers allEvents
   in continue withStateAfterIngameEvents
 handleEvent g (MouseDown e _ _ m) = handleMouseDown g e m

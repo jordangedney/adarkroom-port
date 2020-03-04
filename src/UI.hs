@@ -12,7 +12,6 @@ import Util
 import GameTypes
 import GameEvent (getTime, isActive, GameEvent, GameEvents, _fireStoked)
 import UIState
-import Fire
 
 storeWindow :: Game -> Widget Name
 storeWindow g =

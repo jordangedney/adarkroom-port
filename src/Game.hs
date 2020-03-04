@@ -31,31 +31,3 @@ getGameEvent (BuilderUpdate _) g =
                   & builderLevel +~ 1
            else g
   in g' & upcomingEvents %~ updateEvents (BuilderUpdate builderStateDelay)
-
-initGame :: IO Game
-initGame = return $ Game
-  { _location = Room
-  , _stored = Stored { _wood = 100
-                     , _scales = 0
-                     }
-  , _upcomingEvents = GameEvents { _unlockForest  = UnlockForest  (-1)
-                                 , _fireStoked    = FireStoked    (-1)
-                                 , _fireShrinking = FireShrinking (-1)
-                                 , _builderUpdate = BuilderUpdate (-1)
-                                }
-  , _events = [ ("the fire is dead.", 0)
-              , ("the room is freezing.", 0)
-              ]
-  , _tickCount = 0
-  , _uiState = UIState { _lastReportedClick = Nothing
-                       , _showStores = showStoresInit
-                       , _showOutside = False
-                       , _showPath = False
-                       , _showShip = False
-                       }
-  , _fireValue = Dead
-  , _temperatureValue = 0
-  , _builderLevel = 0
-  , _progressAmount = 0.5
-  , _milestones = Milestones {_fireLit = False}
-  }

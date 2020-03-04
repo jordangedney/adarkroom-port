@@ -21,6 +21,14 @@ data GameEvents = GameEvents
 
 makeLenses ''GameEvents
 
+gameEventsInit :: GameEvents
+gameEventsInit = GameEvents
+  { _unlockForest  = UnlockForest  (-1)
+  , _fireStoked    = FireStoked    (-1)
+  , _fireShrinking = FireShrinking (-1)
+  , _builderUpdate = BuilderUpdate (-1)
+  }
+
 toList :: GameEvents -> [GameEvent]
 toList gameEvent  =
   map ($ gameEvent)
