@@ -5,27 +5,10 @@ import Control.Lens
 import UIState
 import GameTypes
 import GameEvent
-import Fire
 import Constants
+import Util
 
-addEvent :: String -> [(String, Int)] -> [(String, Int)]
-addEvent e es = (e, 0) : es
-
-fireChanged :: Game -> Game
-fireChanged g =
-  let showFire = g & events %~ addEvent (fireState $ _fireValue g)
-
-      fire =
-        if _fireValue g == Dead then showFire
-        else showFire & upcomingEvents %~ updateEvents (FireShrinking fireCoolDelay)
-
-      fstLight = "the light from the fire spills from the windows, out into the dark."
-      firstLightInGame =
-        fire & (milestones . fireLit) .~ True
-             & events %~ addEvent fstLight
-             & upcomingEvents %~ updateEvents (BuilderUpdate builderStateDelay)
-
-  in if (_fireLit . _milestones) g then fire else firstLightInGame
+import qualified Fire
 
 getGameEvent :: GameEvent -> Game -> Game
 getGameEvent (UnlockForest  _) g =
@@ -37,7 +20,7 @@ getGameEvent (UnlockForest  _) g =
 
 getGameEvent (FireStoked    _) g = g
 
-getGameEvent (FireShrinking _) g = fireChanged $ g & fireValue %~ firePred
+getGameEvent (FireShrinking _) g = Fire.shrinking g
 
 getGameEvent (BuilderUpdate _) g =
   let fstTxt = "a ragged stranger stumbles through the door and collapses in the corner."

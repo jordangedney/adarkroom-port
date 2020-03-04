@@ -1,12 +1,30 @@
-module Fire where
+module Fire
+  ( light
+  , stoke
+  , shrinking
+  )
+where
 
-data FireState
-  = Dead
-  | Smouldering
-  | Flickering
-  | Burning
-  | Roaring
-  deriving (Eq, Show, Enum, Ord)
+import GameTypes (FireState(..), Game, events, upcomingEvents,
+                  _fireValue, fireValue,
+                  _fireLit, fireLit,
+                  _milestones, milestones,
+                  _stored, stored,
+                  _wood, wood)
+import GameEvent (GameEvent(FireShrinking, BuilderUpdate, FireStoked), updateEvents)
+import Constants (fireCoolDelay, builderStateDelay, stokeCooldown)
+import Util (addEvent)
+
+import Control.Lens (over, set, (&))
+
+-- Defined in GameTypes to avoid an import cycle:
+-- data FireState
+--   = Dead
+--   | Smouldering
+--   | Flickering
+--   | Burning
+--   | Roaring
+--   deriving (Eq, Show, Enum, Ord)
 
 fireState :: FireState -> String
 fireState Dead = "the fire is dead."
@@ -22,3 +40,53 @@ firePred x = pred x
 fireSucc :: FireState -> FireState
 fireSucc Roaring = Roaring
 fireSucc x = succ x
+
+fireChanged :: Game -> Game
+fireChanged game =
+  let showFire = game & over events (addEvent (fireState (_fireValue game)))
+      fireIsBurning = _fireValue game /= Dead
+      fireContinuesBurning =
+        showFire & over upcomingEvents (updateEvents (FireShrinking fireCoolDelay))
+  in if fireIsBurning then fireContinuesBurning else showFire
+
+firstLight :: Game -> Game
+firstLight game =
+  let doNothing = game
+      fireHasBeenLitBefore = (_fireLit . _milestones) game
+      firstIngameLightMessage =
+        "the light from the fire spills from the windows, out into the dark."
+      builderIsOnTheWay =
+        game & set (milestones . fireLit) True
+             & over events (addEvent firstIngameLightMessage)
+             & over upcomingEvents (updateEvents (BuilderUpdate builderStateDelay))
+  in if fireHasBeenLitBefore then doNothing else builderIsOnTheWay
+
+light :: Game -> Game
+light game =
+  let withLitFire =
+        game & set fireValue Burning
+             & over (stored . wood) (subtract 5)
+             & over upcomingEvents (updateEvents (FireStoked stokeCooldown))
+             & fireChanged
+             & firstLight
+      withUnlitFire =
+        game & over events (addEvent "not enough wood to get the fire going.")
+      enoughWood = (_wood . _stored) game > 4
+  in if enoughWood then withLitFire else withUnlitFire
+
+stoke :: Game -> Game
+stoke game =
+  let withStokedFire =
+        game & over fireValue fireSucc
+             & over (stored . wood) (subtract 1)
+             & over upcomingEvents (updateEvents (FireStoked stokeCooldown))
+             & fireChanged
+      withUnstokedFire =
+        game & over events (addEvent "the wood has run out.")
+      enoughWood = (_wood . _stored) game > 0
+  in if enoughWood then withStokedFire else withUnstokedFire
+
+shrinking :: Game -> Game
+shrinking game =
+  game & over fireValue firePred
+       & fireChanged

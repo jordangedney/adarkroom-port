@@ -5,10 +5,17 @@ module GameTypes where
 import Control.Lens (makeLenses)
 
 import UIState
-import Fire
 import GameEvent
 
 data Tick = Tick deriving (Show, Eq, Ord)
+
+data FireState
+  = Dead
+  | Smouldering
+  | Flickering
+  | Burning
+  | Roaring
+  deriving (Eq, Show, Enum, Ord)
 
 newtype Milestones = Milestones
   { _fireLit :: Bool
