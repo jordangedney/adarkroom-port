@@ -4,11 +4,12 @@ module GameTypes where
 
 import Control.Lens (makeLenses)
 
-import UIState
-import GameEvent
+import UIState (UIState, uiStateInit)
+import GameEvent (GameEvents, gameEventsInit)
 
 data Tick = Tick deriving (Show, Eq, Ord)
 
+-- FireState and RoomState are comparable
 data FireState
   = Dead
   | Smouldering
@@ -17,15 +18,26 @@ data FireState
   | Roaring
   deriving (Eq, Show, Enum, Ord)
 
-newtype Milestones = Milestones
-  { _fireLit :: Bool
+data RoomTemperature
+  = Freezing
+  | Cold
+  | Mild
+  | Warm
+  | Hot
+  deriving (Eq, Show, Enum, Ord)
+
+data Milestones = Milestones
+  { _fireLit        :: Bool
+  , _builderArrived :: Bool
   } deriving (Show, Eq, Ord)
 
 makeLenses ''Milestones
 
 milestonesInit :: Milestones
 milestonesInit = Milestones
-  { _fireLit = False }
+  { _fireLit        = False
+  , _builderArrived = False
+  }
 
 data Stored = Stored
   { _wood :: Int
@@ -50,7 +62,7 @@ data Game = Game
   , _tickCount        :: Int
   , _uiState          :: UIState
   , _fireValue        :: FireState
-  , _temperatureValue :: Int
+  , _roomTemperature  :: RoomTemperature
   , _builderLevel     :: Int
   , _progressAmount   :: Float
   , _milestones       :: Milestones
@@ -69,7 +81,7 @@ initGame              = return $ Game
   , _tickCount        = 0
   , _uiState          = uiStateInit
   , _fireValue        = Dead
-  , _temperatureValue = 0
+  , _roomTemperature  = Freezing
   , _builderLevel     = 0
   , _progressAmount   = 0.5
   , _milestones       = milestonesInit

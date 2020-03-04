@@ -5,13 +5,13 @@ module Fire
   )
 where
 
+import Control.Lens (over, set, view, (&))
+
 import GameTypes (FireState(..), Game, events, upcomingEvents,
                   fireValue, fireLit, milestones, stored, wood)
 import GameEvent (GameEvent(FireShrinking, BuilderUpdate, FireStoked), updateEvents)
 import Constants (fireCoolDelay, builderStateDelay, stokeCooldown)
 import Util (addEvent)
-
-import Control.Lens (over, set, view, (&))
 
 -- Defined in GameTypes to avoid an import cycle:
 -- data FireState

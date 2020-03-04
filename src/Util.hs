@@ -1,7 +1,6 @@
-module Util
-where
+module Util where
 
-import           Data.List
+import Data.List (transpose)
 
 count :: Eq a => a -> [a] -> Int
 count x = length . filter (x ==)
@@ -9,8 +8,10 @@ count x = length . filter (x ==)
 interleave :: [[a]] -> [a]
 interleave = concat . transpose
 
+justifyLeft16 :: String -> String
 justifyLeft16 str = take 16 $ str ++ repeat ' '
 
+justifyCenter15 :: String -> String
 justifyCenter15 str =
   let whitespace = replicate ((15 - length str) `div` 2) ' '
       newStr = whitespace ++ str ++ whitespace

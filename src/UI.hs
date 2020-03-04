@@ -65,8 +65,8 @@ stokeButton :: Game -> Widget Name
 stokeButton g = if _fireValue g == Dead then lightFireButton else stokeFireButton g
 
 actionWindow :: Game -> Widget Name
-actionWindow g = padRight (Pad 3) $ vBox [stokeButton g
-                             ]
+actionWindow g = padRight (Pad 3) $ vBox [stokeButton g]
+
 eventsWindow :: Game -> Widget Name
 eventsWindow g =
   let events' = _events g
