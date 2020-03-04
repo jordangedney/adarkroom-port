@@ -5,19 +5,26 @@ import           Control.Lens
 
 import           Game
 import           GameTypes
+import           GameEvent
 import           UIState
+import           Fire
+import           Constants
 
 handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEvent g (AppEvent Tick) =
-  let tickGame = g & tickCount %~ (+1)
-               & upcomingEvents %~ tick
-               & events %~ take 15 . map (\(a, b) -> (a, b + 1))
-      doReadyEvent e = if getTime e == 0 then getGameEvent e else id
-  in continue $ foldr doReadyEvent tickGame (toList $  _upcomingEvents tickGame)
+  let updatedTickers = g & over tickCount (+1)
+                         & over upcomingEvents tickEvents
+                         & over events (take 15 . map (\(a, b) -> (a, b + 1)))
+                        -- & over events (take 15 . map (over _2 (+1)))
+
+      doEventIfReady e = if getTime e == 0 then getGameEvent e else id
+      allEvents = toList (_upcomingEvents updatedTickers)
+      withStateAfterIngameEvents = foldr doEventIfReady updatedTickers allEvents
+  in continue withStateAfterIngameEvents
 
 handleEvent g' (MouseDown LightButton _ _ mouseLocation) =
   let g = g' & (uiState . lastReportedClick) ?~ (LightButton, mouseLocation)
-      lightFire = g & fireValue .~ Burning
+      lightFire = g & set fireValue Burning
                     & stored . wood -~ 5
                     & upcomingEvents %~ updateEvents (FireStoked stokeCooldown)
   in continue $
