@@ -1,42 +1,35 @@
 module Main where
 
-import           Brick
-import           Brick.BChan                    ( newBChan
-                                                , writeBChan
-                                                )
-import qualified Graphics.Vty                  as V
-import           Control.Monad                  ( forever
-                                                , void
-                                                )
-import           Control.Concurrent             ( threadDelay
-                                                , forkIO
-                                                )
+import Control.Monad (forever, void)
+import Control.Concurrent (threadDelay, forkIO)
+import Brick (appDraw, App(..), neverShowCursor, customMain)
+import Brick.BChan (newBChan, writeBChan)
+import Graphics.Vty (mkVty, standardIOConfig, setMode, outputIface, Mode(Mouse))
 
-import           UI
-import           UIState
-import           GameTypes
-import           Game (initGame)
-import           Event
+import           UI (theMap, drawUI)
+import           UIState (Name)
+import           GameTypes (Tick(..), initGame, Game)
+import           Event (handleEvent)
 
 app :: App Game Tick Name
-app = App { appDraw         = drawUI
-          , appChooseCursor = neverShowCursor
-          , appHandleEvent  = handleEvent
-          , appStartEvent   = return
-          , appAttrMap      = const theMap
-          }
+app = App
+  { appDraw         = drawUI
+  , appChooseCursor = neverShowCursor
+  , appHandleEvent  = handleEvent
+  , appStartEvent   = return
+  , appAttrMap      = const theMap }
 
 main :: IO ()
 main = do
-        let buildVty = do
-              v <- V.mkVty =<< V.standardIOConfig
-              V.setMode (V.outputIface v) V.Mouse True
-              return v
-        initialVty <- buildVty
-        g          <- initGame
-        chan       <- newBChan 10
-        forkIO $ forever $ do
-                writeBChan chan Tick
-                threadDelay 100000 -- decides how fast your game moves; 1/10 second
+  let buildVty = do
+        v <- mkVty =<< standardIOConfig
+        setMode (outputIface v) Mouse True
+        return v
+  initialVty <- buildVty
+  g          <- initGame
+  chan       <- newBChan 10
+  forkIO $ forever $ do
+          writeBChan chan Tick
+          threadDelay 100000 -- decides how fast your game moves; 1/10 second
 
-        void $ customMain initialVty buildVty (Just chan) app g
+  void $ customMain initialVty buildVty (Just chan) app g

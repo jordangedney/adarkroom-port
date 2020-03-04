@@ -1,7 +1,7 @@
 module Event (handleEvent) where
 
-import           Brick
-import           Control.Lens
+import           Brick (BrickEvent(..), EventM, Next, Location, continue)
+import           Control.Lens (over, set, _2, (&))
 
 import           Game
 import           GameTypes
@@ -25,7 +25,7 @@ handleEvent g _ = continue g
 
 handleMouseDown :: Game -> Name -> Brick.Location -> EventM n (Next Game)
 handleMouseDown game buttonPressed mouseLocation =
-  (game & (uiState . lastReportedClick) ?~ (buttonPressed, mouseLocation))
+  game & set (uiState . lastReportedClick) (Just (buttonPressed, mouseLocation))
   & handleButtonEvent buttonPressed
   & continue
 
