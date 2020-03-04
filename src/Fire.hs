@@ -6,16 +6,12 @@ module Fire
 where
 
 import GameTypes (FireState(..), Game, events, upcomingEvents,
-                  _fireValue, fireValue,
-                  _fireLit, fireLit,
-                  _milestones, milestones,
-                  _stored, stored,
-                  _wood, wood)
+                  fireValue, fireLit, milestones, stored, wood)
 import GameEvent (GameEvent(FireShrinking, BuilderUpdate, FireStoked), updateEvents)
 import Constants (fireCoolDelay, builderStateDelay, stokeCooldown)
 import Util (addEvent)
 
-import Control.Lens (over, set, (&))
+import Control.Lens (over, set, view, (&))
 
 -- Defined in GameTypes to avoid an import cycle:
 -- data FireState
@@ -43,8 +39,8 @@ fireSucc x = succ x
 
 fireChanged :: Game -> Game
 fireChanged game =
-  let showFire = game & over events (addEvent (fireState (_fireValue game)))
-      fireIsBurning = _fireValue game /= Dead
+  let showFire = game & over events (addEvent (fireState (view fireValue game)))
+      fireIsBurning = view fireValue game /= Dead
       fireContinuesBurning =
         showFire & over upcomingEvents (updateEvents (FireShrinking fireCoolDelay))
   in if fireIsBurning then fireContinuesBurning else showFire
@@ -52,7 +48,7 @@ fireChanged game =
 firstLight :: Game -> Game
 firstLight game =
   let doNothing = game
-      fireHasBeenLitBefore = (_fireLit . _milestones) game
+      fireHasBeenLitBefore = view (milestones . fireLit) game
       firstIngameLightMessage =
         "the light from the fire spills from the windows, out into the dark."
       builderIsOnTheWay =
@@ -71,7 +67,7 @@ light game =
              & firstLight
       withUnlitFire =
         game & over events (addEvent "not enough wood to get the fire going.")
-      enoughWood = (_wood . _stored) game > 4
+      enoughWood = view (stored . wood) game > 4
   in if enoughWood then withLitFire else withUnlitFire
 
 stoke :: Game -> Game
@@ -83,7 +79,7 @@ stoke game =
              & fireChanged
       withUnstokedFire =
         game & over events (addEvent "the wood has run out.")
-      enoughWood = (_wood . _stored) game > 0
+      enoughWood = view (stored . wood) game > 0
   in if enoughWood then withStokedFire else withUnstokedFire
 
 shrinking :: Game -> Game
