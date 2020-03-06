@@ -4,13 +4,13 @@ import Brick (BrickEvent(..), EventM, Next, Location, continue)
 import Control.Lens (over, set, view, _2, (&))
 
 import Game (getGameEvent)
-import GameTypes (Game, Tick(..), tickCount, upcomingEvents, events, uiState)
+import GameTypes (Game, Tick(..), tickCount, upcomingEvents, events, uiState, hyper)
 import GameEvent (tickEvents, getTime, toList)
 import UIState (Name(..), lastReportedClick)
 import qualified Fire
 
-handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
-handleEvent game (AppEvent Tick) =
+gameTick :: Game -> Game
+gameTick game =
   let updatedTickers =
         game & over tickCount (+1)
              & over upcomingEvents tickEvents
@@ -18,7 +18,15 @@ handleEvent game (AppEvent Tick) =
       doEventIfReady e = if getTime e == 0 then getGameEvent e else id
       allEvents = toList (view upcomingEvents updatedTickers)
       withStateAfterIngameEvents = foldr doEventIfReady updatedTickers allEvents
-  in continue withStateAfterIngameEvents
+  in withStateAfterIngameEvents
+
+handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
+handleEvent game (AppEvent Tick) =
+  let doubleSpeedEnabled = view hyper game
+      newGame = if doubleSpeedEnabled then gameTick (gameTick game)
+                else gameTick game
+  in continue newGame
+
 handleEvent g (MouseDown e _ _ m) = handleMouseDown g e m
 handleEvent g MouseUp {} = continue $ set (uiState . lastReportedClick) Nothing g
 handleEvent g _ = continue g

@@ -66,6 +66,7 @@ data Game = Game
   , _builderLevel     :: Int
   , _progressAmount   :: Float
   , _milestones       :: Milestones
+  , _hyper            :: Bool
   } deriving (Eq, Show, Ord)
 
 makeLenses ''Game
@@ -85,4 +86,5 @@ initGame              = return $ Game
   , _builderLevel     = 0
   , _progressAmount   = 0.5
   , _milestones       = milestonesInit
+  , _hyper            = True
   }

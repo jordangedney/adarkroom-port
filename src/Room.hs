@@ -3,7 +3,7 @@ where
 
 import Control.Lens (over, set, view, (&))
 
-import GameTypes (RoomTemperature(..), Game, events, upcomingEvents,
+import GameTypes (FireState, RoomTemperature(..), Game, events, upcomingEvents,
                   roomTemperature)
 import GameEvent (GameEvent(BuilderUpdate), updateEvents)
 import Constants (roomWarmDelay)
@@ -29,8 +29,16 @@ roomPred :: RoomTemperature -> RoomTemperature
 roomPred Freezing = Freezing
 roomPred x = pred x
 
+roomSucc :: RoomTemperature -> RoomTemperature
 roomSucc Hot = Hot
 roomSucc x = succ x
+
+newTemperature :: FireState -> RoomTemperature -> RoomTemperature
+newTemperature fire room =
+  case compare (fromEnum fire) (fromEnum room) of
+    LT -> roomPred room
+    EQ -> room
+    GT -> roomSucc room
 
 -- roomChanged :: Game -> Game
 -- roomChanged game =
