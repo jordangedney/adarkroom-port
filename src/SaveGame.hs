@@ -1,18 +1,15 @@
-{-# LANGUAGE OverloadedStrings #-}
+module SaveGame (save, load) where
 
-module SaveGame where
+import Data.Yaml (decodeFileEither, encodeFile)
 
-import Data.Yaml
-
-import GameTypes
+import GameTypes (Game, initGame)
 
 load :: IO Game
 load = do
-  loadFile <-  decodeFile "save.data"
+  loadFile <- decodeFileEither "save.data"
   case loadFile of
-    Just g -> return g
-    Nothing -> return initGame
+    Left _     -> return initGame
+    Right game -> return game
 
 save :: Game -> IO ()
-save game = do
-  encodeFile "save.data" game
+save = encodeFile "save.data"

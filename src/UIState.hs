@@ -21,9 +21,11 @@ data Name
   | LightButton
   | StokeButton
 
-  | DebugButton
+  | RestartButton
   | SaveButton
   | HyperButton
+  | DebugButton
+  | PrevButton
 
   -- Craftables
   | TrapButton
