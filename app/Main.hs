@@ -6,10 +6,12 @@ import Brick (appDraw, App(..), neverShowCursor, customMain)
 import Brick.BChan (newBChan, writeBChan)
 import Graphics.Vty (mkVty, standardIOConfig, setMode, outputIface, Mode(Mouse))
 
+import           SaveGame (load)
 import           UI (theMap, drawUI)
 import           UIState (Name)
 import           GameTypes (Tick(..), initGame, Game)
 import           Event (handleEvent)
+
 
 app :: App Game Tick Name
 app = App
@@ -26,7 +28,7 @@ main = do
         setMode (outputIface v) Mouse True
         return v
   initialVty <- buildVty
-  g          <- initGame
+  g          <- load
   chan       <- newBChan 10
   forkIO $ forever $ do
           writeBChan chan Tick
