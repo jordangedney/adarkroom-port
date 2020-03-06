@@ -79,8 +79,8 @@ data Game = Game
 
 makeLenses ''Game
 
-initGame :: IO Game
-initGame              = return $ Game
+initGame :: Game
+initGame              = Game
   { _location         = Room
   , _stored           = storedInit
   , _upcomingEvents   = gameEventsInit
