@@ -94,6 +94,6 @@ initGame              = Game
   , _builderLevel     = 0
   , _progressAmount   = 0.5
   , _milestones       = milestonesInit
-  , _hyper            = True
+  , _hyper            = False
   , _debug            = True
   }

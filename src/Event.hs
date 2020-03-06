@@ -6,7 +6,7 @@ import Control.Lens (over, set, view, _2, (&))
 
 import Game (getGameEvent)
 import GameTypes (Game, Tick(..), tickCount, upcomingEvents, events, uiState,
-                  debug, hyper)
+                  debug, hyper, initGame)
 import GameEvent (tickEvents, getTime, toList)
 import UIState (Name(..), lastReportedClick)
 import SaveGame (save)
@@ -49,6 +49,7 @@ handleMouseDown game buttonPressed mouseLocation =
 handleButtonEvent :: Name -> Game -> Game
 handleButtonEvent LightButton = Fire.light
 handleButtonEvent StokeButton = Fire.stoke
-handleButtonEvent DebugButton = over debug not
+handleButtonEvent RestartButton = const initGame
 handleButtonEvent HyperButton = over hyper not
+handleButtonEvent DebugButton = over debug not
 handleButtonEvent _ = id

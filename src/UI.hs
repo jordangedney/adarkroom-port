@@ -128,29 +128,38 @@ locationsWindow g =
 
 bottomMenu :: Game -> Widget Name
 bottomMenu g =
-  hBox [ str "  "
-       , textButton g DebugButton "debug."
-       , str "  "
-       , textButton g SaveButton "save."
-       , str "  "
-       , if view hyper g then textButton g HyperButton "classic."
-         else textButton g HyperButton "hyper."
-       , str "  "
-       , if view debug g then str (show (view tickCount g)) else str "  "
-       ]
+  let changingButton state button ifTrue ifFalse =
+        if view state g then (textButton g button, ifTrue)
+        else (textButton g button,  ifFalse)
+
+      buttonsToLabels = [ (textButton g RestartButton,  "restart.")
+                        , (textButton g SaveButton, "save.")
+                        , changingButton hyper HyperButton "classic." "hyper."
+                        , changingButton debug PrevButton "prev." ""
+                        , (textButton g DebugButton, "debug.")
+                        ]
+      hiddenEmptyLabels = filter (("" /=) . snd) buttonsToLabels
+      lengthOfLabels = (-2) + sum (map ((+2) . length . snd) hiddenEmptyLabels)
+      width = 45
+      leftPadding = width - lengthOfLabels
+
+      paddingBetweenButtons = replicate (length hiddenEmptyLabels) (str "  ")
+      withLabelsApplied = map (\(a, b) -> a b) hiddenEmptyLabels
+      buttons = interleave [withLabelsApplied, paddingBetweenButtons]
+   in padLeft (Pad leftPadding) (hBox buttons)
 
 drawUI :: Game -> [Widget Name]
 drawUI g =
   [ center $ hLimit 77 $ vLimit 30
     $ withBorderStyle unicodeRounded
     $ border
-    $ hBox [ eventsWindow g
-           , padLeft (Pad 3)
-             $ vBox [ locationsWindow g
-                    , vLimit 24 (actionWindow g <+> storeWindow g
-                                <=> str (replicate 30 '\n'))
-                    , bottomMenu g
-                    ]
+    $ hBox [ vBox [ vLimit 27 (eventsWindow g)
+                  , str (if view debug g then show (view tickCount g) ++ "  " else "")
+                  ]
+           , vBox [ padLeft (Pad 3) $ locationsWindow g
+                  , padLeft (Pad 3) $ vLimit 24 (actionWindow g <+> storeWindow g
+                                                 <=> str (replicate 30 '\n'))
+                  , bottomMenu g]
            ]
   ]
 
