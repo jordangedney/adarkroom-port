@@ -1,7 +1,11 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
 module GameEvent where
 
+import GHC.Generics
+import Data.Yaml
 import Control.Lens (makeLenses, over, (&), set)
 
 data GameEvent
@@ -9,7 +13,9 @@ data GameEvent
   | FireStoked Int
   | FireShrinking Int
   | BuilderUpdate Int
-  deriving (Show, Eq, Ord)
+  deriving (Eq, Show, Ord, Generic, ToJSON)
+
+instance FromJSON GameEvent
 
 -- Hacky, but >0 means active, 0 triggers, and <0 means inactive
 data GameEvents = GameEvents
@@ -17,8 +23,9 @@ data GameEvents = GameEvents
   , _fireStoked    :: GameEvent
   , _fireShrinking :: GameEvent
   , _builderUpdate :: GameEvent
-  } deriving (Show, Eq, Ord)
+  } deriving (Eq, Show, Ord, Generic, ToJSON)
 
+instance FromJSON GameEvents
 makeLenses ''GameEvents
 
 gameEventsInit :: GameEvents

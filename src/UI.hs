@@ -8,6 +8,9 @@ import qualified Brick.Widgets.ProgressBar as P
 import qualified Graphics.Vty as V
 import Data.Bifunctor (second)
 
+-- import Control.Lens (over, set, view, _2, (&))
+import Control.Lens
+
 import Util
 import GameTypes
 import GameEvent (getTime, isActive, GameEvent, GameEvents, _fireStoked)
@@ -51,6 +54,16 @@ blueButton buttonId label =
   $ withDefAttr blueBackground
   $ border
   $ str $ justifyCenter15 label
+
+textButton :: Game -> Name -> String -> Widget Name
+textButton game buttonId label =
+  let button = clickable buttonId (str label)
+      buttonWithUnderline = withAttr underlined button
+      currentlyClicked =
+        case (buttonId ==) . fst <$> view (uiState . lastReportedClick) game
+        of Just True -> True
+           _ -> False
+  in if currentlyClicked then buttonWithUnderline else button
 
 lightFireButton :: Widget Name
 lightFireButton = blueButton LightButton "light fire"
@@ -114,10 +127,16 @@ locationsWindow g =
      <=> str " "
 
 bottomMenu :: Game -> Widget Name
-bottomMenu _g =
-  hBox [ str "debug.  "
-       , str "save.  "
-       , str "hyper.  "
+bottomMenu g =
+  hBox [ str "  "
+       , textButton g DebugButton "debug."
+       , str "  "
+       , textButton g SaveButton "save."
+       , str "  "
+       , if view hyper g then textButton g HyperButton "classic."
+         else textButton g HyperButton "hyper."
+       , str "  "
+       , if view debug g then str (show (view tickCount g)) else str "  "
        ]
 
 drawUI :: Game -> [Widget Name]

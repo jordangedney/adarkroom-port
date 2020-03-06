@@ -1,13 +1,18 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
 module GameTypes where
+
+import GHC.Generics
+import Data.Yaml
 
 import Control.Lens (makeLenses)
 
 import UIState (UIState, uiStateInit)
 import GameEvent (GameEvents, gameEventsInit)
 
-data Tick = Tick deriving (Show, Eq, Ord)
+data Tick = Tick deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 -- FireState and RoomState are comparable
 data FireState
@@ -16,7 +21,7 @@ data FireState
   | Flickering
   | Burning
   | Roaring
-  deriving (Eq, Show, Enum, Ord)
+  deriving (Eq, Show, Enum, Ord, Generic, ToJSON, FromJSON)
 
 data RoomTemperature
   = Freezing
@@ -24,12 +29,12 @@ data RoomTemperature
   | Mild
   | Warm
   | Hot
-  deriving (Eq, Show, Enum, Ord)
+  deriving (Eq, Show, Enum, Ord, Generic, ToJSON, FromJSON)
 
 data Milestones = Milestones
   { _fireLit        :: Bool
   , _builderArrived :: Bool
-  } deriving (Show, Eq, Ord)
+  } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''Milestones
 
@@ -42,7 +47,7 @@ milestonesInit = Milestones
 data Stored = Stored
   { _wood :: Int
   , _scales :: Int
-  } deriving (Show, Eq, Ord)
+  } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''Stored
 
@@ -52,7 +57,9 @@ storedInit = Stored
   , _scales = 0
   }
 
-data Location = Room | Outside | Path | Ship deriving (Eq, Show, Ord)
+data Location = Room | Outside | Path | Ship
+  deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
+
 
 data Game = Game
   { _location         :: Location
@@ -67,7 +74,8 @@ data Game = Game
   , _progressAmount   :: Float
   , _milestones       :: Milestones
   , _hyper            :: Bool
-  } deriving (Eq, Show, Ord)
+  , _debug            :: Bool
+  } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''Game
 
@@ -87,4 +95,5 @@ initGame              = return $ Game
   , _progressAmount   = 0.5
   , _milestones       = milestonesInit
   , _hyper            = True
+  , _debug            = True
   }

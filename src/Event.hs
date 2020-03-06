@@ -1,13 +1,17 @@
 module Event (handleEvent) where
 
+import Control.Monad.IO.Class (liftIO)
 import Brick (BrickEvent(..), EventM, Next, Location, continue)
 import Control.Lens (over, set, view, _2, (&))
 
 import Game (getGameEvent)
-import GameTypes (Game, Tick(..), tickCount, upcomingEvents, events, uiState, hyper)
+import GameTypes (Game, Tick(..), tickCount, upcomingEvents, events, uiState,
+                  debug, hyper)
 import GameEvent (tickEvents, getTime, toList)
 import UIState (Name(..), lastReportedClick)
+import SaveGame (save)
 import qualified Fire
+
 
 gameTick :: Game -> Game
 gameTick game =
@@ -22,10 +26,15 @@ gameTick game =
 
 handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEvent game (AppEvent Tick) =
+  -- XXX the gui ticks twice at once
   let doubleSpeedEnabled = view hyper game
       newGame = if doubleSpeedEnabled then gameTick (gameTick game)
                 else gameTick game
   in continue newGame
+
+handleEvent g (MouseDown SaveButton _ _ m) = do
+  liftIO (save g)
+  handleMouseDown g SaveButton m
 
 handleEvent g (MouseDown e _ _ m) = handleMouseDown g e m
 handleEvent g MouseUp {} = continue $ set (uiState . lastReportedClick) Nothing g
@@ -40,4 +49,6 @@ handleMouseDown game buttonPressed mouseLocation =
 handleButtonEvent :: Name -> Game -> Game
 handleButtonEvent LightButton = Fire.light
 handleButtonEvent StokeButton = Fire.stoke
+handleButtonEvent DebugButton = over debug not
+handleButtonEvent HyperButton = over hyper not
 handleButtonEvent _ = id

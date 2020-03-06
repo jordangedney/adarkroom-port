@@ -36,6 +36,7 @@ library:
   - brick
   - vty
   - lens
+  - yaml
 
 executables:
   a-dark-room-exe:

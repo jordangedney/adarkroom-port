@@ -1,9 +1,18 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module UIState where
 
+import GHC.Generics
+import Data.Yaml
+
 import Control.Lens (makeLenses)
 import Brick.Types (Location)
+
+deriving instance ToJSON Location
+deriving instance FromJSON Location
 
 data Name
   = StoreVP
@@ -11,6 +20,10 @@ data Name
   | EventsVP
   | LightButton
   | StokeButton
+
+  | DebugButton
+  | SaveButton
+  | HyperButton
 
   -- Craftables
   | TrapButton
@@ -37,7 +50,7 @@ data Name
   | IronswordButton
   | SteelswordButton
   | RifleButton
-  deriving (Eq, Show, Ord)
+  deriving (Eq, Show, Enum, Ord, Generic, ToJSON, FromJSON)
 
 data ShowStores = ShowStores
   { _showWood       :: Bool
@@ -54,7 +67,7 @@ data ShowStores = ShowStores
   , _showBayonet    :: Bool
   , _showAlienAlloy :: Bool
   , _showCompass    :: Bool
-  } deriving (Show, Eq, Ord)
+  } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''ShowStores
 
@@ -82,7 +95,7 @@ data UIState = UIState
   , _showOutside       :: Bool
   , _showPath          :: Bool
   , _showShip          :: Bool
-  } deriving (Show, Eq, Ord)
+  } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''UIState
 
