@@ -13,9 +13,8 @@ data GameEvent
   | FireStoked Int
   | FireShrinking Int
   | BuilderUpdate Int
-  deriving (Eq, Show, Ord, Generic, ToJSON)
-
-instance FromJSON GameEvent
+  | RoomChanged Int
+  deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 -- Hacky, but >0 means active, 0 triggers, and <0 means inactive
 data GameEvents = GameEvents
@@ -23,9 +22,9 @@ data GameEvents = GameEvents
   , _fireStoked    :: GameEvent
   , _fireShrinking :: GameEvent
   , _builderUpdate :: GameEvent
-  } deriving (Eq, Show, Ord, Generic, ToJSON)
+  , _roomChanged   :: GameEvent
+  } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
-instance FromJSON GameEvents
 makeLenses ''GameEvents
 
 gameEventsInit :: GameEvents
@@ -34,6 +33,7 @@ gameEventsInit = GameEvents
   , _fireStoked    = FireStoked    (-1)
   , _fireShrinking = FireShrinking (-1)
   , _builderUpdate = BuilderUpdate (-1)
+  , _roomChanged   = RoomChanged   (-1)
   }
 
 toList :: GameEvents -> [GameEvent]
@@ -43,6 +43,7 @@ toList gameEvent  =
   , _fireStoked
   , _fireShrinking
   , _builderUpdate
+  , _roomChanged
   ]
 
 tickEvents :: GameEvents -> GameEvents
@@ -51,6 +52,7 @@ tickEvents gameEvent =
             & over fireStoked    eventDec
             & over fireShrinking eventDec
             & over builderUpdate eventDec
+            & over roomChanged   eventDec
 
 updateEvents :: GameEvent -> GameEvents -> GameEvents
 updateEvents event gameEvents = gameEvents & set (eventGetter event) event
@@ -60,18 +62,21 @@ eventDec (UnlockForest    x) = UnlockForest    (x - 1)
 eventDec (FireStoked      x) = FireStoked      (x - 1)
 eventDec (FireShrinking   x) = FireShrinking   (x - 1)
 eventDec (BuilderUpdate   x) = BuilderUpdate   (x - 1)
+eventDec (RoomChanged     x) = RoomChanged     (x - 1)
 
 getTime :: GameEvent -> Int
 getTime  (UnlockForest    x) = x
 getTime  (FireStoked      x) = x
 getTime  (FireShrinking   x) = x
 getTime  (BuilderUpdate   x) = x
+getTime  (RoomChanged     x) = x
 
 isActive :: GameEvent -> Bool
 isActive (UnlockForest    x) = x > 0
 isActive (FireStoked      x) = x > 0
 isActive (FireShrinking   x) = x > 0
 isActive (BuilderUpdate   x) = x > 0
+isActive (RoomChanged     x) = x > 0
 
 eventGetter
   :: Functor f
@@ -81,3 +86,4 @@ eventGetter (UnlockForest  _) = unlockForest
 eventGetter (FireStoked    _) = fireStoked
 eventGetter (FireShrinking _) = fireShrinking
 eventGetter (BuilderUpdate _) = builderUpdate
+eventGetter (RoomChanged   _) = roomChanged

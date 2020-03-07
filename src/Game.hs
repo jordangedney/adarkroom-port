@@ -6,9 +6,11 @@ import GameEvent (GameEvent(..))
 import qualified Fire
 import qualified Outside
 import qualified Builder
+import qualified Room
 
 getGameEvent :: GameEvent -> Game -> Game
 getGameEvent (UnlockForest  _) = Outside.unlock
 getGameEvent (FireStoked    _) = id
 getGameEvent (FireShrinking _) = Fire.shrinking
 getGameEvent (BuilderUpdate _) = Builder.update
+getGameEvent (RoomChanged _)   = Room.update
