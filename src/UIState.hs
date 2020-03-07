@@ -26,6 +26,7 @@ data Name
   | HyperButton
   | DebugButton
   | PrevButton
+  | PauseButton
 
   -- Craftables
   | TrapButton

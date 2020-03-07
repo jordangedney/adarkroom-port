@@ -23,11 +23,11 @@ import Util (addEvent)
 --   deriving (Eq, Show, Enum, Ord)
 
 fireState :: FireState -> String
-fireState Dead = "the fire is dead."
+fireState Dead        = "the fire is dead."
 fireState Smouldering = "the fire is smouldering."
-fireState Flickering = "the fire is flickering."
-fireState Burning = "the fire is burning."
-fireState Roaring = "the fire is roaring."
+fireState Flickering  = "the fire is flickering."
+fireState Burning     = "the fire is burning."
+fireState Roaring     = "the fire is roaring."
 
 firePred :: FireState -> FireState
 firePred Dead = Dead

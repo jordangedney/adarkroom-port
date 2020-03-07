@@ -10,14 +10,14 @@ import           SaveGame (load)
 import           UI (theMap, drawUI)
 import           UIState (Name)
 import           GameTypes (Tick(..), initGame, Game)
-import           Event (handleEvent)
+import           Event (handleEventWrapper)
 
 
 app :: App Game Tick Name
 app = App
   { appDraw         = drawUI
   , appChooseCursor = neverShowCursor
-  , appHandleEvent  = handleEvent
+  , appHandleEvent  = handleEventWrapper
   , appStartEvent   = return
   , appAttrMap      = const theMap }
 

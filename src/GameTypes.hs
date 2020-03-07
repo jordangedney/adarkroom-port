@@ -75,6 +75,8 @@ data Game = Game
   , _milestones       :: Milestones
   , _hyper            :: Bool
   , _debug            :: Bool
+  , _previousStates   :: [Game]
+  , _paused           :: Bool
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''Game
@@ -96,4 +98,6 @@ initGame              = Game
   , _milestones       = milestonesInit
   , _hyper            = False
   , _debug            = True
+  , _previousStates   = []
+  , _paused           = False
   }

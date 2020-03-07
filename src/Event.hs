@@ -1,4 +1,4 @@
-module Event (handleEvent) where
+module Event (handleEventWrapper) where
 
 import Control.Monad.IO.Class (liftIO)
 import Brick (BrickEvent(..), EventM, Next, Location, continue)
@@ -6,7 +6,7 @@ import Control.Lens (over, set, view, _2, (&))
 
 import Game (getGameEvent)
 import GameTypes (Game, Tick(..), tickCount, upcomingEvents, events, uiState,
-                  debug, hyper, initGame)
+                  debug, hyper, initGame, previousStates, paused)
 import GameEvent (tickEvents, getTime, toList)
 import UIState (Name(..), lastReportedClick)
 import SaveGame (save)
@@ -22,7 +22,14 @@ gameTick game =
       doEventIfReady e = if getTime e == 0 then getGameEvent e else id
       allEvents = toList (view upcomingEvents updatedTickers)
       withStateAfterIngameEvents = foldr doEventIfReady updatedTickers allEvents
-  in withStateAfterIngameEvents
+  in if view paused game then game else withStateAfterIngameEvents
+
+handleEventWrapper :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
+handleEventWrapper game event@(AppEvent Tick) = handleEvent game event
+handleEventWrapper game event@(MouseDown PrevButton _ _ _) = handleEvent game event
+handleEventWrapper game event@(MouseUp PrevButton _ _) = handleEvent game event
+handleEventWrapper game event =
+  handleEvent (game & over  previousStates (game:)) event
 
 handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEvent game (AppEvent Tick) =
@@ -52,4 +59,6 @@ handleButtonEvent StokeButton = Fire.stoke
 handleButtonEvent RestartButton = const initGame
 handleButtonEvent HyperButton = over hyper not
 handleButtonEvent DebugButton = over debug not
+handleButtonEvent PrevButton = set paused True . head . view previousStates
+handleButtonEvent PauseButton = over paused not
 handleButtonEvent _ = id
