@@ -2,7 +2,8 @@ module SaveGame (save, load) where
 
 import Data.Yaml (decodeFileEither, encodeFile)
 
-import GameTypes (Game, initGame)
+import GameTypes (Game, initGame, previousStates)
+import Control.Lens (set, (&))
 
 load :: IO Game
 load = do
@@ -12,4 +13,6 @@ load = do
     Right game -> return game
 
 save :: Game -> IO ()
-save = encodeFile "save.data"
+save game =
+  game & set previousStates []
+       & encodeFile "save.data"

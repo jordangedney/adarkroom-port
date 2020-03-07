@@ -135,8 +135,9 @@ bottomMenu g =
       buttonsToLabels = [ (textButton g RestartButton,  "restart.")
                         , (textButton g SaveButton, "save.")
                         , changingButton hyper HyperButton "classic." "hyper."
+                        , changingButton debug PauseButton  "pause." ""
                         , changingButton debug PrevButton "prev." ""
-                        , (textButton g DebugButton, "debug.")
+                        -- , (textButton g DebugButton, "debug.")
                         ]
       hiddenEmptyLabels = filter (("" /=) . snd) buttonsToLabels
       lengthOfLabels = (-2) + sum (map ((+2) . length . snd) hiddenEmptyLabels)
