@@ -1,11 +1,10 @@
-module Room
-where
+module Room (update) where
 
 import Control.Lens (over, set, view, (&))
 
 import GameTypes (FireState, RoomTemperature(..), Game, events, upcomingEvents,
-                  roomTemperature)
-import GameEvent (GameEvent(BuilderUpdate), updateEvents)
+                  fireValue, roomTemperature)
+import GameEvent (GameEvent(RoomChanged), updateEvents)
 import Constants (roomWarmDelay)
 import Util (addEvent)
 
@@ -18,12 +17,12 @@ import Util (addEvent)
 --   | Hot
 --   deriving (Eq, Show, Enum, Ord)
 
-roomTemperature :: RoomTemperature -> String
-roomTemperature Freezing = "the room is freezing."
-roomTemperature Cold     = "the room is cold."
-roomTemperature Mild     = "the room is mild."
-roomTemperature Warm     = "the room is warm."
-roomTemperature Hot      = "the room is hot."
+roomState :: RoomTemperature -> String
+roomState Freezing = "the room is freezing."
+roomState Cold     = "the room is cold."
+roomState Mild     = "the room is mild."
+roomState Warm     = "the room is warm."
+roomState Hot      = "the room is hot."
 
 roomPred :: RoomTemperature -> RoomTemperature
 roomPred Freezing = Freezing
@@ -40,16 +39,17 @@ newTemperature fire room =
     EQ -> room
     GT -> roomSucc room
 
--- roomChanged :: Game -> Game
--- roomChanged game =
---   let showRoom = game & over events (addEvent (roomState (view roomTemperature game)))
---       roomIsBurning = view roomTemperature game /= Dead
---       roomContinuesBurning =
---         showRoom & over upcomingEvents (updateEvents (RoomShrinking roomCoolDelay))
---   in if roomIsBurning then roomContinuesBurning else showRoom
---
---
--- shrinking :: Game -> Game
--- shrinking game =
---   game & over roomTemperature roomPred
---        & roomChanged
+update :: Game -> Game
+update game =
+  let currentTemp = newTemperature (view fireValue game) (view roomTemperature game)
+
+      alwaysChanging =
+        game & over upcomingEvents (updateEvents (RoomChanged roomWarmDelay))
+             & set roomTemperature currentTemp
+
+      withNotification =
+        alwaysChanging
+        & over events (addEvent (roomState (view roomTemperature alwaysChanging)))
+
+      temperatureChanged = view roomTemperature game /= currentTemp
+  in if temperatureChanged then withNotification else alwaysChanging

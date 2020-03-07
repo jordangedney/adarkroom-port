@@ -9,8 +9,9 @@ import Control.Lens (over, set, view, (&))
 
 import GameTypes (FireState(..), Game, events, upcomingEvents,
                   fireValue, fireLit, milestones, stored, wood)
-import GameEvent (GameEvent(FireShrinking, BuilderUpdate, FireStoked), updateEvents)
-import Constants (fireCoolDelay, builderStateDelay, stokeCooldown)
+import GameEvent (GameEvent(FireShrinking, BuilderUpdate, FireStoked, RoomChanged),
+                  updateEvents)
+import Constants (fireCoolDelay, builderStateDelay, stokeCooldown, roomWarmDelay)
 import Util (addEvent)
 
 -- Defined in GameTypes to avoid an import cycle:
@@ -55,6 +56,7 @@ firstLight game =
         game & set (milestones . fireLit) True
              & over events (addEvent firstIngameLightMessage)
              & over upcomingEvents (updateEvents (BuilderUpdate builderStateDelay))
+             & over upcomingEvents (updateEvents (RoomChanged roomWarmDelay))
   in if fireHasBeenLitBefore then doNothing else builderIsOnTheWay
 
 light :: Game -> Game

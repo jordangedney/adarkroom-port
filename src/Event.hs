@@ -12,7 +12,6 @@ import UIState (Name(..), lastReportedClick)
 import SaveGame (save)
 import qualified Fire
 
-
 gameTick :: Game -> Game
 gameTick game =
   let updatedTickers =
@@ -35,7 +34,8 @@ handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEvent game (AppEvent Tick) =
   -- XXX the gui ticks twice at once
   let doubleSpeedEnabled = view hyper game
-      newGame = if doubleSpeedEnabled then gameTick (gameTick game)
+      fasterFaster = gameTick . gameTick . gameTick . gameTick $ game
+      newGame = if doubleSpeedEnabled then fasterFaster
                 else gameTick game
   in continue newGame
 
