@@ -4,6 +4,7 @@ module Constants
   , builderStateDelay
   , stokeCooldown
   , needWoodDelay
+  , gatherCooldown
   )
 where
 
@@ -19,3 +20,4 @@ roomWarmDelay     = seconds 30 -- time between room temperature updates
 builderStateDelay = seconds 30 -- time between builder state updates
 stokeCooldown     = seconds 10 -- cooldown to stoke the fire
 needWoodDelay     = seconds 15 -- from the stranger arrival, to when you need wood
+gatherCooldown    = seconds 60 -- cooldown for gathering wood outside

@@ -20,6 +20,7 @@ data Name
   | EventsVP
   | LightButton
   | StokeButton
+  | GatherButton
 
   | RestartButton
   | SaveButton

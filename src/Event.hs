@@ -56,18 +56,23 @@ handleMouseDown game buttonPressed mouseLocation =
   & continue
 
 handleButtonEvent :: Name -> Game -> Game
+
+handleButtonEvent RoomButton = Room.arrival
 handleButtonEvent LightButton = Fire.light
 handleButtonEvent StokeButton = Fire.stoke
+
+handleButtonEvent OutsideButton = Outside.arrival
+handleButtonEvent GatherButton  = Outside.gather
+
+handleButtonEvent PathButton = set location Path
+handleButtonEvent ShipButton = set location Ship
+
 handleButtonEvent RestartButton = const initGame
 handleButtonEvent HyperButton = over hyper not
 handleButtonEvent DebugButton = over debug not
 handleButtonEvent PrevButton = set paused True . head . view previousStates
 handleButtonEvent PauseButton = over paused not
 
-handleButtonEvent RoomButton = Room.arrival
-handleButtonEvent OutsideButton = Outside.arrival
-handleButtonEvent PathButton = set location Path
-handleButtonEvent ShipButton = set location Ship
 
 
 handleButtonEvent _ = id

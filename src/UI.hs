@@ -13,7 +13,7 @@ import Control.Lens
 
 import Util
 import GameTypes
-import GameEvent (getTime, isActive, GameEvent, GameEvents, _fireStoked)
+import GameEvent (getTime, isActive, GameEvent, GameEvents, _fireStoked, _gatherWood)
 import UIState
 
 storeWindow :: Game -> Widget Name
@@ -38,8 +38,8 @@ storeWindow g =
        $ viewport StoreVP Vertical $ str toDisplay
      else str (replicate (width + 5) ' '))
 
-buttonWithCoolDown :: Game -> String -> (GameEvents -> GameEvent) -> Widget n
-buttonWithCoolDown g label coolDownGetter =
+buttonThatIsCooling :: Game -> String -> (GameEvents -> GameEvent) -> Widget n
+buttonThatIsCooling g label coolDownGetter =
   withDefAttr blueBackground
   $ border
   $ updateAttrMap (mapAttrNames [ (progressBarDone, P.progressCompleteAttr)
@@ -47,6 +47,12 @@ buttonWithCoolDown g label coolDownGetter =
   $ P.progressBar (Just label)
                   (0.01 * fromIntegral
                           (getTime . coolDownGetter . _upcomingEvents $ g))
+
+buttonWithCoolDown :: Game -> (GameEvents -> GameEvent) -> String -> Name -> Widget Name
+buttonWithCoolDown game cooldownTimer label button =
+  if isActive $  cooldownTimer . _upcomingEvents $ game
+  then buttonThatIsCooling game label cooldownTimer
+  else blueButton button label
 
 blueButton :: Name -> String -> Widget Name
 blueButton buttonId label =
@@ -65,20 +71,26 @@ textButton game buttonId label =
            _ -> False
   in if currentlyClicked then buttonWithUnderline else button
 
-lightFireButton :: Widget Name
-lightFireButton = blueButton LightButton "light fire"
 
-stokeFireButton :: Game -> Widget Name
-stokeFireButton g =
-  if isActive $ _fireStoked . _upcomingEvents $ g
-  then buttonWithCoolDown g "stoke fire" _fireStoked
-  else blueButton StokeButton "stoke fire"
+roomActions :: Game -> Widget Name
+roomActions game =
+  let fireIsOut = view fireValue game == Dead
+      lightFireButton = blueButton LightButton "light fire"
+      stokeFireButton = buttonWithCoolDown game _fireStoked "stoke fire" StokeButton
+  in if fireIsOut then lightFireButton else stokeFireButton
 
-stokeButton :: Game -> Widget Name
-stokeButton g = if _fireValue g == Dead then lightFireButton else stokeFireButton g
+forestActions :: Game -> Widget Name
+forestActions game =
+  let gatherWoodButton = buttonWithCoolDown game _gatherWood "gather wood" GatherButton
+  in gatherWoodButton
 
 actionWindow :: Game -> Widget Name
-actionWindow g = padRight (Pad 3) $ vBox [stokeButton g]
+actionWindow game =
+  let currentRoom =
+        case view location game of
+          Room    -> roomActions
+          Outside -> forestActions
+  in padRight (Pad 3) $ vBox [currentRoom game]
 
 eventsWindow :: Game -> Widget Name
 eventsWindow g =
