@@ -5,12 +5,14 @@ import Brick (BrickEvent(..), EventM, Next, Location, continue)
 import Control.Lens (over, set, view, _2, (&))
 
 import Game (getGameEvent)
-import GameTypes (Game, Tick(..), tickCount, upcomingEvents, events, uiState,
-                  debug, hyper, initGame, previousStates, paused)
+import GameTypes (Game, Tick(..), Location(..), tickCount, upcomingEvents, events, uiState,
+                  debug, hyper, initGame, previousStates, paused, location)
 import GameEvent (tickEvents, getTime, toList)
 import UIState (Name(..), lastReportedClick)
 import SaveGame (save)
 import qualified Fire
+import qualified Outside
+import qualified Room
 
 gameTick :: Game -> Game
 gameTick game =
@@ -61,4 +63,11 @@ handleButtonEvent HyperButton = over hyper not
 handleButtonEvent DebugButton = over debug not
 handleButtonEvent PrevButton = set paused True . head . view previousStates
 handleButtonEvent PauseButton = over paused not
+
+handleButtonEvent RoomButton = Room.arrival
+handleButtonEvent OutsideButton = Outside.arrival
+handleButtonEvent PathButton = set location Path
+handleButtonEvent ShipButton = set location Ship
+
+
 handleButtonEvent _ = id

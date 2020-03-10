@@ -28,6 +28,11 @@ data Name
   | PrevButton
   | PauseButton
 
+  | RoomButton
+  | OutsideButton
+  | PathButton
+  | ShipButton
+
   -- Craftables
   | TrapButton
   | CartButton

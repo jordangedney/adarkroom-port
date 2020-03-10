@@ -1,9 +1,12 @@
-module Room (update) where
+module Room
+  ( update
+  , arrival
+  ) where
 
 import Control.Lens (over, set, view, (&))
 
-import GameTypes (FireState, RoomTemperature(..), Game, events, upcomingEvents,
-                  fireValue, roomTemperature)
+import GameTypes (FireState, RoomTemperature(..), Game, Location(Room),
+                  events, upcomingEvents, fireValue, roomTemperature, location)
 import GameEvent (GameEvent(RoomChanged), updateEvents)
 import Constants (roomWarmDelay)
 import Util (addEvent)
@@ -53,3 +56,7 @@ update game =
 
       temperatureChanged = view roomTemperature game /= currentTemp
   in if temperatureChanged then withNotification else alwaysChanging
+
+arrival :: Game -> Game
+arrival game =
+  game & set location Room
