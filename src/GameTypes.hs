@@ -34,6 +34,7 @@ data RoomTemperature
 data Milestones = Milestones
   { _fireLit        :: Bool
   , _builderArrived :: Bool
+  , _seenForest     :: Bool
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''Milestones
@@ -42,6 +43,7 @@ milestonesInit :: Milestones
 milestonesInit = Milestones
   { _fireLit        = False
   , _builderArrived = False
+  , _seenForest     = False
   }
 
 data Stored = Stored

@@ -108,17 +108,18 @@ locationsWindow g =
       locationTxt Path    = shouldShow _showPath    "A Dusty Path"
       locationTxt Ship    = shouldShow _showShip    "An Old Starship"
 
-      stylize locat = if _location g == locat
-                    then (withAttr underlined . str $ locationTxt locat)
-                         <+> str (replicate (16 - length (locationTxt locat)) ' ')
-                    else str $ justifyLeft16 $ locationTxt locat
+      stylize button locat =
+        if _location g == locat
+        then (withAttr underlined . str $ locationTxt locat)
+             <+> str (replicate (16 - length (locationTxt locat)) ' ')
+        else textButton g button (justifyLeft16 $ locationTxt locat)
 
       top    = if _showOutside . _uiState $ g
-               then stylize Room <+> str "|   " <+> stylize Outside
-               else stylize Room
+               then stylize RoomButton Room <+> str "|   " <+> stylize OutsideButton Outside
+               else stylize RoomButton Room
 
       bottom = if _showPath . _uiState $ g
-               then stylize Path <+> str "|   " <+> stylize Ship
+               then stylize PathButton Path <+> str "|   " <+> stylize ShipButton Ship
                else str ""
 
   in padBottom (Pad 1)
