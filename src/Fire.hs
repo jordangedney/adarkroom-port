@@ -7,12 +7,14 @@ where
 
 import Control.Lens (over, set, view, (&))
 
-import GameTypes (FireState(..), Game, events, upcomingEvents,
-                  fireValue, fireLit, milestones, stored, wood)
+import GameTypes (FireState(..), Game,
+                  upcomingEvents, fireValue, fireLit, milestones, stored, wood)
 import GameEvent (GameEvent(FireShrinking, BuilderUpdate, FireStoked, RoomChanged),
                   updateEvents)
 import Constants (fireCoolDelay, builderStateDelay, stokeCooldown, roomWarmDelay)
-import Util (addEvent)
+
+import qualified Room
+
 
 -- Defined in GameTypes to avoid an import cycle:
 -- data FireState
@@ -40,7 +42,7 @@ fireSucc x = succ x
 
 fireChanged :: Game -> Game
 fireChanged game =
-  let showFire = game & over events (addEvent (fireState (view fireValue game)))
+  let showFire = game & Room.notify (fireState (view fireValue game))
       fireIsBurning = view fireValue game /= Dead
       fireContinuesBurning =
         showFire & over upcomingEvents (updateEvents (FireShrinking fireCoolDelay))
@@ -54,7 +56,7 @@ firstLight game =
         "the light from the fire spills from the windows, out into the dark."
       builderIsOnTheWay =
         game & set (milestones . fireLit) True
-             & over events (addEvent firstIngameLightMessage)
+             & Room.notify firstIngameLightMessage
              & over upcomingEvents (updateEvents (BuilderUpdate builderStateDelay))
              & over upcomingEvents (updateEvents (RoomChanged roomWarmDelay))
   in if fireHasBeenLitBefore then doNothing else builderIsOnTheWay
@@ -68,7 +70,7 @@ light game =
              & fireChanged
              & firstLight
       withUnlitFire =
-        game & over events (addEvent "not enough wood to get the fire going.")
+        game & Room.notify "not enough wood to get the fire going."
       enoughWood = view (stored . wood) game > 4
   in if enoughWood then withLitFire else withUnlitFire
 
@@ -80,7 +82,7 @@ stoke game =
              & over upcomingEvents (updateEvents (FireStoked stokeCooldown))
              & fireChanged
       withUnstokedFire =
-        game & over events (addEvent "the wood has run out.")
+        game & Room.notify "the wood has run out."
       enoughWood = view (stored . wood) game > 0
   in if enoughWood then withStokedFire else withUnstokedFire
 

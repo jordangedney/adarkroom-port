@@ -64,42 +64,46 @@ data Location = Room | Outside | Path | Ship
 
 
 data Game = Game
-  { _location         :: Location
-  , _stored           :: Stored
-  , _upcomingEvents   :: GameEvents
-  , _events           :: [(String, Int)]
-  , _tickCount        :: Int
-  , _uiState          :: UIState
-  , _fireValue        :: FireState
-  , _roomTemperature  :: RoomTemperature
-  , _builderLevel     :: Int
-  , _progressAmount   :: Float
-  , _milestones       :: Milestones
-  , _hyper            :: Bool
-  , _debug            :: Bool
-  , _previousStates   :: [Game]
-  , _paused           :: Bool
+  { _location           :: Location
+  , _stored             :: Stored
+  , _upcomingEvents     :: GameEvents
+  , _events             :: [(String, Int)]
+  , _roomEventBacklog   :: [String]
+  , _forestEventBacklog :: [String]
+  , _tickCount          :: Int
+  , _uiState            :: UIState
+  , _fireValue          :: FireState
+  , _roomTemperature    :: RoomTemperature
+  , _builderLevel       :: Int
+  , _progressAmount     :: Float
+  , _milestones         :: Milestones
+  , _hyper              :: Bool
+  , _debug              :: Bool
+  , _previousStates     :: [Game]
+  , _paused             :: Bool
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''Game
 
 initGame :: Game
-initGame              = Game
-  { _location         = Room
-  , _stored           = storedInit
-  , _upcomingEvents   = gameEventsInit
-  , _events           = [ ("the fire is dead.", 0)
-                        , ("the room is freezing.", 0)
-                        ]
-  , _tickCount        = 0
-  , _uiState          = uiStateInit
-  , _fireValue        = Dead
-  , _roomTemperature  = Freezing
-  , _builderLevel     = 0
-  , _progressAmount   = 0.5
-  , _milestones       = milestonesInit
-  , _hyper            = True
-  , _debug            = True
-  , _previousStates   = []
-  , _paused           = False
+initGame                = Game
+  { _location           = Room
+  , _stored             = storedInit
+  , _upcomingEvents     = gameEventsInit
+  , _events             = [ ("the fire is dead.", 0)
+                          , ("the room is freezing.", 0)
+                          ]
+  , _roomEventBacklog   = []
+  , _forestEventBacklog = []
+  , _tickCount          = 0
+  , _uiState            = uiStateInit
+  , _fireValue          = Dead
+  , _roomTemperature    = Freezing
+  , _builderLevel       = 0
+  , _progressAmount     = 0.5
+  , _milestones         = milestonesInit
+  , _hyper              = True
+  , _debug              = True
+  , _previousStates     = []
+  , _paused             = False
   }
