@@ -31,6 +31,14 @@ data RoomTemperature
   | Hot
   deriving (Eq, Show, Enum, Ord, Generic, ToJSON, FromJSON)
 
+data BuilderState
+  = Approaching
+  | Collapsed
+  | Shivering
+  | Sleeping
+  | Helping
+  deriving (Eq, Show, Enum, Ord, Generic, ToJSON, FromJSON)
+
 data Milestones = Milestones
   { _fireLit        :: Bool
   , _builderArrived :: Bool
@@ -74,7 +82,7 @@ data Game = Game
   , _uiState            :: UIState
   , _fireValue          :: FireState
   , _roomTemperature    :: RoomTemperature
-  , _builderLevel       :: Int
+  , _builderState       :: BuilderState
   , _progressAmount     :: Float
   , _milestones         :: Milestones
   , _hyper              :: Bool
@@ -90,16 +98,14 @@ initGame                = Game
   { _location           = Room
   , _stored             = storedInit
   , _upcomingEvents     = gameEventsInit
-  , _events             = [ ("the fire is dead.", 0)
-                          , ("the room is freezing.", 0)
-                          ]
+  , _events             = []
   , _roomEventBacklog   = []
   , _forestEventBacklog = []
   , _tickCount          = 0
   , _uiState            = uiStateInit
   , _fireValue          = Dead
-  , _roomTemperature    = Freezing
-  , _builderLevel       = 0
+  , _roomTemperature    = Cold -- instead of Freezing so initial status is displayed
+  , _builderState       = Approaching
   , _progressAmount     = 0.5
   , _milestones         = milestonesInit
   , _hyper              = True

@@ -34,9 +34,9 @@ gameEventsInit = GameEvents
   { _unlockForest  = UnlockForest  (-1)
   , _gatherWood    = GatherWood    (-1)
   , _fireStoked    = FireStoked    (-1)
-  , _fireShrinking = FireShrinking (-1)
+  , _fireShrinking = FireShrinking 1
   , _builderUpdate = BuilderUpdate (-1)
-  , _roomChanged   = RoomChanged   (-1)
+  , _roomChanged   = RoomChanged   1
   }
 
 toList :: GameEvents -> [GameEvent]

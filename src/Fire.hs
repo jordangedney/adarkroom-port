@@ -9,11 +9,12 @@ import Control.Lens (over, set, view, (&))
 
 import GameTypes (FireState(..), Game,
                   upcomingEvents, fireValue, fireLit, milestones, stored, wood)
-import GameEvent (GameEvent(FireShrinking, BuilderUpdate, FireStoked, RoomChanged),
+import GameEvent (GameEvent(FireShrinking, FireStoked, RoomChanged),
                   updateEvents)
-import Constants (fireCoolDelay, builderStateDelay, stokeCooldown, roomWarmDelay)
+import Constants (fireCoolDelay, stokeCooldown, roomWarmDelay)
 
 import qualified Room
+import qualified Builder
 
 
 -- Defined in GameTypes to avoid an import cycle:
@@ -23,7 +24,6 @@ import qualified Room
 --   | Flickering
 --   | Burning
 --   | Roaring
---   deriving (Eq, Show, Enum, Ord)
 
 fireState :: FireState -> String
 fireState Dead        = "the fire is dead."
@@ -52,13 +52,9 @@ firstLight :: Game -> Game
 firstLight game =
   let doNothing = game
       fireHasBeenLitBefore = view (milestones . fireLit) game
-      firstIngameLightMessage =
-        "the light from the fire spills from the windows, out into the dark."
       builderIsOnTheWay =
         game & set (milestones . fireLit) True
-             & Room.notify firstIngameLightMessage
-             & over upcomingEvents (updateEvents (BuilderUpdate builderStateDelay))
-             & over upcomingEvents (updateEvents (RoomChanged roomWarmDelay))
+             & Builder.update
   in if fireHasBeenLitBefore then doNothing else builderIsOnTheWay
 
 light :: Game -> Game

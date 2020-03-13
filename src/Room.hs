@@ -22,7 +22,6 @@ import Util (addEvent)
 --   | Mild
 --   | Warm
 --   | Hot
---   deriving (Eq, Show, Enum, Ord)
 
 roomState :: RoomTemperature -> String
 roomState Freezing = "the room is freezing."

@@ -103,7 +103,7 @@ eventsWindow g =
                            _ -> whiteText)
                     | (s, t) <- withWhitespace]
       topEvents = map (\(s, style) -> withAttr  style (strWrap s)) $ take 9 withStyling
-      topEvents' = foldl1 (<=>) topEvents
+      topEvents' = foldl (<=>) (str "") topEvents
       bottomEvents = unlines $ drop 9 $ map fst withWhitespace
   in hLimit 30
   $ viewport EventsVP Vertical

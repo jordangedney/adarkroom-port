@@ -5,27 +5,27 @@ where
 
 import Control.Lens (over, set, view, (&))
 
-import GameTypes (Game, events, upcomingEvents,
-                  builderLevel, builderArrived, milestones)
+import GameTypes (Game, BuilderState(..),
+                  upcomingEvents, builderState, builderArrived, milestones)
 import GameEvent (GameEvent(BuilderUpdate, UnlockForest), updateEvents)
 import Constants (builderStateDelay, needWoodDelay)
-import Util (addEvent)
+
+import qualified Room
 
 -- Defined in GameTypes to avoid an import cycle:
-data BuilderState
-  = Approaching
-  | Collapsed
-  | Shivering
-  | Sleeping
-  | Helping
-  deriving (Eq, Show, Enum, Ord)
+-- data BuilderState
+--   = Approaching
+--   | Collapsed
+--   | Shivering
+--   | Sleeping
+--   | Helping
 
-builderState :: BuilderState -> String
-builderState Approaching = "the light from the fire spills from the windows, out into the dark."
-builderState Collapsed   = "a ragged stranger stumbles through the door and collapses in the corner."
-builderState Shivering   = "the stranger shivers, and mumbles quietly. her words are unintelligible."
-builderState Sleeping    = "the stranger in the corner stops shivering. her breathing calms."
-builderState Helping     = "the stranger is standing by the fire. she says she can help. says she builds things."
+showState :: BuilderState -> String
+showState Approaching = "the light from the fire spills from the windows, out into the dark."
+showState Collapsed   = "a ragged stranger stumbles through the door and collapses in the corner."
+showState Shivering   = "the stranger shivers, and mumbles quietly. her words are unintelligible."
+showState Sleeping    = "the stranger in the corner stops shivering. her breathing calms."
+showState Helping     = "the stranger is standing by the fire. she says she can help. says she builds things."
 
 builderSucc :: BuilderState -> BuilderState
 builderSucc Helping =  Helping
@@ -36,19 +36,16 @@ builderAppears :: Game -> Game
 builderAppears game =
   let doNothing = game
       builderInRoom = view (milestones . builderArrived) game
-      builderArrivalMessage =
-        "a ragged stranger stumbles through the door and collapses in the corner."
       builderArrives =
         game & set (milestones . builderArrived) True
-             & over events (addEvent builderArrivalMessage)
              & over upcomingEvents (updateEvents (UnlockForest needWoodDelay))
-             & over builderLevel (+1)
-
   in if builderInRoom then doNothing else builderArrives
 
 update :: Game -> Game
 update game =
-  let builderUpdate =
-        game & over upcomingEvents (updateEvents (BuilderUpdate builderStateDelay))
+  let withStatus =
+        game & Room.notify (showState (view builderState game))
+             & over upcomingEvents (updateEvents (BuilderUpdate builderStateDelay))
+             & over builderState builderSucc
              & builderAppears
-  in builderUpdate
+  in withStatus
