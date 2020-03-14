@@ -1,16 +1,18 @@
 module Builder
   ( update
+  , canHelp
+  , approach
   )
 where
 
 import Control.Lens (over, set, view, (&))
 
 import GameTypes (Game, BuilderState(..),
-                  upcomingEvents, builderState, builderArrived, milestones)
+                  milestones, builderIsHelping, upcomingEvents, builderState)
 import GameEvent (GameEvent(BuilderUpdate, UnlockForest), updateEvents)
 import Constants (builderStateDelay, needWoodDelay)
 
-import qualified Room
+import GameUtil (notifyRoom)
 
 -- Defined in GameTypes to avoid an import cycle:
 -- data BuilderState
@@ -21,31 +23,41 @@ import qualified Room
 --   | Helping
 
 showState :: BuilderState -> String
-showState Approaching = "the light from the fire spills from the windows, out into the dark."
-showState Collapsed   = "a ragged stranger stumbles through the door and collapses in the corner."
-showState Shivering   = "the stranger shivers, and mumbles quietly. her words are unintelligible."
-showState Sleeping    = "the stranger in the corner stops shivering. her breathing calms."
-showState Helping     = "the stranger is standing by the fire. she says she can help. says she builds things."
+showState Approaching =
+  "the light from the fire spills from the windows, out into the dark."
+showState Collapsed   =
+  "a ragged stranger stumbles through the door and collapses in the corner."
+showState Shivering   =
+  "the stranger shivers, and mumbles quietly. her words are unintelligible."
+showState Sleeping    =
+  "the stranger in the corner stops shivering. her breathing calms."
+showState Helping     =
+  "the stranger is standing by the fire. she says she can help. says she builds things."
 
 builderSucc :: BuilderState -> BuilderState
 builderSucc Helping =  Helping
-builderSucc Sleeping = Sleeping
 builderSucc x = succ x
 
-builderAppears :: Game -> Game
-builderAppears game =
+canHelp :: Game -> Game
+canHelp game =
   let doNothing = game
-      builderInRoom = view (milestones . builderArrived) game
-      builderArrives =
-        game & set (milestones . builderArrived) True
-             & over upcomingEvents (updateEvents (UnlockForest needWoodDelay))
-  in if builderInRoom then doNothing else builderArrives
+      doHelping = game & over builderState builderSucc
+                       & set (milestones . builderIsHelping) True
+      builderIsSleeping = view builderState game == Sleeping
+      builderIsNowHelping = doHelping & notifyRoom (showState (view builderState doHelping))
+  in if builderIsSleeping then builderIsNowHelping else doNothing
+
+approach :: Game -> Game
+approach game =
+  game & notifyRoom (showState (view builderState game))
+       & over upcomingEvents (updateEvents (BuilderUpdate builderStateDelay))
+       & over upcomingEvents (updateEvents (UnlockForest needWoodDelay))
 
 update :: Game -> Game
 update game =
-  let withStatus =
-        game & Room.notify (showState (view builderState game))
-             & over upcomingEvents (updateEvents (BuilderUpdate builderStateDelay))
-             & over builderState builderSucc
-             & builderAppears
-  in withStatus
+  let doNothing = game
+      builderIsSleeping = view builderState game == Sleeping
+      doBetter = game & over upcomingEvents (updateEvents (BuilderUpdate builderStateDelay))
+                      & over builderState builderSucc
+      getBetter = doBetter & notifyRoom (showState (view builderState doBetter))
+  in if builderIsSleeping then doNothing else getBetter

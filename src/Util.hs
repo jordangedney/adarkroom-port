@@ -1,4 +1,5 @@
 module Util where
+-- For data manipulation utilities; things without game-related imports
 
 import Data.List (transpose)
 
@@ -16,6 +17,3 @@ justifyCenter15 str =
   let whitespace = replicate ((15 - length str) `div` 2) ' '
       newStr = whitespace ++ str ++ whitespace
   in if length newStr == 15 then newStr else newStr ++ " "
-
-addEvent :: String -> [(String, Int)] -> [(String, Int)]
-addEvent e es = (e, 0) : es

@@ -1,19 +1,18 @@
-{-# LANGUAGE TupleSections #-}
-
 module Room
   ( update
   , arrival
-  , notify
   ) where
 
 import Control.Lens (over, set, view, (&))
 
 import GameTypes (FireState, RoomTemperature(..), Game, Location(Room),
-                  events, upcomingEvents, fireValue, roomTemperature, location,
-                  roomEventBacklog)
+                  upcomingEvents, fireValue, roomTemperature, location)
 import GameEvent (GameEvent(RoomChanged), updateEvents)
 import Constants (roomWarmDelay)
-import Util (addEvent)
+
+import GameUtil (notifyRoom, clearRoomBacklog)
+
+import qualified Builder
 
 -- Defined in GameTypes to avoid an import cycle:
 -- data RoomTemperature
@@ -45,12 +44,6 @@ newTemperature fire room =
     EQ -> room
     GT -> roomSucc room
 
-notify :: String -> Game -> Game
-notify message game =
-  if view location game == Room
-  then game & over events (addEvent message)
-  else game & over roomEventBacklog ((:) message)
-
 update :: Game -> Game
 update game =
   let currentTemp = newTemperature (view fireValue game) (view roomTemperature game)
@@ -60,7 +53,7 @@ update game =
              & set roomTemperature currentTemp
 
       withNotification =
-        alwaysChanging & notify (roomState (view roomTemperature alwaysChanging))
+        alwaysChanging & notifyRoom (roomState (view roomTemperature alwaysChanging))
 
       temperatureChanged = view roomTemperature game /= currentTemp
   in if temperatureChanged then withNotification else alwaysChanging
@@ -68,4 +61,5 @@ update game =
 arrival :: Game -> Game
 arrival game =
   game & set location Room
-       & over events (\es ->  map (, 0) (view roomEventBacklog game) ++ es)
+       & clearRoomBacklog
+       & Builder.canHelp

@@ -40,18 +40,18 @@ data BuilderState
   deriving (Eq, Show, Enum, Ord, Generic, ToJSON, FromJSON)
 
 data Milestones = Milestones
-  { _fireLit        :: Bool
-  , _builderArrived :: Bool
-  , _seenForest     :: Bool
+  { _fireLit          :: Bool
+  , _builderIsHelping :: Bool
+  , _seenForest       :: Bool
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''Milestones
 
 milestonesInit :: Milestones
 milestonesInit = Milestones
-  { _fireLit        = False
-  , _builderArrived = False
-  , _seenForest     = False
+  { _fireLit          = False
+  , _builderIsHelping = False
+  , _seenForest       = False
   }
 
 data Stored = Stored

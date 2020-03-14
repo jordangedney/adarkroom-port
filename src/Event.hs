@@ -73,6 +73,4 @@ handleButtonEvent DebugButton = over debug not
 handleButtonEvent PrevButton = set paused True . head . view previousStates
 handleButtonEvent PauseButton = over paused not
 
-
-
 handleButtonEvent _ = id

@@ -15,9 +15,10 @@ seconds :: Int -> Int
 seconds t = 10 * t
 
 fireCoolDelay, roomWarmDelay, builderStateDelay, stokeCooldown, needWoodDelay :: Int
+gatherCooldown :: Int
 fireCoolDelay     = minutes 5  -- time after a stoke before the fire cools
 roomWarmDelay     = seconds 30 -- time between room temperature updates
 builderStateDelay = seconds 30 -- time between builder state updates
 stokeCooldown     = seconds 10 -- cooldown to stoke the fire
-needWoodDelay     = seconds 15 -- from the stranger arrival, to when you need wood
+needWoodDelay     = seconds 45 -- from the stranger arrival, to when you need wood
 gatherCooldown    = seconds 60 -- cooldown for gathering wood outside

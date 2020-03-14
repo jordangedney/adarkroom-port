@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 
@@ -7,6 +8,13 @@ module GameEvent where
 import GHC.Generics
 import Data.Yaml
 import Control.Lens (makeLenses, over, (&), set)
+
+-- data Foo a
+--   = Test a
+--   | Bar a
+--   deriving (Show, Eq, Functor)
+--
+-- newtype Test = Maybe Int
 
 data GameEvent
   = UnlockForest Int
