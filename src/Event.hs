@@ -7,7 +7,7 @@ import Control.Lens (over, set, view, _2, (&))
 import Game (getGameEvent)
 import GameTypes (Game, Tick(..), Location(..), tickCount, upcomingEvents, events, uiState,
                   debug, hyper, initGame, previousStates, paused, location)
-import GameEvent (tickEvents, getTime, toList)
+import GameEvent (tickEvents, toList)
 import UIState (Name(..), lastReportedClick)
 import SaveGame (save)
 import qualified Fire
@@ -20,7 +20,7 @@ gameTick game =
         game & over tickCount (+1)
              & over upcomingEvents tickEvents
              & over events (take 15 . map (over _2 (+1)))
-      doEventIfReady e = if getTime e == 0 then getGameEvent e else id
+      doEventIfReady e = if snd e == 0 then getGameEvent e else id
       allEvents = toList (view upcomingEvents updatedTickers)
       withStateAfterIngameEvents = foldr doEventIfReady updatedTickers allEvents
   in if view paused game then game else withStateAfterIngameEvents

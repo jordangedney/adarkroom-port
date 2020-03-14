@@ -13,7 +13,7 @@ import Control.Lens
 
 import Util
 import GameTypes
-import GameEvent (getTime, isActive, GameEvent, GameEvents, _fireStoked, _gatherWood)
+import GameEvent (isActive, GameEvent, GameEvents, _fireStoked, _gatherWood)
 import UIState
 
 storeWindow :: Game -> Widget Name
@@ -46,7 +46,7 @@ buttonThatIsCooling g label coolDownGetter =
                                 , (progressBarToDo, P.progressIncompleteAttr)])
   $ P.progressBar (Just label)
                   (0.01 * fromIntegral
-                          (getTime . coolDownGetter . _upcomingEvents $ g))
+                          (snd . coolDownGetter . _upcomingEvents $ g))
 
 -- buttonWithCoolDown :: Game -> (GameEvents -> GameEvent) -> String -> Name -> Widget Name
 buttonWithCoolDown game cooldownTimer label button =

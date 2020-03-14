@@ -6,7 +6,7 @@ module GameEvent where
 
 import GHC.Generics
 import Data.Yaml
-import Control.Lens (makeLenses, over, (&), set)
+import Control.Lens (makeLenses, over, view, (&))
 
 data GameEvent
   = UnlockForest
@@ -15,7 +15,7 @@ data GameEvent
   | FireShrinking
   | BuilderUpdate
   | RoomChanged
-  deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
+  deriving (Eq, Enum, Show, Ord, Generic, ToJSON, FromJSON)
 
 -- Hacky, but >0 means active, 0 triggers, and <0 means inactive
 data GameEvents = GameEvents
@@ -39,26 +39,9 @@ gameEventsInit = GameEvents
   , _roomChanged   = (RoomChanged,    1)
   }
 
-toList :: GameEvents -> [(GameEvent, Int)]
-toList gameEvent  =
-  map ($ gameEvent)
-  [ _unlockForest
-  , _gatherWood
-  , _fireStoked
-  , _fireShrinking
-  , _builderUpdate
-  , _roomChanged
-  ]
-
-tickEvents :: GameEvents -> GameEvents
-tickEvents gameEvent =
-  gameEvent & over unlockForest  eventDec
-            & over gatherWood    eventDec
-            & over fireStoked    eventDec
-            & over fireShrinking eventDec
-            & over builderUpdate eventDec
-            & over roomChanged   eventDec
-
+eventGetter :: Functor f
+  => GameEvent -> ((GameEvent, Int) -> f (GameEvent, Int)) -> GameEvents
+  -> f GameEvents
 eventGetter UnlockForest  = unlockForest
 eventGetter GatherWood    = gatherWood
 eventGetter FireStoked    = fireStoked
@@ -66,8 +49,18 @@ eventGetter FireShrinking = fireShrinking
 eventGetter BuilderUpdate = builderUpdate
 eventGetter RoomChanged   = roomChanged
 
-eventDec (a, b) = (a, b - 1)
+-- Helper Functions ------------------------------------------------------------
+toList :: GameEvents -> [(GameEvent, Int)]
+toList gameEvents = allEvents & map eventGetter & map (`view` gameEvents)
 
-getTime = snd
+tickEvents :: GameEvents -> GameEvents
+tickEvents gameEvents =
+  let allEventsDec = map (\fn -> over (eventGetter fn) eventDec) allEvents
+      eventDec (a, b) = (a, b - 1)
+  in foldl (\gameEvents' tickEvent -> tickEvent gameEvents') gameEvents allEventsDec
 
+isActive :: (GameEvent, Int) -> Bool
 isActive (_, x) = x > 0
+
+allEvents :: [GameEvent]
+allEvents = enumFrom (toEnum 0)
