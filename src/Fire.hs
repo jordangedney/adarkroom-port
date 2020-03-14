@@ -8,11 +8,10 @@ where
 import Control.Lens (over, set, view, (&))
 
 import GameTypes (FireState(..), Game,
-                  upcomingEvents, fireValue, fireLit, milestones, stored, wood)
-import GameEvent (GameEvent(FireShrinking, FireStoked),
-                  updateEvents)
+                  fireValue, fireLit, milestones, stored, wood)
+import GameEvent (GameEvent(FireShrinking, FireStoked))
 import Constants (fireCoolDelay, stokeCooldown)
-import GameUtil (notifyRoom)
+import GameUtil (notifyRoom, updateEvents)
 
 import qualified Builder
 
@@ -45,7 +44,7 @@ fireChanged game =
   let showFire = game & notifyRoom (fireState (view fireValue game))
       fireIsBurning = view fireValue game /= Dead
       fireContinuesBurning =
-        showFire & over upcomingEvents (updateEvents (FireShrinking fireCoolDelay))
+        showFire & updateEvents FireShrinking fireCoolDelay
   in if fireIsBurning then fireContinuesBurning else showFire
 
 firstLight :: Game -> Game
@@ -62,7 +61,7 @@ light game =
   let withLitFire =
         game & set fireValue Burning
              & over (stored . wood) (subtract 5)
-             & over upcomingEvents (updateEvents (FireStoked stokeCooldown))
+             & updateEvents FireStoked stokeCooldown
              & fireChanged
              & firstLight
       withUnlitFire =
@@ -75,7 +74,7 @@ stoke game =
   let withStokedFire =
         game & over fireValue fireSucc
              & over (stored . wood) (subtract 1)
-             & over upcomingEvents (updateEvents (FireStoked stokeCooldown))
+             & updateEvents FireStoked stokeCooldown
              & fireChanged
       withUnstokedFire =
         game & notifyRoom "the wood has run out."

@@ -8,11 +8,11 @@ where
 import Control.Lens (over, set, view, (&))
 
 import GameTypes (Game, BuilderState(..),
-                  milestones, builderIsHelping, upcomingEvents, builderState)
-import GameEvent (GameEvent(BuilderUpdate, UnlockForest), updateEvents)
+                  milestones, builderIsHelping, builderState)
+import GameEvent (GameEvent(BuilderUpdate, UnlockForest))
 import Constants (builderStateDelay, needWoodDelay)
 
-import GameUtil (notifyRoom)
+import GameUtil (notifyRoom, updateEvents)
 
 -- Defined in GameTypes to avoid an import cycle:
 -- data BuilderState
@@ -50,14 +50,14 @@ canHelp game =
 approach :: Game -> Game
 approach game =
   game & notifyRoom (showState (view builderState game))
-       & over upcomingEvents (updateEvents (BuilderUpdate builderStateDelay))
-       & over upcomingEvents (updateEvents (UnlockForest needWoodDelay))
+       & updateEvents BuilderUpdate builderStateDelay
+       & updateEvents UnlockForest needWoodDelay
 
 update :: Game -> Game
 update game =
   let doNothing = game
       builderIsSleeping = view builderState game == Sleeping
-      doBetter = game & over upcomingEvents (updateEvents (BuilderUpdate builderStateDelay))
+      doBetter = game & updateEvents BuilderUpdate builderStateDelay
                       & over builderState builderSucc
       getBetter = doBetter & notifyRoom (showState (view builderState doBetter))
   in if builderIsSleeping then doNothing else getBetter

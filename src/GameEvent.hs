@@ -1,5 +1,4 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 
@@ -9,45 +8,38 @@ import GHC.Generics
 import Data.Yaml
 import Control.Lens (makeLenses, over, (&), set)
 
--- data Foo a
---   = Test a
---   | Bar a
---   deriving (Show, Eq, Functor)
---
--- newtype Test = Maybe Int
-
 data GameEvent
-  = UnlockForest Int
-  | GatherWood Int
-  | FireStoked Int
-  | FireShrinking Int
-  | BuilderUpdate Int
-  | RoomChanged Int
+  = UnlockForest
+  | GatherWood
+  | FireStoked
+  | FireShrinking
+  | BuilderUpdate
+  | RoomChanged
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 -- Hacky, but >0 means active, 0 triggers, and <0 means inactive
 data GameEvents = GameEvents
-  { _unlockForest  :: GameEvent
-  , _gatherWood    :: GameEvent
-  , _fireStoked    :: GameEvent
-  , _fireShrinking :: GameEvent
-  , _builderUpdate :: GameEvent
-  , _roomChanged   :: GameEvent
+  { _unlockForest  :: (GameEvent, Int)
+  , _gatherWood    :: (GameEvent, Int)
+  , _fireStoked    :: (GameEvent, Int)
+  , _fireShrinking :: (GameEvent, Int)
+  , _builderUpdate :: (GameEvent, Int)
+  , _roomChanged   :: (GameEvent, Int)
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''GameEvents
 
 gameEventsInit :: GameEvents
 gameEventsInit = GameEvents
-  { _unlockForest  = UnlockForest  (-1)
-  , _gatherWood    = GatherWood    (-1)
-  , _fireStoked    = FireStoked    (-1)
-  , _fireShrinking = FireShrinking 1
-  , _builderUpdate = BuilderUpdate (-1)
-  , _roomChanged   = RoomChanged   1
+  { _unlockForest  = (UnlockForest,  -1)
+  , _gatherWood    = (GatherWood,    -1)
+  , _fireStoked    = (FireStoked,    -1)
+  , _fireShrinking = (FireShrinking,  1)
+  , _builderUpdate = (BuilderUpdate, -1)
+  , _roomChanged   = (RoomChanged,    1)
   }
 
-toList :: GameEvents -> [GameEvent]
+toList :: GameEvents -> [(GameEvent, Int)]
 toList gameEvent  =
   map ($ gameEvent)
   [ _unlockForest
@@ -67,40 +59,15 @@ tickEvents gameEvent =
             & over builderUpdate eventDec
             & over roomChanged   eventDec
 
-updateEvents :: GameEvent -> GameEvents -> GameEvents
-updateEvents event gameEvents = gameEvents & set (eventGetter event) event
+eventGetter UnlockForest  = unlockForest
+eventGetter GatherWood    = gatherWood
+eventGetter FireStoked    = fireStoked
+eventGetter FireShrinking = fireShrinking
+eventGetter BuilderUpdate = builderUpdate
+eventGetter RoomChanged   = roomChanged
 
-eventDec :: GameEvent -> GameEvent
-eventDec (UnlockForest    x) = UnlockForest    (x - 1)
-eventDec (GatherWood      x) = GatherWood      (x - 1)
-eventDec (FireStoked      x) = FireStoked      (x - 1)
-eventDec (FireShrinking   x) = FireShrinking   (x - 1)
-eventDec (BuilderUpdate   x) = BuilderUpdate   (x - 1)
-eventDec (RoomChanged     x) = RoomChanged     (x - 1)
+eventDec (a, b) = (a, b - 1)
 
-getTime :: GameEvent -> Int
-getTime  (UnlockForest    x) = x
-getTime  (GatherWood      x) = x
-getTime  (FireStoked      x) = x
-getTime  (FireShrinking   x) = x
-getTime  (BuilderUpdate   x) = x
-getTime  (RoomChanged     x) = x
+getTime = snd
 
-isActive :: GameEvent -> Bool
-isActive (UnlockForest    x) = x > 0
-isActive (GatherWood      x) = x > 0
-isActive (FireStoked      x) = x > 0
-isActive (FireShrinking   x) = x > 0
-isActive (BuilderUpdate   x) = x > 0
-isActive (RoomChanged     x) = x > 0
-
-eventGetter
-  :: Functor f
-  => GameEvent
-  -> ((GameEvent -> f GameEvent) -> GameEvents -> f GameEvents)
-eventGetter (UnlockForest  _) = unlockForest
-eventGetter (GatherWood    _) = gatherWood
-eventGetter (FireStoked    _) = fireStoked
-eventGetter (FireShrinking _) = fireShrinking
-eventGetter (BuilderUpdate _) = builderUpdate
-eventGetter (RoomChanged   _) = roomChanged
+isActive (_, x) = x > 0

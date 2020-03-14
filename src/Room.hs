@@ -3,14 +3,14 @@ module Room
   , arrival
   ) where
 
-import Control.Lens (over, set, view, (&))
+import Control.Lens (set, view, (&))
 
 import GameTypes (FireState, RoomTemperature(..), Game, Location(Room),
-                  upcomingEvents, fireValue, roomTemperature, location)
-import GameEvent (GameEvent(RoomChanged), updateEvents)
+                  fireValue, roomTemperature, location)
+import GameEvent (GameEvent(RoomChanged))
 import Constants (roomWarmDelay)
 
-import GameUtil (notifyRoom, clearRoomBacklog)
+import GameUtil (notifyRoom, clearRoomBacklog, updateEvents)
 
 import qualified Builder
 
@@ -49,7 +49,7 @@ update game =
   let currentTemp = newTemperature (view fireValue game) (view roomTemperature game)
 
       alwaysChanging =
-        game & over upcomingEvents (updateEvents (RoomChanged roomWarmDelay))
+        game & updateEvents RoomChanged roomWarmDelay
              & set roomTemperature currentTemp
 
       withNotification =

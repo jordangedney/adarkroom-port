@@ -38,7 +38,7 @@ storeWindow g =
        $ viewport StoreVP Vertical $ str toDisplay
      else str (replicate (width + 5) ' '))
 
-buttonThatIsCooling :: Game -> String -> (GameEvents -> GameEvent) -> Widget n
+-- buttonThatIsCooling :: Game -> String -> (GameEvents -> GameEvent) -> Widget n
 buttonThatIsCooling g label coolDownGetter =
   withDefAttr blueBackground
   $ border
@@ -48,9 +48,9 @@ buttonThatIsCooling g label coolDownGetter =
                   (0.01 * fromIntegral
                           (getTime . coolDownGetter . _upcomingEvents $ g))
 
-buttonWithCoolDown :: Game -> (GameEvents -> GameEvent) -> String -> Name -> Widget Name
+-- buttonWithCoolDown :: Game -> (GameEvents -> GameEvent) -> String -> Name -> Widget Name
 buttonWithCoolDown game cooldownTimer label button =
-  if isActive $  cooldownTimer . _upcomingEvents $ game
+  if isActive $ cooldownTimer . _upcomingEvents $ game
   then buttonThatIsCooling game label cooldownTimer
   else blueButton button label
 

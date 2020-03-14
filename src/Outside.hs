@@ -8,14 +8,13 @@ where
 import Control.Lens (over, set, view, (&))
 
 import UIState (showStores, showWood, showOutside)
-import GameEvent (GameEvent(GatherWood), updateEvents)
+import GameEvent (GameEvent(GatherWood))
 import GameTypes (Game, Location(Outside),
                   stored, wood, uiState, seenForest, milestones, location,
-                  upcomingEvents,
                   )
 import Constants
 
-import GameUtil (addEvent)
+import GameUtil (addEvent, updateEvents)
 
 unlock :: Game -> Game
 unlock game =
@@ -43,5 +42,5 @@ arrival game =
 gather :: Game -> Game
 gather game =
   game & over (stored . wood) (+10)
-       & over upcomingEvents (updateEvents (GatherWood gatherCooldown))
+       & updateEvents GatherWood gatherCooldown
        & addEvent "dry brush and dead branches litter the forest floor"

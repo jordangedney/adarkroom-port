@@ -7,7 +7,10 @@ module GameUtil where
 
 import Control.Lens (over, set, view, (&))
 
-import GameTypes (Game, Location(Room), events, location, roomEventBacklog)
+import GameTypes (Game, Location(Room),
+                  upcomingEvents, events, location, roomEventBacklog)
+
+import GameEvent (GameEvent, eventGetter)
 
 addEvent :: String -> Game -> Game
 addEvent message game =
@@ -23,3 +26,6 @@ clearRoomBacklog :: Game -> Game
 clearRoomBacklog game =
   game & over events (\es ->  map (, 0) (view roomEventBacklog game) ++ es)
        & set roomEventBacklog []
+
+updateEvents :: GameEvent -> Int -> Game -> Game
+updateEvents event time = over upcomingEvents (set (eventGetter event) (event, time))
