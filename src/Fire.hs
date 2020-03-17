@@ -8,7 +8,8 @@ where
 import Control.Lens (over, set, view, (&))
 
 import GameTypes (FireState(..), Game,
-                  fireValue, fireLit, milestones, stored, wood)
+                  fireValue, fireLit, milestones, stored, wood,
+                  builderState, BuilderState(Helping))
 import GameEvent (GameEvent(FireShrinking, FireStoked))
 import Constants (fireCoolDelay, stokeCooldown)
 import GameUtil (notifyRoom, updateEvents)
@@ -41,11 +42,26 @@ fireSucc x = succ x
 
 fireChanged :: Game -> Game
 fireChanged game =
-  let showFire = game & notifyRoom (fireState (view fireValue game))
+  let showFire g = g & notifyRoom (fireState (view fireValue g))
+      showDeadFire = showFire game
+
       fireIsBurning = view fireValue game /= Dead
-      fireContinuesBurning =
-        showFire & updateEvents FireShrinking fireCoolDelay
-  in if fireIsBurning then fireContinuesBurning else showFire
+      builderCanStoke = view builderState game == Helping && view (stored . wood) game > 0
+      builderShouldStoke = builderCanStoke && view fireValue game == Smouldering
+
+      theFire =
+        if builderShouldStoke
+        then game & over (stored . wood) (subtract 1)
+                  & over fireValue fireSucc
+                  & notifyRoom "builder stokes the fire."
+        else game
+
+      burnOn =
+        theFire
+        & updateEvents FireShrinking fireCoolDelay
+        & showFire
+
+  in if fireIsBurning then burnOn else showDeadFire
 
 firstLight :: Game -> Game
 firstLight game =
