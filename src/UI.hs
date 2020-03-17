@@ -16,6 +16,8 @@ import GameTypes
 import GameEvent (isActive, GameEvent, GameEvents, _fireStoked, _gatherWood)
 import UIState
 
+import Constants
+
 storeWindow :: Game -> Widget Name
 storeWindow g =
   let stockpileItems = [(a, b)| (a, b, c) <-
@@ -39,19 +41,20 @@ storeWindow g =
      else str (replicate (width + 5) ' '))
 
 -- buttonThatIsCooling :: Game -> String -> (GameEvents -> GameEvent) -> Widget n
-buttonThatIsCooling g label coolDownGetter =
-  withDefAttr blueBackground
+buttonThatIsCooling g label coolDownGetter maxTime =
+  let amountCooling =
+        ((fromIntegral (snd . coolDownGetter . _upcomingEvents $ g)) / fromIntegral maxTime)
+  in withDefAttr blueBackground
   $ border
   $ updateAttrMap (mapAttrNames [ (progressBarDone, P.progressCompleteAttr)
                                 , (progressBarToDo, P.progressIncompleteAttr)])
-  $ P.progressBar (Just label)
-                  (0.01 * fromIntegral
-                          (snd . coolDownGetter . _upcomingEvents $ g))
+  $ P.progressBar (Just label) amountCooling
+  -- $ P.progressBar (Just (show amountCooling)) amountCooling
 
 -- buttonWithCoolDown :: Game -> (GameEvents -> GameEvent) -> String -> Name -> Widget Name
-buttonWithCoolDown game cooldownTimer label button =
+buttonWithCoolDown game cooldownTimer label button maxTime =
   if isActive $ cooldownTimer . _upcomingEvents $ game
-  then buttonThatIsCooling game label cooldownTimer
+  then buttonThatIsCooling game label cooldownTimer maxTime
   else blueButton button label
 
 blueButton :: Name -> String -> Widget Name
@@ -76,12 +79,14 @@ roomActions :: Game -> Widget Name
 roomActions game =
   let fireIsOut = view fireValue game == Dead
       lightFireButton = blueButton LightButton "light fire"
-      stokeFireButton = buttonWithCoolDown game _fireStoked "stoke fire" StokeButton
+      stokeFireButton =
+        buttonWithCoolDown game _fireStoked "stoke fire" StokeButton stokeCooldown
   in if fireIsOut then lightFireButton else stokeFireButton
 
 forestActions :: Game -> Widget Name
 forestActions game =
-  let gatherWoodButton = buttonWithCoolDown game _gatherWood "gather wood" GatherButton
+  let gatherWoodButton =
+        buttonWithCoolDown game _gatherWood "gather wood" GatherButton gatherCooldown
   in gatherWoodButton
 
 actionWindow :: Game -> Widget Name
