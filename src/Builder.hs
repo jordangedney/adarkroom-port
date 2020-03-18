@@ -4,13 +4,15 @@ module Builder
   , approach
   , gatherWood
   , canBuildTraps
+  , canBuildCarts
   )
 where
 
 import Control.Lens (over, set, view, (&))
 
 import GameTypes (Game, BuilderState(..),
-                  milestones, builderIsHelping, builderState, stored, wood, trapsUnlocked)
+                  milestones, builderIsHelping, builderState, stored, wood,
+                  trapsUnlocked, cartsUnlocked, preCartsUnlocked)
 import GameEvent (GameEvent(BuilderUpdate, UnlockForest, BuilderGathersWood, UnlockTraps))
 import Constants (builderStateDelay, needWoodDelay, builderGatherDelay, unlockTrapsDelay)
 
@@ -79,3 +81,13 @@ canBuildTraps game =
   game & set (milestones . trapsUnlocked) True
        & notifyRoom ("builder says she can make traps to catch any creatures "
                      <> "might still be alive out there.")
+
+canBuildCarts :: Game -> Game
+canBuildCarts game =
+  let doNothing = game
+      cartsNeedToBeUnlocked = view (milestones . preCartsUnlocked) game
+                            && not (view (milestones . cartsUnlocked) game)
+      unlockCarts =
+        game & set (milestones . cartsUnlocked) True
+             & notifyRoom "builder says she can make a cart for carrying wood"
+  in if cartsNeedToBeUnlocked then unlockCarts else doNothing

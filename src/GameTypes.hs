@@ -40,11 +40,12 @@ data BuilderState
   deriving (Eq, Show, Enum, Ord, Generic, ToJSON, FromJSON)
 
 data Milestones = Milestones
-  { _fireLit          :: Bool
-  , _builderIsHelping :: Bool
-  , _seenForest       :: Bool
-  , _trapsUnlocked    :: Bool
-  , _cartsUnlocked    :: Bool
+  { _fireLit             :: Bool
+  , _builderIsHelping    :: Bool
+  , _seenForest          :: Bool
+  , _trapsUnlocked       :: Bool
+  , _preCartsUnlocked    :: Bool
+  , _cartsUnlocked       :: Bool
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''Milestones
@@ -55,6 +56,7 @@ milestonesInit = Milestones
   , _builderIsHelping = False
   , _seenForest       = False
   , _trapsUnlocked    = False
+  , _preCartsUnlocked    = False
   , _cartsUnlocked    = False
   }
 

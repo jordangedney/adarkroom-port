@@ -10,7 +10,8 @@ import Control.Lens (over, set, view, (&))
 import UIState (showStores, showWood, showOutside)
 import GameEvent (GameEvent(GatherWood))
 import GameTypes (Game, Location(Outside),
-                  stored, wood, uiState, seenForest, milestones, location,
+                  stored, wood, uiState, seenForest, milestones, location, builderIsHelping,
+                  preCartsUnlocked,
                   )
 import Constants
 
@@ -41,6 +42,11 @@ arrival game =
 
 gather :: Game -> Game
 gather game =
-  game & over (stored . wood) (+10)
-       & updateEvents GatherWood gatherCooldown
-       & addEvent "dry brush and dead branches litter the forest floor"
+  let woodGathered =
+        game & over (stored . wood) (+10)
+             & updateEvents GatherWood gatherCooldown
+             & addEvent "dry brush and dead branches litter the forest floor"
+
+  in if view (milestones . builderIsHelping) game
+     then woodGathered & set (milestones . preCartsUnlocked) True
+     else woodGathered
