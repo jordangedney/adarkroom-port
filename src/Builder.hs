@@ -3,15 +3,16 @@ module Builder
   , canHelp
   , approach
   , gatherWood
+  , canBuildTraps
   )
 where
 
 import Control.Lens (over, set, view, (&))
 
 import GameTypes (Game, BuilderState(..),
-                  milestones, builderIsHelping, builderState, stored, wood)
-import GameEvent (GameEvent(BuilderUpdate, UnlockForest, BuilderGathersWood))
-import Constants (builderStateDelay, needWoodDelay, builderGatherDelay)
+                  milestones, builderIsHelping, builderState, stored, wood, trapsUnlocked)
+import GameEvent (GameEvent(BuilderUpdate, UnlockForest, BuilderGathersWood, UnlockTraps))
+import Constants (builderStateDelay, needWoodDelay, builderGatherDelay, unlockTrapsDelay)
 
 import GameUtil (notifyRoom, updateEvents)
 
@@ -45,6 +46,7 @@ canHelp game =
       doHelping = game & over builderState builderSucc
                        & set (milestones . builderIsHelping) True
                        & updateEvents BuilderGathersWood builderGatherDelay
+                       & updateEvents UnlockTraps unlockTrapsDelay
       builderIsSleeping = view builderState game == Sleeping
       builderIsNowHelping = doHelping & notifyRoom (showState (view builderState doHelping))
   in if builderIsSleeping then builderIsNowHelping else doNothing
@@ -58,13 +60,22 @@ approach game =
 update :: Game -> Game
 update game =
   let doNothing = game
-      builderIsSleeping = view builderState game == Sleeping
+      builderIsFine = view builderState game == Sleeping
+                    -- A bit of a hack to deal with a race condition with canHelp
+                    -- (a hack because a cleaner solution would be to reshuffle this logic)
+                    || view builderState game == Helping
       doBetter = game & updateEvents BuilderUpdate builderStateDelay
                       & over builderState builderSucc
       getBetter = doBetter & notifyRoom (showState (view builderState doBetter))
-  in if builderIsSleeping then doNothing else getBetter
+  in if builderIsFine then doNothing else getBetter
 
 gatherWood :: Game -> Game
 gatherWood game =
   game & updateEvents BuilderGathersWood builderGatherDelay
        & over (stored . wood) (+ 2)
+
+canBuildTraps :: Game -> Game
+canBuildTraps game =
+  game & set (milestones . trapsUnlocked) True
+       & notifyRoom ("builder says she can make traps to catch any creatures "
+                     <> "might still be alive out there.")

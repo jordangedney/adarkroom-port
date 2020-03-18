@@ -40,18 +40,18 @@ storeWindow g =
        $ viewport StoreVP Vertical $ str toDisplay
      else str (replicate (width + 5) ' '))
 
--- buttonThatIsCooling :: Game -> String -> (GameEvents -> GameEvent) -> Widget n
+buttonThatIsCooling :: Game -> String -> (GameEvents -> (GameEvent, Int)) -> Int -> Widget Name
 buttonThatIsCooling g label coolDownGetter maxTime =
   let amountCooling =
-        ((fromIntegral (snd . coolDownGetter . _upcomingEvents $ g)) / fromIntegral maxTime)
+        fromIntegral (snd . coolDownGetter . _upcomingEvents $ g) / fromIntegral maxTime
   in withDefAttr blueBackground
   $ border
   $ updateAttrMap (mapAttrNames [ (progressBarDone, P.progressCompleteAttr)
                                 , (progressBarToDo, P.progressIncompleteAttr)])
   $ P.progressBar (Just label) amountCooling
-  -- $ P.progressBar (Just (show amountCooling)) amountCooling
 
--- buttonWithCoolDown :: Game -> (GameEvents -> GameEvent) -> String -> Name -> Widget Name
+buttonWithCoolDown ::
+  Game -> (GameEvents -> (GameEvent, Int)) -> String -> Name -> Int -> Widget Name
 buttonWithCoolDown game cooldownTimer label button maxTime =
   if isActive $ cooldownTimer . _upcomingEvents $ game
   then buttonThatIsCooling game label cooldownTimer maxTime
@@ -81,7 +81,18 @@ roomActions game =
       lightFireButton = blueButton LightButton "light fire"
       stokeFireButton =
         buttonWithCoolDown game _fireStoked "stoke fire" StokeButton stokeCooldown
-  in if fireIsOut then lightFireButton else stokeFireButton
+      fireButton = if fireIsOut then lightFireButton else stokeFireButton
+
+      buildMenuUnlocked  = view (milestones . trapsUnlocked) game
+      buildCartsUnlocked = view (milestones . cartsUnlocked) game
+
+      trapButton = blueButton TrapButton "trap"
+      cartButton = blueButton CartButton "cart"
+      buildables = if buildCartsUnlocked then trapButton <=> cartButton else trapButton
+
+      buildMenu = padTop (Pad 1) (str "build:") <=> buildables
+
+  in if buildMenuUnlocked then fireButton <=> buildMenu else fireButton
 
 forestActions :: Game -> Widget Name
 forestActions game =
@@ -95,6 +106,8 @@ actionWindow game =
         case view location game of
           Room    -> roomActions
           Outside -> forestActions
+          Path    -> error "TODO"
+          Ship    -> error "TODO"
   in padRight (Pad 3) $ vBox [currentRoom game]
 
 eventsWindow :: Game -> Widget Name

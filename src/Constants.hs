@@ -6,21 +6,44 @@ module Constants
   , needWoodDelay
   , gatherCooldown
   , builderGatherDelay
+  , unlockTrapsDelay
   )
 where
+
+-- builder starts helping -> traps can be build
+unlockTrapsDelay :: Int
+unlockTrapsDelay = seconds 15
+
+-- how often builder gathers wood
+builderGatherDelay :: Int
+builderGatherDelay = seconds 10
+
+-- gatherWood button cooldown
+gatherCooldown :: Int
+gatherCooldown = seconds 60
+
+-- stranger arrival -> when you need wood
+needWoodDelay :: Int
+needWoodDelay = seconds 45
+
+-- fireStoke button cooldown
+stokeCooldown :: Int
+stokeCooldown = seconds 10
+
+-- builder state updates
+builderStateDelay :: Int
+builderStateDelay = seconds 30
+
+-- room temperature updates
+roomWarmDelay :: Int
+roomWarmDelay = seconds 30
+
+-- fire stoke -> fire cools
+fireCoolDelay :: Int
+fireCoolDelay = minutes 5
 
 -- ticks are 1/100 of a second, so adjust all times
 minutes :: Int -> Int
 minutes t = 10 * 60 * t
 seconds :: Int -> Int
 seconds t = 10 * t
-
-fireCoolDelay, roomWarmDelay, builderStateDelay, stokeCooldown, needWoodDelay :: Int
-gatherCooldown, builderGatherDelay :: Int
-fireCoolDelay         = minutes 5  -- time after a stoke before the fire cools
-roomWarmDelay         = seconds 30 -- time between room temperature updates
-builderStateDelay     = seconds 30 -- time between builder state updates
-stokeCooldown         = seconds 10 -- cooldown to stoke the fire
-needWoodDelay         = seconds 45 -- from the stranger arrival, to when you need wood
-gatherCooldown        = seconds 60 -- cooldown for gathering wood outside
-builderGatherDelay    = seconds 10 -- the time it takes builder to gather some wood

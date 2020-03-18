@@ -16,6 +16,7 @@ data GameEvent
   | BuilderUpdate
   | RoomChanged
   | BuilderGathersWood
+  | UnlockTraps
   deriving (Eq, Enum, Show, Ord, Generic, ToJSON, FromJSON)
 
 -- Hacky, but >0 means active, 0 triggers, and <0 means inactive
@@ -27,6 +28,7 @@ data GameEvents = GameEvents
   , _builderUpdate      :: (GameEvent, Int)
   , _roomChanged        :: (GameEvent, Int)
   , _builderGathersWood :: (GameEvent, Int)
+  , _unlockTraps        :: (GameEvent, Int)
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''GameEvents
@@ -40,6 +42,7 @@ gameEventsInit = GameEvents
   , _builderUpdate      = (BuilderUpdate,      -1)
   , _roomChanged        = (RoomChanged,         1)
   , _builderGathersWood = (BuilderGathersWood, -1)
+  , _unlockTraps        = (UnlockTraps,        -1)
   }
 
 eventGetter :: Functor f
@@ -52,6 +55,7 @@ eventGetter FireShrinking      = fireShrinking
 eventGetter BuilderUpdate      = builderUpdate
 eventGetter RoomChanged        = roomChanged
 eventGetter BuilderGathersWood = builderGathersWood
+eventGetter UnlockTraps        = unlockTraps
 
 -- Helper Functions ------------------------------------------------------------
 toList :: GameEvents -> [(GameEvent, Int)]

@@ -43,6 +43,8 @@ data Milestones = Milestones
   { _fireLit          :: Bool
   , _builderIsHelping :: Bool
   , _seenForest       :: Bool
+  , _trapsUnlocked    :: Bool
+  , _cartsUnlocked    :: Bool
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''Milestones
@@ -52,6 +54,8 @@ milestonesInit = Milestones
   { _fireLit          = False
   , _builderIsHelping = False
   , _seenForest       = False
+  , _trapsUnlocked    = False
+  , _cartsUnlocked    = False
   }
 
 data Stored = Stored
