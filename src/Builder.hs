@@ -12,9 +12,9 @@ where
 
 import Control.Lens (over, set, view, (&))
 
-import GameTypes (Game, BuilderState(..),
+import GameTypes (Game, BuilderState(..), RoomTemperature(Freezing, Cold),
                   milestones, builderIsHelping, builderState, stored, wood, traps, carts,
-                  trapsUnlocked, cartsUnlocked, preCartsUnlocked)
+                  trapsUnlocked, cartsUnlocked, preCartsUnlocked, roomTemperature)
 import GameEvent (GameEvent(BuilderUpdate, UnlockForest, BuilderGathersWood, UnlockTraps))
 import Constants (builderStateDelay, needWoodDelay, builderGatherDelay, unlockTrapsDelay)
 
@@ -97,12 +97,24 @@ canBuildCarts game =
 buildTrap :: Game -> Game
 buildTrap game =
   let costOfTrap = 10 * view (stored . traps) game
-      enoughWood = view (stored . wood) game >= costOfTrap
-      showError = game & notifyRoom ("not enough wood (" <> show costOfTrap <> ").")
+      maxNumberOfTraps = 10
+
+      notEnoughWood = view (stored . wood) game < costOfTrap
+      tooColdToWork = view roomTemperature game == Freezing
+                    || view roomTemperature game == Cold
+      alreadyHaveEnough = view (stored . traps) game >= maxNumberOfTraps
+
+      showResourceError = game & notifyRoom ("not enough wood (" <> show costOfTrap <> ").")
+      showTooColdError  = game & notifyRoom "builder just shivers."
+      showMaxError      = game & notifyRoom "more traps won't help now."
+
       buildTheTrap = game & notifyRoom "more traps to catch more creatures."
                           & over (stored . wood) (subtract costOfTrap)
                           & over (stored . traps) (+ 1)
-  in if enoughWood then buildTheTrap else showError
+  in if tooColdToWork then showTooColdError
+     else if alreadyHaveEnough then showMaxError
+          else if notEnoughWood then showResourceError
+               else buildTheTrap
 
 buildCart :: Game -> Game
 buildCart game =
