@@ -15,39 +15,43 @@ data GameEvent
   | FireShrinking
   | BuilderUpdate
   | RoomChanged
+  | BuilderGathersWood
   deriving (Eq, Enum, Show, Ord, Generic, ToJSON, FromJSON)
 
 -- Hacky, but >0 means active, 0 triggers, and <0 means inactive
 data GameEvents = GameEvents
-  { _unlockForest  :: (GameEvent, Int)
-  , _gatherWood    :: (GameEvent, Int)
-  , _fireStoked    :: (GameEvent, Int)
-  , _fireShrinking :: (GameEvent, Int)
-  , _builderUpdate :: (GameEvent, Int)
-  , _roomChanged   :: (GameEvent, Int)
+  { _unlockForest       :: (GameEvent, Int)
+  , _gatherWood         :: (GameEvent, Int)
+  , _fireStoked         :: (GameEvent, Int)
+  , _fireShrinking      :: (GameEvent, Int)
+  , _builderUpdate      :: (GameEvent, Int)
+  , _roomChanged        :: (GameEvent, Int)
+  , _builderGathersWood :: (GameEvent, Int)
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''GameEvents
 
 gameEventsInit :: GameEvents
 gameEventsInit = GameEvents
-  { _unlockForest  = (UnlockForest,  -1)
-  , _gatherWood    = (GatherWood,    -1)
-  , _fireStoked    = (FireStoked,    -1)
-  , _fireShrinking = (FireShrinking,  1)
-  , _builderUpdate = (BuilderUpdate, -1)
-  , _roomChanged   = (RoomChanged,    1)
+  { _unlockForest       = (UnlockForest,       -1)
+  , _gatherWood         = (GatherWood,         -1)
+  , _fireStoked         = (FireStoked,         -1)
+  , _fireShrinking      = (FireShrinking,       1)
+  , _builderUpdate      = (BuilderUpdate,      -1)
+  , _roomChanged        = (RoomChanged,         1)
+  , _builderGathersWood = (BuilderGathersWood, -1)
   }
 
 eventGetter :: Functor f
   => GameEvent -> ((GameEvent, Int) -> f (GameEvent, Int)) -> GameEvents
   -> f GameEvents
-eventGetter UnlockForest  = unlockForest
-eventGetter GatherWood    = gatherWood
-eventGetter FireStoked    = fireStoked
-eventGetter FireShrinking = fireShrinking
-eventGetter BuilderUpdate = builderUpdate
-eventGetter RoomChanged   = roomChanged
+eventGetter UnlockForest       = unlockForest
+eventGetter GatherWood         = gatherWood
+eventGetter FireStoked         = fireStoked
+eventGetter FireShrinking      = fireShrinking
+eventGetter BuilderUpdate      = builderUpdate
+eventGetter RoomChanged        = roomChanged
+eventGetter BuilderGathersWood = builderGathersWood
 
 -- Helper Functions ------------------------------------------------------------
 toList :: GameEvents -> [(GameEvent, Int)]

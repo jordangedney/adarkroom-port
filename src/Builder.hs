@@ -2,15 +2,16 @@ module Builder
   ( update
   , canHelp
   , approach
+  , gatherWood
   )
 where
 
 import Control.Lens (over, set, view, (&))
 
 import GameTypes (Game, BuilderState(..),
-                  milestones, builderIsHelping, builderState)
-import GameEvent (GameEvent(BuilderUpdate, UnlockForest))
-import Constants (builderStateDelay, needWoodDelay)
+                  milestones, builderIsHelping, builderState, stored, wood)
+import GameEvent (GameEvent(BuilderUpdate, UnlockForest, BuilderGathersWood))
+import Constants (builderStateDelay, needWoodDelay, builderGatherDelay)
 
 import GameUtil (notifyRoom, updateEvents)
 
@@ -43,6 +44,7 @@ canHelp game =
   let doNothing = game
       doHelping = game & over builderState builderSucc
                        & set (milestones . builderIsHelping) True
+                       & updateEvents BuilderGathersWood builderGatherDelay
       builderIsSleeping = view builderState game == Sleeping
       builderIsNowHelping = doHelping & notifyRoom (showState (view builderState doHelping))
   in if builderIsSleeping then builderIsNowHelping else doNothing
@@ -61,3 +63,8 @@ update game =
                       & over builderState builderSucc
       getBetter = doBetter & notifyRoom (showState (view builderState doBetter))
   in if builderIsSleeping then doNothing else getBetter
+
+gatherWood :: Game -> Game
+gatherWood game =
+  game & updateEvents BuilderGathersWood builderGatherDelay
+       & over (stored . wood) (+ 2)
