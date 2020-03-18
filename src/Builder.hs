@@ -75,8 +75,11 @@ update game =
 
 gatherWood :: Game -> Game
 gatherWood game =
-  game & updateEvents BuilderGathersWood builderGatherDelay
-       & over (stored . wood) (+ 2)
+  let gatherMoreInAwhile = game & updateEvents BuilderGathersWood builderGatherDelay
+      tooColdToWork = view roomTemperature game == Freezing
+                    || view roomTemperature game == Cold
+  in if tooColdToWork then gatherMoreInAwhile
+     else gatherMoreInAwhile & over (stored . wood) (+ 2)
 
 canBuildTraps :: Game -> Game
 canBuildTraps game =
