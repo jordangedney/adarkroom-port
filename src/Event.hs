@@ -13,6 +13,7 @@ import SaveGame (save)
 import qualified Fire
 import qualified Outside
 import qualified Room
+import qualified Builder
 
 gameTick :: Game -> Game
 gameTick game =
@@ -63,6 +64,9 @@ handleButtonEvent StokeButton = Fire.stoke
 
 handleButtonEvent OutsideButton = Outside.arrival
 handleButtonEvent GatherButton  = Outside.gather
+
+handleButtonEvent TrapButton  = Builder.buildTrap
+handleButtonEvent CartButton  = Builder.buildCart
 
 handleButtonEvent PathButton = set location Path
 handleButtonEvent ShipButton = set location Ship

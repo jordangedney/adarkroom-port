@@ -16,5 +16,4 @@ getGameEvent (FireShrinking,      _) = Fire.shrinking
 getGameEvent (BuilderUpdate,      _) = Builder.update
 getGameEvent (BuilderGathersWood, _) = Builder.gatherWood
 getGameEvent (UnlockTraps,        _) = Builder.canBuildTraps
-getGameEvent (UnlockCarts,        _) = Builder.canBuildCarts
 getGameEvent (RoomChanged,        _) = Room.update

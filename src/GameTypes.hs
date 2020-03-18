@@ -63,6 +63,8 @@ milestonesInit = Milestones
 data Stored = Stored
   { _wood :: Int
   , _scales :: Int
+  , _traps :: Int
+  , _carts :: Int
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''Stored
@@ -71,6 +73,8 @@ storedInit :: Stored
 storedInit = Stored
   { _wood   = 100
   , _scales = 0
+  , _traps = 0
+  , _carts = 0
   }
 
 data Location = Room | Outside | Path | Ship

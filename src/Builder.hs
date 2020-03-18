@@ -5,13 +5,15 @@ module Builder
   , gatherWood
   , canBuildTraps
   , canBuildCarts
+  , buildTrap
+  , buildCart
   )
 where
 
 import Control.Lens (over, set, view, (&))
 
 import GameTypes (Game, BuilderState(..),
-                  milestones, builderIsHelping, builderState, stored, wood,
+                  milestones, builderIsHelping, builderState, stored, wood, traps, carts,
                   trapsUnlocked, cartsUnlocked, preCartsUnlocked)
 import GameEvent (GameEvent(BuilderUpdate, UnlockForest, BuilderGathersWood, UnlockTraps))
 import Constants (builderStateDelay, needWoodDelay, builderGatherDelay, unlockTrapsDelay)
@@ -91,3 +93,17 @@ canBuildCarts game =
         game & set (milestones . cartsUnlocked) True
              & notifyRoom "builder says she can make a cart for carrying wood"
   in if cartsNeedToBeUnlocked then unlockCarts else doNothing
+
+buildTrap :: Game -> Game
+buildTrap game =
+  let enoughWood = view (stored . wood) game > 9
+      showError = game & notifyRoom "not enough wood. (10)"
+      buildTrap = game & notifyRoom "more traps to catch more creatures"
+                       & over (stored . wood) (subtract 10)
+                       & over (stored . traps) (+ 1)
+  in if enoughWood then buildTrap else showError
+
+buildCart :: Game -> Game
+buildCart game =
+  let doNothing = game
+  in doNothing
