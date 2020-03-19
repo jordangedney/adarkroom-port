@@ -97,29 +97,38 @@ canBuildCarts game =
              & notifyRoom "builder says she can make a cart for carrying wood"
   in if cartsNeedToBeUnlocked then unlockCarts else doNothing
 
+buildIfWarm :: Game -> Game -> Game
+buildIfWarm buildTheItem game =
+  let tooColdToWork = view roomTemperature game == Freezing
+                      || view roomTemperature game == Cold
+      shiver = game & notifyRoom "builder just shivers."
+  in if tooColdToWork then shiver else buildTheItem
+
+buildIfEnoughWood :: Int -> Game -> Game -> Game
+buildIfEnoughWood cost buildTheItem game =
+  let notEnoughWood = view (stored . wood) game < cost
+      showResourceError = game & notifyRoom ("not enough wood (" <> show cost <> ").")
+  in if notEnoughWood then showResourceError
+     else buildTheItem & over (stored . wood) (subtract cost)
+
+buildItem :: Int -> Game -> Game -> Game
+buildItem cost item game = buildIfWarm (buildIfEnoughWood cost item game) game
+
 buildTrap :: Game -> Game
 buildTrap game =
-  let costOfTrap = 10 * view (stored . traps) game
+  let cost = 10 * view (stored . traps) game
       maxNumberOfTraps = 10
-
-      notEnoughWood = view (stored . wood) game < costOfTrap
-      tooColdToWork = view roomTemperature game == Freezing
-                    || view roomTemperature game == Cold
       alreadyHaveEnough = view (stored . traps) game >= maxNumberOfTraps
-
-      showResourceError = game & notifyRoom ("not enough wood (" <> show costOfTrap <> ").")
-      showTooColdError  = game & notifyRoom "builder just shivers."
       showMaxError      = game & notifyRoom "more traps won't help now."
-
       buildTheTrap = game & notifyRoom "more traps to catch more creatures."
-                          & over (stored . wood) (subtract costOfTrap)
                           & over (stored . traps) (+ 1)
-  in if tooColdToWork then showTooColdError
-     else if alreadyHaveEnough then showMaxError
-          else if notEnoughWood then showResourceError
-               else buildTheTrap
+  in if alreadyHaveEnough then showMaxError
+     else buildItem cost buildTheTrap game
 
 buildCart :: Game -> Game
 buildCart game =
-  let doNothing = game
-  in doNothing
+  let cost = 30
+      buildTheCart =
+        game & notifyRoom "the rickety cart will carry more wood from the forest"
+             & over (stored . carts) (+ 1)
+  in buildItem cost buildTheCart game
