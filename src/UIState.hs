@@ -21,6 +21,7 @@ data Name
   | LightButton
   | StokeButton
   | GatherButton
+  | NoOpButton
 
   | RestartButton
   | SaveButton

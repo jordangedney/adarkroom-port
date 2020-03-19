@@ -64,6 +64,14 @@ blueButton buttonId label =
   $ border
   $ str $ justifyCenter15 label
 
+greyedButton :: Name -> String -> Widget Name
+greyedButton buttonId label =
+  clickable buttonId
+  $ withDefAttr blueBackground
+  $ withDefAttr progressBarToDo
+  $ border
+  $ str $ justifyCenter15 label
+
 textButton :: Game -> Name -> String -> Widget Name
 textButton game buttonId label =
   let button = clickable buttonId (str label)
@@ -87,7 +95,9 @@ roomActions game =
       buildCartsUnlocked = view (milestones . cartsUnlocked) game
 
       trapButton = blueButton TrapButton "trap"
-      cartButton = blueButton CartButton "cart"
+      cartIsBuilt = view (stored . carts) game > 0
+      cartButton = if cartIsBuilt then greyedButton NoOpButton "cart"
+                   else blueButton CartButton "cart"
       buildables = if buildCartsUnlocked then trapButton <=> cartButton else trapButton
 
       buildMenu = padTop (Pad 1) (str "build:") <=> buildables

@@ -58,6 +58,8 @@ handleMouseDown game buttonPressed mouseLocation =
 
 handleButtonEvent :: Name -> Game -> Game
 
+handleButtonEvent NoOpButton = id
+
 handleButtonEvent RoomButton = Room.arrival
 handleButtonEvent LightButton = Fire.light
 handleButtonEvent StokeButton = Fire.stoke
