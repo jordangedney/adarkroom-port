@@ -11,7 +11,7 @@ import UIState (showStores, showWood, showOutside)
 import GameEvent (GameEvent(GatherWood))
 import GameTypes (Game, Location(Outside),
                   stored, wood, uiState, seenForest, milestones, location, builderIsHelping,
-                  preCartsUnlocked,
+                  preCartsUnlocked, carts,
                   )
 import Constants
 
@@ -42,8 +42,9 @@ arrival game =
 
 gather :: Game -> Game
 gather game =
-  let woodGathered =
-        game & over (stored . wood) (+10)
+  let amountToGather = if view (stored . carts) game > 0 then 50 else 10
+      woodGathered =
+        game & over (stored . wood) (+ amountToGather)
              & updateEvents GatherWood gatherCooldown
              & addEvent "dry brush and dead branches litter the forest floor"
 
