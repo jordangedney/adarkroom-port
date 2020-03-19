@@ -208,14 +208,26 @@ drawUI g =
            ]
   ]
 
-blueBackground, underlined, progressBarDone, progressBarToDo, whiteText :: AttrName
-blueText, blackText :: AttrName
+
+blueBackground :: AttrName
 blueBackground = attrName "blueBackground"
+
+underlined :: AttrName
 underlined = attrName "underlined"
+
+progressBarDone :: AttrName
 progressBarDone = attrName "progressBarDone"
+
+progressBarToDo :: AttrName
 progressBarToDo = attrName "progressBarToDo"
+
+whiteText :: AttrName
 whiteText = attrName "whiteText"
+
+blueText :: AttrName
 blueText = attrName "blueText"
+
+blackText :: AttrName
 blackText = attrName "blackText"
 
 theMap :: AttrMap
