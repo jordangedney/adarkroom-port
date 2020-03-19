@@ -7,8 +7,12 @@ module Constants
   , gatherCooldown
   , builderGatherDelay
   , unlockTrapsDelay
+  , maximumNumberOfTraps
   )
 where
+
+maximumNumberOfTraps :: Int
+maximumNumberOfTraps = 10
 
 -- builder starts helping -> traps can be build
 unlockTrapsDelay :: Int

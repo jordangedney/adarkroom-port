@@ -16,7 +16,8 @@ import GameTypes (Game, BuilderState(..), RoomTemperature(Freezing, Cold),
                   milestones, builderIsHelping, builderState, stored, wood, traps, carts,
                   trapsUnlocked, cartsUnlocked, preCartsUnlocked, roomTemperature)
 import GameEvent (GameEvent(BuilderUpdate, UnlockForest, BuilderGathersWood, UnlockTraps))
-import Constants (builderStateDelay, needWoodDelay, builderGatherDelay, unlockTrapsDelay)
+import Constants (builderStateDelay, needWoodDelay, builderGatherDelay,
+                  unlockTrapsDelay, maximumNumberOfTraps)
 
 import GameUtil (notifyRoom, updateEvents)
 
@@ -117,13 +118,12 @@ buildItem cost item game = buildIfWarm (buildIfEnoughWood cost item game) game
 buildTrap :: Game -> Game
 buildTrap game =
   let cost = 10 * view (stored . traps) game
-      maxNumberOfTraps = 10
-      alreadyHaveEnough = view (stored . traps) game >= maxNumberOfTraps
-      showMaxError      = game & notifyRoom "more traps won't help now."
       buildTheTrap = game & notifyRoom "more traps to catch more creatures."
                           & over (stored . traps) (+ 1)
-  in if alreadyHaveEnough then showMaxError
-     else buildItem cost buildTheTrap game
+      haveEnough = view (stored . traps) buildTheTrap >= maximumNumberOfTraps
+      doneMakingTraps = notifyRoom "more traps won't help now."
+      builtTrap = if haveEnough then buildTheTrap & doneMakingTraps else buildTheTrap
+  in buildItem cost builtTrap game
 
 buildCart :: Game -> Game
 buildCart game =

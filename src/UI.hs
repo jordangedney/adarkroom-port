@@ -94,7 +94,10 @@ roomActions game =
       buildMenuUnlocked  = view (milestones . trapsUnlocked) game
       buildCartsUnlocked = view (milestones . cartsUnlocked) game
 
-      trapButton = blueButton TrapButton "trap"
+      fullOnTraps = view (stored . traps) game >= maximumNumberOfTraps
+      trapButton = if fullOnTraps
+                   then greyedButton NoOpButton "trap"
+                   else blueButton TrapButton "trap"
       cartIsBuilt = view (stored . carts) game > 0
       cartButton = if cartIsBuilt then greyedButton NoOpButton "cart"
                    else blueButton CartButton "cart"
