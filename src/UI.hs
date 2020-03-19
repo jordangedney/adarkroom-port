@@ -181,7 +181,6 @@ bottomMenu g =
                         , changingButton hyper HyperButton "classic." "hyper."
                         , changingButton debug PauseButton  "pause." ""
                         , changingButton debug PrevButton "prev." ""
-                        -- , (textButton g DebugButton, "debug.")
                         ]
       hiddenEmptyLabels = filter (("" /=) . snd) buttonsToLabels
       lengthOfLabels = (-2) + sum (map ((+2) . length . snd) hiddenEmptyLabels)
@@ -194,20 +193,18 @@ bottomMenu g =
    in padLeft (Pad leftPadding) (hBox buttons)
 
 drawUI :: Game -> [Widget Name]
-drawUI g =
-  [ center $ hLimit 77 $ vLimit 30
-    $ withBorderStyle unicodeRounded
-    $ border
-    $ hBox [ vBox [ vLimit 27 (eventsWindow g)
-                  , str (if view debug g then show (view tickCount g) ++ "  " else "")
-                  ]
-           , vBox [ padLeft (Pad 3) $ locationsWindow g
-                  , padLeft (Pad 3) $ vLimit 24 (actionWindow g <+> storeWindow g
-                                                 <=> str (replicate 30 '\n'))
-                  , bottomMenu g]
-           ]
-  ]
+drawUI game =
+  let outerBorder = center . hLimit 77 . vLimit 30 . withBorderStyle unicodeRounded . border
 
+      showGameTick = str (if view debug game then show (view tickCount game) ++ "  " else "")
+      notifications = vBox [vLimit 27 (eventsWindow game), showGameTick]
+
+      emptySpace = str (replicate 30 '\n')
+      buttonsAndStores = vLimit 24 (actionWindow game <+> storeWindow game <=> emptySpace)
+      gameActions = padLeft (Pad 3) (vBox [locationsWindow game, buttonsAndStores])
+      actions = vBox [gameActions, bottomMenu game]
+
+  in [outerBorder (hBox [notifications , actions])]
 
 blueBackground :: AttrName
 blueBackground = attrName "blueBackground"
