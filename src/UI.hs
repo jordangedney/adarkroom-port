@@ -18,27 +18,39 @@ import UIState
 
 import Constants
 
+roomStores :: Game -> Widget Name
+roomStores = storeWindow
+
+forestStores :: Game -> Widget Name
+forestStores = storeWindow
+
 storeWindow :: Game -> Widget Name
 storeWindow g =
-  let stockpileItems = [(a, b)| (a, b, c) <-
-        [ ("wood",   _wood   . _stored $ g,  _showWood   . _showStores . _uiState $ g)
-        , ("scales", _scales . _stored $ g,  _showScales . _showStores . _uiState $ g)
+  let getStored getter = view (stored . getter) g
+      should getter = view (uiState . showStores . getter) g
+      stockpileItems = [("  " <> a, b)| (a, b, c) <-
+        [ ("wood",   getStored wood,   should showWood)
+        , ("scales", getStored scales, should showScales)
         ], c]
-      showWindow = not . null $ stockpileItems
+
+      haveItems = not . null $ stockpileItems
       (width, height) = (20, length stockpileItems)
       toString = second show
       countWhitespace (a, b) = (a, width - (length a + length b), b)
 
-      withWhitespace (a, b, c) = a ++ replicate b ' ' ++ c
+      withWhitespace (a, b, c) = a ++ replicate (b - 2) ' ' ++ c
       toDisplay =
         unlines $ map (withWhitespace . countWhitespace . toString) stockpileItems
 
-  in vLimit (height + 2) $ hLimit (width + 2) -- Extra padding for the border
-     (if showWindow then
-       borderWithLabel (str " stores ")
-       $ center
-       $ viewport StoreVP Vertical $ str toDisplay
-     else str (replicate (width + 5) ' '))
+      showNothing = str (replicate (width + 5) ' ')
+      showWindow = borderWithLabel (str (" stores " <> (replicate 11 '─'))) -- 19
+                    . center
+                    . viewport StoreVP Vertical $ str toDisplay
+
+      -- Extra padding for the border
+      limitWindowSize = vLimit (height + 2) . hLimit (width + 2)
+
+  in limitWindowSize (if haveItems then showWindow else showNothing)
 
 buttonThatIsCooling :: Game -> String -> (GameEvents -> (GameEvent, Int)) -> Int -> Widget Name
 buttonThatIsCooling g label coolDownGetter maxTime =
@@ -82,9 +94,8 @@ textButton game buttonId label =
            _ -> False
   in if currentlyClicked then buttonWithUnderline else button
 
-
-roomActions :: Game -> Widget Name
-roomActions game =
+roomButtons :: Game -> Widget Name
+roomButtons game =
   let fireIsOut = view fireValue game == Dead
       lightFireButton = blueButton LightButton "light fire"
       stokeFireButton =
@@ -107,21 +118,11 @@ roomActions game =
 
   in if buildMenuUnlocked then fireButton <=> buildMenu else fireButton
 
-forestActions :: Game -> Widget Name
-forestActions game =
+forestButtons :: Game -> Widget Name
+forestButtons game =
   let gatherWoodButton =
         buttonWithCoolDown game _gatherWood "gather wood" GatherButton gatherCooldown
   in gatherWoodButton
-
-actionWindow :: Game -> Widget Name
-actionWindow game =
-  let currentRoom =
-        case view location game of
-          Room    -> roomActions
-          Outside -> forestActions
-          Path    -> error "TODO"
-          Ship    -> error "TODO"
-  in padRight (Pad 3) $ vBox [currentRoom game]
 
 eventsWindow :: Game -> Widget Name
 eventsWindow g =
@@ -180,7 +181,7 @@ bottomMenu g =
                         , (textButton g SaveButton, "save.")
                         , changingButton hyper HyperButton "classic." "hyper."
                         , changingButton debug PauseButton  "pause." ""
-                        , changingButton debug PrevButton "prev." ""
+                        , changingButton debug PrevButton "prev. " ""
                         ]
       hiddenEmptyLabels = filter (("" /=) . snd) buttonsToLabels
       lengthOfLabels = (-2) + sum (map ((+2) . length . snd) hiddenEmptyLabels)
@@ -192,6 +193,25 @@ bottomMenu g =
       buttons = interleave [withLabelsApplied, paddingBetweenButtons]
    in padLeft (Pad leftPadding) (hBox buttons)
 
+locationMenu :: Game -> Widget Name
+locationMenu game =
+  let emptySpace = str (replicate 30 '\n')
+      buttons = padRight (Pad 3) $ game &
+        case view location game of
+          Room    -> roomButtons
+          Outside -> forestButtons
+          Path    -> error "TODO"
+          Ship    -> error "TODO"
+
+      stores = game &
+        case view location game of
+          Room    -> roomStores
+          Outside -> forestStores
+          Path    -> error "TODO"
+          Ship    -> error "TODO"
+
+  in vLimit 24 (buttons <+> stores <=> emptySpace)
+
 drawUI :: Game -> [Widget Name]
 drawUI game =
   let outerBorder = center . hLimit 77 . vLimit 30 . withBorderStyle unicodeRounded . border
@@ -199,9 +219,7 @@ drawUI game =
       showGameTick = str (if view debug game then show (view tickCount game) ++ "  " else "")
       notifications = vBox [vLimit 27 (eventsWindow game), showGameTick]
 
-      emptySpace = str (replicate 30 '\n')
-      buttonsAndStores = vLimit 24 (actionWindow game <+> storeWindow game <=> emptySpace)
-      gameActions = padLeft (Pad 3) (vBox [locationsWindow game, buttonsAndStores])
+      gameActions = padLeft (Pad 3) (vBox [locationsWindow game, locationMenu game])
       actions = vBox [gameActions, bottomMenu game]
 
   in [outerBorder (hBox [notifications , actions])]
