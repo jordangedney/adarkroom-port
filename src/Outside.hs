@@ -7,7 +7,7 @@ where
 
 import Control.Lens (over, set, view, (&))
 
-import UIState (showStores, showWood, showOutside)
+import UIState (showStores, showOutside)
 import GameEvent (GameEvent(GatherWood))
 import GameTypes (Game, Location(Outside),
                   stored, wood, uiState, seenForest, milestones, location, builderIsHelping,
@@ -19,7 +19,7 @@ import GameUtil (addEvent, updateEvents)
 
 unlock :: Game -> Game
 unlock game =
-  game & set (uiState . showStores . showWood) True
+  game & set (uiState . showStores) True
        & set (uiState . showOutside) True
        & set (stored . wood) 4
        & addEvent "the wind howls outside."

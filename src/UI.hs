@@ -6,7 +6,6 @@ import           Brick.Widgets.Border
 import           Brick.Widgets.Border.Style
 import qualified Brick.Widgets.ProgressBar as P
 import qualified Graphics.Vty as V
-import Data.Bifunctor (second)
 
 -- import Control.Lens (over, set, view, _2, (&))
 import Control.Lens
@@ -19,38 +18,56 @@ import UIState
 import Constants
 
 roomStores :: Game -> Widget Name
-roomStores = storeWindow
+roomStores = storesWindow
 
 forestStores :: Game -> Widget Name
-forestStores = storeWindow
+forestStores game =
+  let showBuildings = view (uiState . showForestBuildings) game
+      getStored getter = view (stored . getter) game
+      should getter = view (uiState . showItems . getter) game
+      buildings = [(name, show amount)| (name, amount, itemShouldBeShown) <-
+        [ ("cart", getStored carts, getStored carts > 0)
+        , ("trap", getStored traps, getStored traps > 0)
+        ], itemShouldBeShown]
+      buildingsWindow = vBox [ storeWidget ForestVP "forest" buildings 20
+                             , storesWindow game]
+  in if showBuildings then buildingsWindow else storesWindow game
 
-storeWindow :: Game -> Widget Name
-storeWindow g =
-  let getStored getter = view (stored . getter) g
-      should getter = view (uiState . showStores . getter) g
-      stockpileItems = [("  " <> a, b)| (a, b, c) <-
-        [ ("wood",   getStored wood,   should showWood)
-        , ("scales", getStored scales, should showScales)
-        ], c]
+storeWidget :: Name -> String -> [(String, String)] -> Int -> Widget Name
+storeWidget name label stockpileItems width =
+  let height = length stockpileItems
 
-      haveItems = not . null $ stockpileItems
-      (width, height) = (20, length stockpileItems)
-      toString = second show
-      countWhitespace (a, b) = (a, width - (length a + length b), b)
+      linePadding = 4 -- 2 whitespace on each side
+      countWhitespace (itemName, amount) =
+        let strLen = width - (length itemName + length amount) - linePadding
+        in (itemName, amount, strLen)
 
-      withWhitespace (a, b, c) = a ++ replicate (b - 2) ' ' ++ c
+      withWhitespace (itemName, amount, len) =
+        "  " <> itemName ++ replicate len ' ' ++ amount
       toDisplay =
-        unlines $ map (withWhitespace . countWhitespace . toString) stockpileItems
+        unlines $ map (withWhitespace . countWhitespace) stockpileItems
 
-      showNothing = str (replicate (width + 5) ' ')
-      showWindow = borderWithLabel (str (" stores " <> (replicate 11 '─'))) -- 19
+      showWindow = borderWithLabel (str (" " <> label <> " " <> replicate 11 '─')) -- 19
                     . center
-                    . viewport StoreVP Vertical $ str toDisplay
+                    . viewport name Vertical $ str toDisplay
 
       -- Extra padding for the border
       limitWindowSize = vLimit (height + 2) . hLimit (width + 2)
+  in limitWindowSize showWindow
 
-  in limitWindowSize (if haveItems then showWindow else showNothing)
+storesWindow :: Game -> Widget Name
+storesWindow game =
+  let showStoreWindow = view (uiState . showStores) game
+      getStored getter = view (stored . getter) game
+      should getter = view (uiState . showItems . getter) game
+      stockpileItems = [(name, show amount)| (name, amount, itemShouldBeShown) <-
+        [ ("wood",   getStored wood,   should showWood)
+        , ("scales", getStored scales, should showScales)
+        ], itemShouldBeShown]
+      width = 20
+      showNothing = str (replicate (width + 2) ' ')
+      showWindow = storeWidget StoreVP "stores" stockpileItems width
+  in if showStoreWindow then showWindow else showNothing
 
 buttonThatIsCooling :: Game -> String -> (GameEvents -> (GameEvent, Int)) -> Int -> Widget Name
 buttonThatIsCooling g label coolDownGetter maxTime =

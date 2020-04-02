@@ -16,7 +16,7 @@ deriving instance FromJSON Location
 
 data Name
   = StoreVP
-  | VP2
+  | ForestVP
   | EventsVP
   | LightButton
   | StokeButton
@@ -62,7 +62,7 @@ data Name
   | RifleButton
   deriving (Eq, Show, Enum, Ord, Generic, ToJSON, FromJSON)
 
-data ShowStores = ShowStores
+data ShowItems = ShowItems
   { _showWood       :: Bool
   , _showScales     :: Bool
   , _showTeeth      :: Bool
@@ -79,11 +79,11 @@ data ShowStores = ShowStores
   , _showCompass    :: Bool
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
-makeLenses ''ShowStores
+makeLenses ''ShowItems
 
-showStoresInit :: ShowStores
-showStoresInit = ShowStores
-  { _showWood       = False
+showItemsInit :: ShowItems
+showItemsInit = ShowItems
+  { _showWood       = True
   , _showScales     = False
   , _showTeeth      = False
   , _showIron       = False
@@ -100,20 +100,24 @@ showStoresInit = ShowStores
   }
 
 data UIState = UIState
-  { _lastReportedClick :: Maybe (Name, Location)
-  , _showStores        :: ShowStores
-  , _showOutside       :: Bool
-  , _showPath          :: Bool
-  , _showShip          :: Bool
+  { _lastReportedClick            :: Maybe (Name, Location)
+  , _showItems                    :: ShowItems
+  , _showStores                   :: Bool
+  , _showOutside                  :: Bool
+  , _showPath                     :: Bool
+  , _showShip                     :: Bool
+  , _showForestBuildings          :: Bool
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''UIState
 
 uiStateInit :: UIState
 uiStateInit = UIState
-  { _lastReportedClick = Nothing
-  , _showStores        = showStoresInit
-  , _showOutside       = False
-  , _showPath          = False
-  , _showShip          = False
+  { _lastReportedClick   = Nothing
+  , _showItems           = showItemsInit
+  , _showStores          = False
+  , _showOutside         = False
+  , _showPath            = False
+  , _showShip            = False
+  , _showForestBuildings = False
   }

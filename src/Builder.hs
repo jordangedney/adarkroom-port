@@ -12,9 +12,10 @@ where
 
 import Control.Lens (over, set, view, (&))
 
+import UIState (showForestBuildings)
 import GameTypes (Game, BuilderState(..), RoomTemperature(Freezing, Cold),
                   milestones, builderIsHelping, builderState, stored, wood, traps, carts,
-                  trapsUnlocked, cartsUnlocked, preCartsUnlocked, roomTemperature)
+                  trapsUnlocked, cartsUnlocked, preCartsUnlocked, roomTemperature, uiState)
 import GameEvent (GameEvent(BuilderUpdate, UnlockForest, BuilderGathersWood, UnlockTraps))
 import Constants (builderStateDelay, needWoodDelay, builderGatherDelay,
                   unlockTrapsDelay, maximumNumberOfTraps)
@@ -110,10 +111,14 @@ buildIfEnoughWood cost buildTheItem game =
   let notEnoughWood = view (stored . wood) game < cost
       showResourceError = game & notifyRoom ("not enough wood (" <> show cost <> ").")
   in if notEnoughWood then showResourceError
-     else buildTheItem & over (stored . wood) (subtract cost)
+     else buildTheItem & over (stored . wood) (subtract cost) & unlockBuildingView
 
 buildItem :: Int -> Game -> Game -> Game
 buildItem cost item game = buildIfWarm (buildIfEnoughWood cost item game) game
+
+unlockBuildingView :: Game -> Game
+unlockBuildingView game =
+  game & set (uiState . showForestBuildings) True
 
 buildTrap :: Game -> Game
 buildTrap game =
