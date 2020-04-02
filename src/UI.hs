@@ -17,6 +17,8 @@ import UIState
 
 import Constants
 
+import qualified Outside
+
 roomStores :: Game -> Widget Name
 roomStores = storesWindow
 
@@ -24,11 +26,15 @@ forestStores :: Game -> Widget Name
 forestStores game =
   let showBuildings = view (uiState . showForestBuildings) game
       getStored getter = view (stored . getter) game
-      should getter = view (uiState . showItems . getter) game
-      buildings = [(name, show amount)| (name, amount, itemShouldBeShown) <-
+      buildings' = [(name, show amount)| (name, amount, itemShouldBeShown) <-
         [ ("cart", getStored carts, getStored carts > 0)
         , ("trap", getStored traps, getStored traps > 0)
         ], itemShouldBeShown]
+      currentPopulation = view (stored . people) game
+      maxPopulation = Outside.maxPopulation game
+      popCount = show currentPopulation <> "/" <> show maxPopulation
+      buildings = ("pop", popCount) : buildings'
+
       buildingsWindow = vBox [ storeWidget ForestVP "forest" buildings 20
                              , storesWindow game]
   in if showBuildings then buildingsWindow else storesWindow game
@@ -47,7 +53,11 @@ storeWidget name label stockpileItems width =
       toDisplay =
         unlines $ map (withWhitespace . countWhitespace) stockpileItems
 
-      showWindow = borderWithLabel (str (" " <> label <> " " <> replicate 11 '─')) -- 19
+      titleWithWS = " " <> label <> " "
+      titleLength = length titleWithWS
+      endingOffset = if titleLength < 19 then replicate (19 - titleLength) '─' else ""
+
+      showWindow = borderWithLabel (str (titleWithWS <> endingOffset))
                     . center
                     . viewport name Vertical $ str toDisplay
 

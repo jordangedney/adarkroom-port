@@ -2,6 +2,7 @@ module Outside
   ( unlock
   , arrival
   , gather
+  , maxPopulation
   )
 where
 
@@ -11,7 +12,7 @@ import UIState (showStores, showOutside)
 import GameEvent (GameEvent(GatherWood))
 import GameTypes (Game, Location(Outside),
                   stored, wood, uiState, seenForest, milestones, location, builderIsHelping,
-                  preCartsUnlocked, carts,
+                  preCartsUnlocked, carts, huts
                   )
 import Constants
 
@@ -51,3 +52,6 @@ gather game =
   in if view (milestones . builderIsHelping) game
      then woodGathered & set (milestones . preCartsUnlocked) True
      else woodGathered
+
+maxPopulation :: Game -> Int
+maxPopulation game = view (stored . huts) game * 4
