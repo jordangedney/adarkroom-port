@@ -8,8 +8,13 @@ module Constants
   , builderGatherDelay
   , unlockTrapsDelay
   , maximumNumberOfTraps
+  , checkTrapsCooldown
   )
 where
+
+-- checkTraps button cooldown
+checkTrapsCooldown :: Int
+checkTrapsCooldown = seconds 90
 
 maximumNumberOfTraps :: Int
 maximumNumberOfTraps = 10

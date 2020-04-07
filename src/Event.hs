@@ -64,8 +64,9 @@ handleButtonEvent RoomButton = Room.arrival
 handleButtonEvent LightButton = Fire.light
 handleButtonEvent StokeButton = Fire.stoke
 
-handleButtonEvent OutsideButton = Outside.arrival
-handleButtonEvent GatherButton  = Outside.gather
+handleButtonEvent OutsideButton      = Outside.arrival
+handleButtonEvent GatherButton       = Outside.gather
+handleButtonEvent CheckTrapsButton   = Outside.checkTraps
 
 handleButtonEvent TrapButton  = Builder.buildTrap
 handleButtonEvent CartButton  = Builder.buildCart

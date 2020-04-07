@@ -70,10 +70,16 @@ storesWindow game =
   let showStoreWindow = view (uiState . showStores) game
       getStored getter = view (stored . getter) game
       should getter = view (uiState . showItems . getter) game
-      stockpileItems = [(name, show amount)| (name, amount, itemShouldBeShown) <-
-        [ ("wood",   getStored wood,   should showWood)
-        , ("scales", getStored scales, should showScales)
-        ], itemShouldBeShown]
+      stockpileItems = [(name, show (getStored amount))| (name, amount, itemShouldBeShown) <-
+        [ ("wood",   wood,   showWood)
+        , ("bait",   bait,   showBait)
+        , ("fur",    fur,    showFur)
+        , ("meat",   meat,   showMeat)
+        , ("scales", scales, showScales)
+        , ("teeth",  teeth,  showTeeth)
+        , ("cloth",  cloth,  showCloth)
+        , ("charm",  charm,  showCharm)
+        ], should itemShouldBeShown]
       width = 20
       showNothing = str (replicate (width + 2) ' ')
       showWindow = storeWidget StoreVP "stores" stockpileItems width
@@ -150,10 +156,11 @@ forestButtons game =
   let gatherWoodButton =
         buttonWithCoolDown game _gatherWood "gather wood" GatherButton gatherCooldown
       checkTrapsButton =
-        buttonWithCoolDown game _checkTraps "check traps" CheckTrapsButton gatherCooldown
+        buttonWithCoolDown game _checkTraps "check traps" CheckTrapsButton checkTrapsCooldown
       haveTraps = view (stored . traps) game > 0
       buttons = if haveTraps then vBox [gatherWoodButton, checkTrapsButton]
                 else gatherWoodButton
+
   in buttons
 
 eventsWindow :: Game -> Widget Name

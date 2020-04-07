@@ -66,8 +66,6 @@ data Name
 
 data ShowItems = ShowItems
   { _showWood       :: Bool
-  , _showScales     :: Bool
-  , _showTeeth      :: Bool
   , _showIron       :: Bool
   , _showCoal       :: Bool
   , _showSteel      :: Bool
@@ -79,6 +77,13 @@ data ShowItems = ShowItems
   , _showBayonet    :: Bool
   , _showAlienAlloy :: Bool
   , _showCompass    :: Bool
+  , _showBait       :: Bool
+  , _showFur        :: Bool
+  , _showMeat       :: Bool
+  , _showScales     :: Bool
+  , _showTeeth      :: Bool
+  , _showCloth      :: Bool
+  , _showCharm      :: Bool
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''ShowItems
@@ -86,8 +91,6 @@ makeLenses ''ShowItems
 showItemsInit :: ShowItems
 showItemsInit = ShowItems
   { _showWood       = True
-  , _showScales     = False
-  , _showTeeth      = False
   , _showIron       = False
   , _showCoal       = False
   , _showSteel      = False
@@ -99,6 +102,13 @@ showItemsInit = ShowItems
   , _showBayonet    = False
   , _showAlienAlloy = False
   , _showCompass    = False
+  , _showBait       = False
+  , _showFur        = False
+  , _showMeat       = False
+  , _showScales     = False
+  , _showTeeth      = False
+  , _showCloth      = False
+  , _showCharm      = False
   }
 
 data UIState = UIState
