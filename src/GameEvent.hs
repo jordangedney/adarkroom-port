@@ -11,6 +11,7 @@ import Control.Lens (makeLenses, over, view, (&))
 data GameEvent
   = UnlockForest
   | GatherWood
+  | CheckTraps
   | FireStoked
   | FireShrinking
   | BuilderUpdate
@@ -23,6 +24,7 @@ data GameEvent
 data GameEvents = GameEvents
   { _unlockForest       :: (GameEvent, Int)
   , _gatherWood         :: (GameEvent, Int)
+  , _checkTraps         :: (GameEvent, Int)
   , _fireStoked         :: (GameEvent, Int)
   , _fireShrinking      :: (GameEvent, Int)
   , _builderUpdate      :: (GameEvent, Int)
@@ -37,6 +39,7 @@ gameEventsInit :: GameEvents
 gameEventsInit = GameEvents
   { _unlockForest       = (UnlockForest,       -1)
   , _gatherWood         = (GatherWood,         -1)
+  , _checkTraps         = (CheckTraps,         -1)
   , _fireStoked         = (FireStoked,         -1)
   , _fireShrinking      = (FireShrinking,       1)
   , _builderUpdate      = (BuilderUpdate,      -1)
@@ -50,6 +53,7 @@ eventGetter :: Functor f
   -> f GameEvents
 eventGetter UnlockForest       = unlockForest
 eventGetter GatherWood         = gatherWood
+eventGetter CheckTraps         = checkTraps
 eventGetter FireStoked         = fireStoked
 eventGetter FireShrinking      = fireShrinking
 eventGetter BuilderUpdate      = builderUpdate

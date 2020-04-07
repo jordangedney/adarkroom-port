@@ -12,7 +12,7 @@ import Control.Lens
 
 import Util
 import GameTypes
-import GameEvent (isActive, GameEvent, GameEvents, _fireStoked, _gatherWood)
+import GameEvent (isActive, GameEvent, GameEvents, _fireStoked, _gatherWood, _checkTraps)
 import UIState
 
 import Constants
@@ -149,7 +149,12 @@ forestButtons :: Game -> Widget Name
 forestButtons game =
   let gatherWoodButton =
         buttonWithCoolDown game _gatherWood "gather wood" GatherButton gatherCooldown
-  in gatherWoodButton
+      checkTrapsButton =
+        buttonWithCoolDown game _checkTraps "check traps" CheckTrapsButton gatherCooldown
+      haveTraps = view (stored . traps) game > 0
+      buttons = if haveTraps then vBox [gatherWoodButton, checkTrapsButton]
+                else gatherWoodButton
+  in buttons
 
 eventsWindow :: Game -> Widget Name
 eventsWindow g =
