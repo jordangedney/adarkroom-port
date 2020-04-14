@@ -9,11 +9,11 @@ import Graphics.Vty (mkVty, standardIOConfig, setMode, outputIface, Mode(Mouse))
 import           SaveGame (load)
 import           UI (theMap, drawUI)
 import           UIState (Name)
-import           GameTypes (Tick(..), initGame, World)
+import           GameTypes (Tick(..), initGame, Game)
 import           Event (handleEventWrapper)
 
 
-app :: App World Tick Name
+app :: App Game Tick Name
 app = App
   { appDraw         = drawUI
   , appChooseCursor = neverShowCursor

@@ -1,19 +1,16 @@
 module SaveGame (save, load) where
 
 import Data.Yaml (decodeFileEither, encodeFile)
-import System.Random (newStdGen)
 
+import GameTypes (Game, initGame, previousStates)
 import Control.Lens (set, (&))
 
-import GameTypes (World(..), Game, initGame, previousStates)
-
-load :: IO World
+load :: IO Game
 load = do
   loadFile <- decodeFileEither "save.data"
-  stdGen <- newStdGen
   case loadFile of
-    Left _     -> return $ World initGame stdGen
-    Right game -> return $ World game stdGen
+    Left _     -> return initGame
+    Right game -> return game
 
 save :: Game -> IO ()
 save game =

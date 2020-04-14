@@ -20,13 +20,15 @@ justifyCenter15 str =
       newStr = whitespace ++ str ++ whitespace
   in if length newStr == 15 then newStr else newStr ++ " "
 
--- Theres no error checking if you give over 100%
+-- The defaultValue should never trigger _if_ your probabilities add up to 100%.
+-- Otherwise its there to fill in the remainder.
+-- Theres also no error checking if you give over 100%
 -- Examples:
 -- randomChoice' 20  "def" [(25, "a"), (25, "b"), (25, "c"), (25 "d")]            -> "a"
 -- randomChoice' 50  "def" [(25, "a"), (25, "b"), (25, "c"), (25 "d")]            -> "b"
 -- randomChoice' 100 "def" [(25, "a"), (25, "b"), (25, "c")          ]            -> "def"
 -- randomChoice' 100 "def" [(25, "a"), (25, "b"), (25, "c"), (25 "d"), (25, "e")] -> "d"
-randomChoice' :: Int -> a -> [(Int, a)] -> a
+-- randomChoice' :: Int -> a -> [(Int, a)] -> a
 randomChoice' rand defaultValue probabilities =
   let sorted = sortBy (compare `on` fst) probabilities
       probs = drop 1 (scanl (\(s, _) (a, b) -> (s - a, b)) (rand, undefined) sorted)

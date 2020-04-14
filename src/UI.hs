@@ -251,8 +251,8 @@ locationMenu game =
 
   in vLimit 24 (buttons <+> stores <=> emptySpace)
 
-drawUI :: World -> [Widget Name]
-drawUI (World game _) =
+drawUI :: Game -> [Widget Name]
+drawUI game =
   let outerBorder = center . hLimit 77 . vLimit 30 . withBorderStyle unicodeRounded . border
 
       showGameTick = str (if view debug game then show (view tickCount game) ++ "  " else "")
