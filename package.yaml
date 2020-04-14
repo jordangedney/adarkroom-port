@@ -36,6 +36,7 @@ library:
   - vty
   - lens
   - yaml
+  - safe
 
 executables:
   a-dark-room-exe:
