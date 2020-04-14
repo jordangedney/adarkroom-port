@@ -37,6 +37,7 @@ library:
   - lens
   - yaml
   - safe
+  - random
 
 executables:
   a-dark-room-exe:
