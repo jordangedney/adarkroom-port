@@ -56,12 +56,12 @@ gather game =
      else woodGathered
 
 -- trapItems =
---   [ (0.5,  fur, "scraps of fur")
---   , (0.75, meat, "bits of meat")
---   , (0.85, scales, "strange scales")
---   , (0.93, teeth, "scattered teeth")
---   , (0.995, cloth, "tattered cloth")
---   , (1.0, charm, "a crudely made charm")
+--   [ 50%  (0.5,  fur, "scraps of fur")
+--   , 25%  (0.75, meat, "bits of meat")
+--   , 10% (0.85, scales, "strange scales")
+--   , 8% (0.93, teeth, "scattered teeth")
+--   , 6% (0.995, cloth, "tattered cloth")
+--   , 1% (1.0, charm, "a crudely made charm")
 --   ]
 
 --  bait
