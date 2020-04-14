@@ -5,7 +5,7 @@ import Brick (BrickEvent(..), EventM, Next, Location, continue)
 import Control.Lens (over, set, view, _2, (&))
 
 import Game (getGameEvent)
-import GameTypes (Game, Tick(..), Location(..), tickCount, upcomingEvents, events, uiState,
+import GameTypes (World(..), Game, Tick(..), Location(..), tickCount, upcomingEvents, events, uiState,
                   debug, hyper, initGame, previousStates, paused, location)
 import GameEvent (tickEvents, toList)
 import UIState (Name(..), lastReportedClick)
@@ -26,35 +26,38 @@ gameTick game =
       withStateAfterIngameEvents = foldr doEventIfReady updatedTickers allEvents
   in if view paused game then game else withStateAfterIngameEvents
 
-handleEventWrapper :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
-handleEventWrapper game event@(AppEvent Tick) = handleEvent game event
-handleEventWrapper game event@(MouseDown PrevButton _ _ _) = handleEvent game event
-handleEventWrapper game event@(MouseUp PrevButton _ _) = handleEvent game event
-handleEventWrapper game event =
-  handleEvent (game & over  previousStates (game:)) event
+handleEventWrapper :: World -> BrickEvent Name Tick -> EventM Name (Next World)
+handleEventWrapper (World game random) event =
+  let saveGame = game & over previousStates (game:)
+      stepButDontSave = continue $ World (handleEvent game event) random
+      saveAndStep     = continue $ World (handleEvent saveGame event) random
+      saved m = do
+        liftIO (save game)
+        continue $ World (handleMouseDown game SaveButton m) random
+  in case event of
+    (AppEvent Tick)              -> stepButDontSave
+    (MouseDown PrevButton _ _ _) -> stepButDontSave
+    (MouseUp PrevButton _ _)     -> stepButDontSave
+    (MouseDown SaveButton _ _ m) -> saved m
+    _                            -> saveAndStep
 
-handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
+handleEvent :: Game -> BrickEvent Name Tick -> Game
 handleEvent game (AppEvent Tick) =
   -- XXX the gui ticks twice at once
   let doubleSpeedEnabled = view hyper game
       fasterFaster = gameTick . gameTick . gameTick . gameTick $ game
       newGame = if doubleSpeedEnabled then fasterFaster
                 else gameTick game
-  in continue newGame
-
-handleEvent g (MouseDown SaveButton _ _ m) = do
-  liftIO (save g)
-  handleMouseDown g SaveButton m
+  in newGame
 
 handleEvent g (MouseDown e _ _ m) = handleMouseDown g e m
-handleEvent g MouseUp {} = continue $ set (uiState . lastReportedClick) Nothing g
-handleEvent g _ = continue g
+handleEvent g MouseUp {} = set (uiState . lastReportedClick) Nothing g
+handleEvent g _ =  g
 
-handleMouseDown :: Game -> Name -> Brick.Location -> EventM n (Next Game)
+handleMouseDown :: Game -> Name -> Brick.Location -> Game
 handleMouseDown game buttonPressed mouseLocation =
   game & set (uiState . lastReportedClick) (Just (buttonPressed, mouseLocation))
-  & handleButtonEvent buttonPressed
-  & continue
+       & handleButtonEvent buttonPressed
 
 handleButtonEvent :: Name -> Game -> Game
 

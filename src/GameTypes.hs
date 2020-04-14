@@ -6,11 +6,13 @@ module GameTypes where
 
 import GHC.Generics
 import Data.Yaml
+import System.Random
 
 import Control.Lens (makeLenses)
 
 import UIState (UIState, uiStateInit)
 import GameEvent (GameEvents, gameEventsInit)
+
 
 data Tick = Tick deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
@@ -96,7 +98,6 @@ storedInit = Stored
 data Location = Room | Outside | Path | Ship
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
-
 data Game = Game
   { _location           :: Location
   , _stored             :: Stored
@@ -139,3 +140,5 @@ initGame                = Game
   , _previousStates     = []
   , _paused             = False
   }
+
+data World = World {gameState :: Game, randomGen :: StdGen}
