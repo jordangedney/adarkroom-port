@@ -78,8 +78,7 @@ gather game =
 unlockTrapItemView :: Game -> Game
 unlockTrapItemView game =
   let items =
-        [ (bait,   showBait)
-        , (fur,    showFur)
+        [ (fur,    showFur)
         , (meat,   showMeat)
         , (scales, showScales)
         , (teeth,  showTeeth)
@@ -87,7 +86,7 @@ unlockTrapItemView game =
         , (charm,  showCharm)
         ]
       unlockItems = [set (uiState . showItems . shower) True | (getter, shower) <- items,
-                     view (stored . getter) game > 0]
+                     view (stored . getter) game > 0] ++ [set (uiState . showItems . showBait) True]
   in foldr (\update g -> update g) game unlockItems
 
 checkTraps :: StdGen -> Game -> Game
