@@ -7,7 +7,7 @@ module Outside
   )
 where
 
-import System.Random (StdGen, randomR)
+import System.Random (StdGen)
 import Control.Lens (over, set, view, (&))
 
 import UIState (showStores, showOutside, showItems,
@@ -108,7 +108,7 @@ checkTraps randomGen game =
       -- Wood doesn't drop, its a safeguard in case I can't add to 100
       drops = take numDrops (randomChoices randomGen (wood, "a broken stick") trapItems)
       gatherDrops =
-        map (\(found, event) -> ((over (stored . found) (+ 1)) . (addEvent ("found " <> event)))) drops
+        map (\(found, event) -> over (stored . found) (+ 1) . addEvent ("found " <> event)) drops
 
       thingsGathered = foldr (\a b -> a b) game gatherDrops
 
