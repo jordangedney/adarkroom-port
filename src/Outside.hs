@@ -20,6 +20,7 @@ import GameTypes (Game, Location(Outside),
 import Constants
 
 import GameUtil (addEvent, updateEvents)
+import Util (randomChoices)
 
 unlock :: Game -> Game
 unlock game =
@@ -90,26 +91,28 @@ unlockTrapItemView game =
 
 checkTraps :: StdGen -> Game -> Game
 checkTraps randomGen game =
-  let (randomNumber, _) = randomR (1, 100) randomGen
+  let trapItems =
+        [ (50, (fur,    "scraps of fur"))
+        , (25, (meat,   "bits of meat"))
+        , (10, (scales, "strange scales"))
+        , (8,  (teeth,  "scattered teeth"))
+        , (6,  (cloth,  "tattered cloth"))
+        , (1,  (charm,  "a crudely made charm"))
+        ]
 
       numTraps = view (stored . traps) game
       numBait = view (stored . bait) game
       additionalDrops = min numTraps numBait
       numDrops = numTraps + additionalDrops
 
-      thingsGathered =
-        game & over (stored . bait)   (+ 1)
-             & over (stored . fur)    (+ 1)
-             & over (stored . meat)   (+ 1)
-             & over (stored . scales) (+ 1)
-             & over (stored . teeth)  (+ 1)
-             & over (stored . cloth)  (+ 1)
-             & over (stored . charm)  (+ 1)
-             & updateEvents CheckTraps checkTrapsCooldown
-             & addEvent "the traps contain a lot of shit"
-             & unlockTrapItemView
+      -- Wood doesn't drop, its a safeguard in case I can't add to 100
+      drops = take numDrops (randomChoices randomGen (wood, "a broken stick") trapItems)
+      gatherDrops =
+        map (\(found, event) -> ((over (stored . found) (+ 1)) . (addEvent ("found " <> event)))) drops
 
-  in thingsGathered
+      thingsGathered = foldr (\a b -> a b) game gatherDrops
+
+  in thingsGathered & unlockTrapItemView
 
 maxPopulation :: Game -> Int
 maxPopulation game = view (stored . huts) game * 4
