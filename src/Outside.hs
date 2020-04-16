@@ -9,6 +9,7 @@ where
 
 import System.Random (StdGen)
 import Control.Lens (over, set, view, (&))
+import Data.List (nub, intercalate)
 
 import UIState (showStores, showOutside, showItems,
                 showBait, showFur, showMeat, showScales, showTeeth, showCloth, showCharm)
@@ -107,12 +108,17 @@ checkTraps randomGen game =
 
       -- Wood doesn't drop, its a safeguard in case I can't add to 100
       drops = take numDrops (randomChoices randomGen (wood, "a broken stick") trapItems)
-      gatherDrops =
-        map (\(found, event) -> over (stored . found) (+ 1) . addEvent ("found " <> event)) drops
+      gatherDrops = map ((\found -> over (stored . found) (+ 1)) . fst) drops
+
+      eventMsgs = nub (map snd drops)
+      eventItems = if length eventMsgs == 1 then last eventMsgs
+                   else intercalate ", " (init eventMsgs) ++ " and " ++  last eventMsgs
+      eventMsg = "the traps contain " ++ eventItems ++ "."
+        -- map (\(_, event) -> over (stored . found) (+ 1) . addEvent ("found " <> event)) drops
 
       thingsGathered = foldr (\a b -> a b) game gatherDrops
 
-  in thingsGathered & unlockTrapItemView & updateEvents CheckTraps checkTrapsCooldown
+  in thingsGathered & unlockTrapItemView & updateEvents CheckTraps checkTrapsCooldown & addEvent eventMsg
 
 maxPopulation :: Game -> Int
 maxPopulation game = view (stored . huts) game * 4
