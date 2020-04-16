@@ -9,6 +9,8 @@ import qualified Graphics.Vty as V
 
 -- import Control.Lens (over, set, view, _2, (&))
 import Control.Lens
+import Data.List (sortBy)
+import qualified Data.Function as Function
 
 import Util
 import GameTypes
@@ -70,7 +72,7 @@ storesWindow game =
   let showStoreWindow = view (uiState . showStores) game
       getStored getter = view (stored . getter) game
       should getter = view (uiState . showItems . getter) game
-      stockpileItems = [(name, show (getStored amount))| (name, amount, itemShouldBeShown) <-
+      stockpileItems' = [(name, show (getStored amount))| (name, amount, itemShouldBeShown) <-
         [ ("wood",   wood,   showWood)
         , ("bait",   bait,   showBait)
         , ("fur",    fur,    showFur)
@@ -80,6 +82,7 @@ storesWindow game =
         , ("cloth",  cloth,  showCloth)
         , ("charm",  charm,  showCharm)
         ], should itemShouldBeShown]
+      stockpileItems = sortBy (compare `Function.on` fst) stockpileItems'
       width = 20
       showNothing = str (replicate (width + 2) ' ')
       showWindow = storeWidget StoreVP "stores" stockpileItems width
