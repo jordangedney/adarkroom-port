@@ -1,5 +1,6 @@
 module Event (handleEventWrapper) where
 
+import System.Random (newStdGen)
 import Control.Monad.IO.Class (liftIO)
 import Brick (BrickEvent(..), EventM, Next, Location, continue)
 import Control.Lens (over, set, view, _2, (&))
@@ -17,21 +18,25 @@ import qualified Builder
 
 handleEventWrapper :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEventWrapper game event =
-  let saveGame = game & over previousStates (game:)
-      stepButDontSave = continue $ handleEvent game event
-      saveAndStep     = continue $ handleEvent saveGame event
+  let step g = continue $ handleEvent g event
+      autosave g = g & over previousStates (g:)
   in case event of
     -- Don't autosave
-    (AppEvent Tick)              -> stepButDontSave
-    (MouseDown PrevButton _ _ _) -> stepButDontSave
-    (MouseUp PrevButton _ _)     -> stepButDontSave
+    (AppEvent Tick)              -> step game
+    (MouseDown PrevButton _ _ _) -> step game
+    (MouseUp PrevButton _ _)     -> step game
 
     -- Events which use IO:
-    (MouseDown SaveButton _ _ buttonLocation) -> do
+    (MouseDown SaveButton _ _ _) -> do
       liftIO (save game)
-      continue (handleMouseDown game SaveButton buttonLocation)
+      step game
 
-    _                            -> saveAndStep
+    (MouseDown e@CheckTrapsButton  _ _ m) -> do
+      random <- liftIO newStdGen
+      game & setMouseDown e m & Outside.checkTraps random & continue
+
+
+    _                            -> step (autosave game)
 
 gameTick :: Game -> Game
 gameTick game =
@@ -55,10 +60,13 @@ handleEvent g (MouseDown e _ _ m) = handleMouseDown g e m
 handleEvent g MouseUp {} = set (uiState . lastReportedClick) Nothing g
 handleEvent g _ = g
 
-handleMouseDown :: Game -> Name -> Brick.Location -> Game
-handleMouseDown game buttonPressed mouseLocation =
+setMouseDown :: Name -> Brick.Location -> Game -> Game
+setMouseDown buttonPressed mouseLocation game =
   game & set (uiState . lastReportedClick) (Just (buttonPressed, mouseLocation))
-  & handleButtonEvent buttonPressed
+
+handleMouseDown :: Game -> Name -> Brick.Location -> Game
+handleMouseDown game pressed mouseLocation =
+  game & setMouseDown pressed mouseLocation & handleButtonEvent pressed
 
 handleButtonEvent :: Name -> Game -> Game
 handleButtonEvent NoOpButton = id
@@ -69,7 +77,7 @@ handleButtonEvent StokeButton = Fire.stoke
 
 handleButtonEvent OutsideButton      = Outside.arrival
 handleButtonEvent GatherButton       = Outside.gather
-handleButtonEvent CheckTrapsButton   = Outside.checkTraps
+handleButtonEvent CheckTrapsButton   = error "This should be handled up above"
 
 handleButtonEvent TrapButton  = Builder.buildTrap
 handleButtonEvent CartButton  = Builder.buildCart

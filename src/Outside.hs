@@ -7,6 +7,7 @@ module Outside
   )
 where
 
+import System.Random (StdGen, randomR)
 import Control.Lens (over, set, view, (&))
 
 import UIState (showStores, showOutside, showItems,
@@ -87,9 +88,11 @@ unlockTrapItemView game =
                      view (stored . getter) game > 0]
   in foldr (\update g -> update g) game unlockItems
 
-checkTraps :: Game -> Game
-checkTraps game =
-  let numTraps = view (stored . traps) game
+checkTraps :: StdGen -> Game -> Game
+checkTraps randomGen game =
+  let (randomNumber, _) = randomR (1, 100) randomGen
+
+      numTraps = view (stored . traps) game
       numBait = view (stored . bait) game
       additionalDrops = min numTraps numBait
       numDrops = numTraps + additionalDrops
