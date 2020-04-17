@@ -5,6 +5,7 @@ import           Brick.Widgets.Center
 import           Brick.Widgets.Border
 import           Brick.Widgets.Border.Style
 import qualified Brick.Widgets.ProgressBar as P
+import qualified Brick.Widgets.Center as C
 import qualified Graphics.Vty as V
 
 -- import Control.Lens (over, set, view, _2, (&))
@@ -56,11 +57,7 @@ storeWidget name label stockpileItems' width =
       toDisplay =
         unlines $ map (withWhitespace . countWhitespace) stockpileItems
 
-      titleWithWS = " " <> label <> " "
-      titleLength = length titleWithWS
-      endingOffset = if titleLength < 19 then replicate (19 - titleLength) '─' else ""
-
-      showWindow = borderWithLabel (str (titleWithWS <> endingOffset))
+      showWindow = borderWithLabel (str (formatTitle label 19))
                     . center
                     . viewport name Vertical $ str toDisplay
 
@@ -221,6 +218,7 @@ bottomMenu g =
 
       buttonsToLabels = [ (textButton g RestartButton,  "restart.")
                         , (textButton g SaveButton, "save.")
+                        , (textButton g NoOpButton, "ay.")
                         , changingButton hyper HyperButton "classic." "hyper."
                         , changingButton debug PauseButton  "pause." ""
                         , changingButton debug PrevButton "prev. " ""
@@ -254,17 +252,54 @@ locationMenu game =
 
   in vLimit 24 (buttons <+> stores <=> emptySpace)
 
-drawUI :: Game -> [Widget Name]
-drawUI game =
-  let outerBorder = center . hLimit 77 . vLimit 30 . withBorderStyle unicodeRounded . border
 
-      showGameTick = str (if view debug game then show (view tickCount game) ++ "  " else "")
+drawGameWindow :: Game -> Widget Name
+drawGameWindow game =
+  let showGameTick = str (if view debug game then show (view tickCount game) ++ "  " else "")
       notifications = vBox [vLimit 27 (eventsWindow game), showGameTick]
-
       gameActions = padLeft (Pad 3) (vBox [locationsWindow game, locationMenu game])
       actions = vBox [gameActions, bottomMenu game]
+      outerBorder = center . hLimit 77 . vLimit 30 . withBorderStyle unicodeRounded . border
+  in outerBorder (hBox [notifications , actions])
 
-  in [outerBorder (hBox [notifications , actions])]
+formatTitle label width =
+  let titleWithWS = " " <> label <> " "
+      titleLength = length titleWithWS
+      endingOffset = if titleLength < width then replicate (width - titleLength) '─' else ""
+  in titleWithWS <> endingOffset
+
+theFurBeggar :: Game -> Widget Name
+theFurBeggar game =
+  let dialogWindow =
+        C.centerLayer $
+        borderWithLabel (str (formatTitle "The Beggar" (width - 1))) $ dialogText
+
+      width = 54
+
+      dialogText =
+        hLimit width $
+        str "                                                                  ."
+        <=>
+        (padBottom (Pad 4) $
+         padLeft (Pad 2) $
+         (str "a beggar arrives."
+          <=> str " "
+          <=> str "asks for any spare furs to keep him warm at night."))
+        <=> padLeft (Pad 2) buttons
+
+      buttons = blueButton NoOpButton "give 50" <+> str "    "
+                <+> blueButton NoOpButton "give 100"
+                <=> str " "
+                <=> padBottom (Pad 1) (blueButton NoOpButton "turn him away")
+
+  in dialogWindow
+
+
+drawDialogWindow :: Game -> Widget Name
+drawDialogWindow game = theFurBeggar game
+
+drawUI :: Game -> [Widget Name]
+drawUI game = ($ game) <$> [drawDialogWindow, drawGameWindow]
 
 blueBackground :: AttrName
 blueBackground = attrName "blueBackground"
