@@ -102,20 +102,22 @@ buttonWithCoolDown game cooldownTimer label button maxTime =
   then buttonThatIsCooling game label cooldownTimer maxTime
   else blueButton button label
 
+newButton :: Name -> String -> Widget Name
+newButton buttonId label =
+  str (justifyCenter15 label)
+  & border
+  & clickable buttonId
+
 blueButton :: Name -> String -> Widget Name
 blueButton buttonId label =
-  clickable buttonId
-  $ withDefAttr blueBackground
-  $ border
-  $ str $ justifyCenter15 label
+  newButton buttonId label
+  & withDefAttr blueBackground
 
 greyedButton :: Name -> String -> Widget Name
 greyedButton buttonId label =
-  clickable buttonId
-  $ withDefAttr blueBackground
-  $ withDefAttr progressBarToDo
-  $ border
-  $ str $ justifyCenter15 label
+  newButton buttonId label
+  & withDefAttr blueBackground
+  & withDefAttr progressBarToDo
 
 textButton :: Game -> Name -> String -> Widget Name
 textButton game buttonId label =
@@ -280,7 +282,7 @@ theFurBeggar game =
         hLimit width $
         str "                                                                  ."
         <=>
-        (padBottom (Pad 4) $
+        (padBottom (Pad 2) $
          padLeft (Pad 2) $
          (str "a beggar arrives."
           <=> str " "
