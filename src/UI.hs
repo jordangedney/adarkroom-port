@@ -106,16 +106,16 @@ newButton :: Name -> String -> Widget Name
 newButton buttonId label =
   str (justifyCenter15 label)
   & border
-  & clickable buttonId
 
 blueButton :: Name -> String -> Widget Name
 blueButton buttonId label =
   newButton buttonId label
   & withDefAttr blueBackground
+  & clickable buttonId
 
-greyedButton :: Name -> String -> Widget Name
-greyedButton buttonId label =
-  newButton buttonId label
+greyedButton :: String -> Widget Name
+greyedButton label =
+  newButton NoOpButton label
   & withDefAttr blueBackground
   & withDefAttr progressBarToDo
 
@@ -142,10 +142,10 @@ roomButtons game =
 
       fullOnTraps = view (stored . traps) game >= maximumNumberOfTraps
       trapButton = if fullOnTraps
-                   then greyedButton NoOpButton "trap"
+                   then greyedButton "trap"
                    else blueButton TrapButton "trap"
       cartIsBuilt = view (stored . carts) game > 0
-      cartButton = if cartIsBuilt then greyedButton NoOpButton "cart"
+      cartButton = if cartIsBuilt then greyedButton "cart"
                    else blueButton CartButton "cart"
       buildables = if buildCartsUnlocked then trapButton <=> cartButton else trapButton
 
