@@ -21,6 +21,7 @@ data Name
   | LightButton
   | StokeButton
   | NoOpButton
+  | DialogButton
 
   | GatherButton
   | CheckTrapsButton
@@ -119,6 +120,7 @@ data UIState = UIState
   , _showPath                     :: Bool
   , _showShip                     :: Bool
   , _showForestBuildings          :: Bool
+  , _dialogBox                    :: Bool
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''UIState
@@ -132,4 +134,5 @@ uiStateInit = UIState
   , _showPath            = False
   , _showShip            = False
   , _showForestBuildings = False
+  , _dialogBox           = True
   }

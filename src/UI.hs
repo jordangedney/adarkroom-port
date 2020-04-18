@@ -100,7 +100,7 @@ buttonWithCoolDown ::
 buttonWithCoolDown game cooldownTimer label button maxTime =
   if isActive $ cooldownTimer . _upcomingEvents $ game
   then buttonThatIsCooling game label cooldownTimer maxTime
-  else blueButton button label
+  else actionButton game button label
 
 newButton :: Name -> String -> Widget Name
 newButton buttonId label =
@@ -113,10 +113,19 @@ blueButton buttonId label =
   & withDefAttr blueBackground
   & clickable buttonId
 
+actionButton :: Game -> Name -> String -> Widget Name
+actionButton game buttonId label =
+  if view (uiState . dialogBox) game then greyedButton label else blueButton buttonId label
+
+dialogButton :: Name -> String -> Widget Name
+dialogButton buttonId label =
+  newButton buttonId label
+  & withDefAttr blueBackground
+  & clickable buttonId
+
 greyedButton :: String -> Widget Name
 greyedButton label =
   newButton NoOpButton label
-  & withDefAttr blueBackground
   & withDefAttr progressBarToDo
 
 textButton :: Game -> Name -> String -> Widget Name
@@ -132,7 +141,7 @@ textButton game buttonId label =
 roomButtons :: Game -> Widget Name
 roomButtons game =
   let fireIsOut = view fireValue game == Dead
-      lightFireButton = blueButton LightButton "light fire"
+      lightFireButton = actionButton game LightButton "light fire"
       stokeFireButton =
         buttonWithCoolDown game _fireStoked "stoke fire" StokeButton stokeCooldown
       fireButton = if fireIsOut then lightFireButton else stokeFireButton
@@ -143,10 +152,10 @@ roomButtons game =
       fullOnTraps = view (stored . traps) game >= maximumNumberOfTraps
       trapButton = if fullOnTraps
                    then greyedButton "trap"
-                   else blueButton TrapButton "trap"
+                   else actionButton game TrapButton "trap"
       cartIsBuilt = view (stored . carts) game > 0
       cartButton = if cartIsBuilt then greyedButton "cart"
-                   else blueButton CartButton "cart"
+                   else actionButton game CartButton "cart"
       buildables = if buildCartsUnlocked then trapButton <=> cartButton else trapButton
 
       buildMenu = padTop (Pad 1) (str "build:") <=> buildables
@@ -220,7 +229,7 @@ bottomMenu g =
 
       buttonsToLabels = [ (textButton g RestartButton,  "restart.")
                         , (textButton g SaveButton, "save.")
-                        , (textButton g NoOpButton, "ay.")
+                        , (textButton g DialogButton, "ay.")
                         , changingButton hyper HyperButton "classic." "hyper."
                         , changingButton debug PauseButton  "pause." ""
                         , changingButton debug PrevButton "prev. " ""
@@ -289,12 +298,12 @@ theFurBeggar game =
           <=> str "asks for any spare furs to keep him warm at night."))
         <=> padLeft (Pad 2) buttons
 
-      buttons = blueButton NoOpButton "give 50" <+> str "    "
-                <+> blueButton NoOpButton "give 100"
+      buttons = dialogButton NoOpButton "give 50" <+> str "    "
+                <+> dialogButton NoOpButton "give 100"
                 <=> str " "
-                <=> padBottom (Pad 1) (blueButton NoOpButton "turn him away")
+                <=> padBottom (Pad 1) (dialogButton NoOpButton "turn him away")
 
-  in dialogWindow
+  in if view (uiState . dialogBox) game then dialogWindow else str ""
 
 
 drawDialogWindow :: Game -> Widget Name

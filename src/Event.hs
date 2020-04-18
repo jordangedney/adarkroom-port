@@ -9,7 +9,7 @@ import Game (getGameEvent)
 import GameTypes (Game, Tick(..), Location(..), tickCount, upcomingEvents, events, uiState,
                   debug, hyper, initGame, previousStates, paused, location)
 import GameEvent (tickEvents, toList)
-import UIState (Name(..), lastReportedClick)
+import UIState (Name(..), lastReportedClick, dialogBox)
 import SaveGame (save)
 import qualified Fire
 import qualified Outside
@@ -90,5 +90,6 @@ handleButtonEvent HyperButton = over hyper not
 handleButtonEvent DebugButton = over debug not
 handleButtonEvent PrevButton = set paused True . head . view previousStates
 handleButtonEvent PauseButton = over paused not
+handleButtonEvent DialogButton = over (uiState . dialogBox) not
 
 handleButtonEvent _ = id
