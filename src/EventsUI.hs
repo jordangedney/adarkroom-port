@@ -9,32 +9,34 @@ import UIState
 import GameTypes
 import UIComponents
 
-
 drawDialogWindow :: Game -> Widget Name
-drawDialogWindow game = theFurBeggar game
+drawDialogWindow = theFurBeggar
+
+optionalDialogButton :: Bool -> Name -> String -> Widget Name
+optionalDialogButton predicate buttonID label =
+  if predicate then dialogButton buttonID label else greyedButton label
 
 theFurBeggar :: Game -> Widget Name
 theFurBeggar game =
-  let dialogWindow =
-        centerLayer $
-        borderWithLabel (str (formatTitle "The Beggar" (width - 1))) $ dialogText
+  let width = 54
+      dialogWindow =
+        dialogItems
+        & borderWithLabel (str (formatTitle "The Beggar" (width - 1)))
+        & centerLayer
 
-      width = 54
-
+      blankLine = str " "
       dialogText =
-        hLimit width $
-        str "                                                                  ."
-        <=>
-        (padBottom (Pad 2) $
-         padLeft (Pad 2) $
-         (str "a beggar arrives."
-          <=> str " "
-          <=> str "asks for any spare furs to keep him warm at night."))
-        <=> padLeft (Pad 2) buttons
+        padBottom (Pad 2)
+          (str "a beggar arrives." <=> blankLine
+           <=> str "asks for any spare furs to keep him warm at night.")
 
-      buttons = dialogButton NoOpButton "give 50" <+> str "    "
-                <+> dialogButton NoOpButton "give 100"
-                <=> str " "
-                <=> padBottom (Pad 1) (dialogButton NoOpButton "turn him away")
+      dialogItems =
+        hLimit width $ str (replicate width ' ') -- Control dialog box width
+        <=> padLeft (Pad 2 ) (dialogText <=> padBottom (Pad 1) buttons)
+
+      buttons = optionalDialogButton False NoOpButton "give 50"
+                <+> str "    "
+                <+> dialogButton NoOpButton "give 100" <=> blankLine
+                <=> dialogButton ExitEventButton "turn him away"
 
   in if view (uiState . dialogBox) game then dialogWindow else str ""

@@ -23,6 +23,8 @@ data Name
   | NoOpButton
   | DialogButton
 
+  | ExitEventButton
+
   | GatherButton
   | CheckTrapsButton
 
