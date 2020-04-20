@@ -208,6 +208,8 @@ locationMenu game =
 
   in vLimit 24 (buttons <+> stores <=> emptySpace)
 
+
+-- The path map is 60 x 60,
 drawGameWindow :: Game -> Widget Name
 drawGameWindow game =
   let showGameTick = str (if view debug game then show (view tickCount game) ++ "  " else "")

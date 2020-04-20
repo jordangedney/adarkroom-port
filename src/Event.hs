@@ -16,6 +16,7 @@ import qualified Fire
 import qualified Outside
 import qualified Room
 import qualified Builder
+import qualified RandomEvents
 
 handleEventWrapper :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEventWrapper game event =
@@ -76,12 +77,15 @@ handleButtonEvent RoomButton = Room.arrival
 handleButtonEvent LightButton = Fire.light
 handleButtonEvent StokeButton = Fire.stoke
 
-handleButtonEvent OutsideButton      = Outside.arrival
-handleButtonEvent GatherButton       = Outside.gather
-handleButtonEvent CheckTrapsButton   = error "This should be handled up above"
+handleButtonEvent OutsideButton    = Outside.arrival
+handleButtonEvent GatherButton     = Outside.gather
+handleButtonEvent CheckTrapsButton = error "This should be handled up above"
 
-handleButtonEvent TrapButton  = Builder.buildTrap
-handleButtonEvent CartButton  = Builder.buildCart
+handleButtonEvent TrapButton = Builder.buildTrap
+handleButtonEvent CartButton = Builder.buildCart
+
+handleButtonEvent FurBeggarFiftyButton = RandomEvents.give50fur
+handleButtonEvent FurBeggarHundredButton = RandomEvents.give100fur
 
 handleButtonEvent PathButton = set location Path
 handleButtonEvent ShipButton = set location Ship
