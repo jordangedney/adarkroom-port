@@ -58,23 +58,6 @@ gather game =
      then woodGathered & set (milestones . preCartsUnlocked) True
      else woodGathered
 
--- trapItems =
---   [ 50%  (0.5,  fur, "scraps of fur")
---   , 25%  (0.75, meat, "bits of meat")
---   , 10% (0.85, scales, "strange scales")
---   , 8% (0.93, teeth, "scattered teeth")
---   , 6% (0.995, cloth, "tattered cloth")
---   , 1% (1.0, charm, "a crudely made charm")
---   ]
-
---  bait
---  fur
---  meat
---  scales
---  teeth
---  cloth
---  charm
-
 unlockTrapItemView :: Game -> Game
 unlockTrapItemView game =
   let items =
@@ -113,7 +96,6 @@ checkTraps randomGen game =
       eventItems = if length eventMsgs == 1 then last eventMsgs
                    else intercalate ", " (init eventMsgs) ++ " and " ++  last eventMsgs
       eventMsg = "the traps contain " ++ eventItems ++ "."
-        -- map (\(_, event) -> over (stored . found) (+ 1) . addEvent ("found " <> event)) drops
 
       thingsGathered = foldr (\a b -> a b) game gatherDrops
 
