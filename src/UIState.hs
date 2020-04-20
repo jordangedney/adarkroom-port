@@ -24,6 +24,8 @@ data Name
   | DialogButton
 
   | ExitEventButton
+  | FurBeggarFiftyButton
+  | FurBeggarHundredButton
 
   | GatherButton
   | CheckTrapsButton

@@ -34,9 +34,10 @@ theFurBeggar game =
         hLimit width $ str (replicate width ' ') -- Control dialog box width
         <=> padLeft (Pad 2 ) (dialogText <=> padBottom (Pad 1) buttons)
 
-      buttons = optionalDialogButton False NoOpButton "give 50"
+      buttons = optionalDialogButton (view (stored . fur) game >= 50) FurBeggarFiftyButton "give 50"
                 <+> str "    "
-                <+> dialogButton NoOpButton "give 100" <=> blankLine
+                <+> optionalDialogButton (view (stored . fur) game >= 100) FurBeggarHundredButton "give 100"
+                <=> blankLine
                 <=> dialogButton ExitEventButton "turn him away"
 
   in if view (uiState . dialogBox) game then dialogWindow else str ""
