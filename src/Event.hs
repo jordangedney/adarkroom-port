@@ -7,7 +7,8 @@ import Control.Lens (over, set, view, _2, (&))
 
 import Game (getGameEvent)
 import GameTypes (Game, Tick(..), Location(..), tickCount, upcomingEvents, events, uiState,
-                  debug, hyper, initGame, previousStates, paused, location)
+                  debug, hyper, initGame, previousStates, paused, location,
+                  stored, bait, fur, meat, scales, teeth, cloth, charm)
 import GameEvent (tickEvents, toList)
 import UIState (Name(..), lastReportedClick, dialogBox)
 import SaveGame (save)
@@ -92,5 +93,13 @@ handleButtonEvent PrevButton = set paused True . head . view previousStates
 handleButtonEvent PauseButton = over paused not
 handleButtonEvent DialogButton = over (uiState . dialogBox) not
 handleButtonEvent ExitEventButton = set (uiState . dialogBox) False
+handleButtonEvent CheatButton =
+    over (stored . bait)   (+ 50)
+  . over (stored . fur)    (+ 50)
+  . over (stored . meat)   (+ 50)
+  . over (stored . scales) (+ 50)
+  . over (stored . teeth)  (+ 50)
+  . over (stored . cloth)  (+ 50)
+  . over (stored . charm)  (+ 50)
 
 handleButtonEvent _ = id

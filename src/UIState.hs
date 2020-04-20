@@ -22,6 +22,7 @@ data Name
   | StokeButton
   | NoOpButton
   | DialogButton
+  | CheatButton
 
   | ExitEventButton
   | FurBeggarFiftyButton

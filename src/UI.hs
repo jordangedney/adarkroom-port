@@ -174,6 +174,7 @@ bottomMenu g =
       buttonsToLabels = [ (textButton g RestartButton,  "restart.")
                         , (textButton g SaveButton, "save.")
                         , (textButton g DialogButton, "ay.")
+                        , (textButton g CheatButton, "ch.")
                         , changingButton hyper HyperButton "classic." "hyper."
                         , changingButton debug PauseButton  "pause." ""
                         , changingButton debug PrevButton "prev. " ""
