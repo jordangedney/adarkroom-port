@@ -1,4 +1,4 @@
-module UIComponents where
+module UI.UIComponents where
 
 import Brick
 import Brick.Widgets.Border (border)
@@ -7,7 +7,7 @@ import qualified Graphics.Vty as V
 import Control.Lens (view, (&))
 
 import GameTypes
-import UIState
+import UI.UIState
 import GameEvent
 
 justifyLeft16 :: String -> String

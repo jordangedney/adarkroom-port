@@ -12,7 +12,7 @@ where
 
 import Control.Lens (over, set, view, (&))
 
-import UIState (showForestBuildings)
+import UI.UIState (showForestBuildings)
 import GameTypes (Game, BuilderState(..), RoomTemperature(Freezing, Cold),
                   milestones, builderIsHelping, builderState, stored, wood, traps, carts,
                   trapsUnlocked, cartsUnlocked, preCartsUnlocked, roomTemperature, uiState)

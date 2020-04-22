@@ -1,13 +1,13 @@
-module EventsUI where
+module UI.EventsUI where
 
 import Brick
 import Brick.Widgets.Border (borderWithLabel)
 import Brick.Widgets.Center (centerLayer)
 import Control.Lens (view, (&))
 
-import UIState
+import UI.UIState
 import GameTypes
-import UIComponents
+import UI.UIComponents
 
 drawDialogWindow :: Game -> Widget Name
 drawDialogWindow = theFurBeggar

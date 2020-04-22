@@ -10,7 +10,7 @@ import GameTypes (Game, Tick(..), Location(..), tickCount, upcomingEvents, event
                   debug, hyper, initGame, previousStates, paused, location,
                   stored, bait, fur, meat, scales, teeth, cloth, charm)
 import GameEvent (tickEvents, toList)
-import UIState (Name(..), lastReportedClick, dialogBox)
+import UI.UIState (Name(..), lastReportedClick, dialogBox)
 import SaveGame (save)
 import qualified Fire
 import qualified Outside
