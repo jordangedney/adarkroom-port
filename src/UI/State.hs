@@ -3,7 +3,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE StandaloneDeriving #-}
 
-module UI.UIState where
+module UI.State where
 
 import GHC.Generics
 import Data.Yaml

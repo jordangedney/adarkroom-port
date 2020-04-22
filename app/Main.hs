@@ -7,9 +7,9 @@ import Brick.BChan (newBChan, writeBChan)
 import Graphics.Vty (mkVty, standardIOConfig, setMode, outputIface, Mode(Mouse))
 
 import           SaveGame (load)
-import           UI.UI (drawUI)
-import           UI.UIComponents (theMap)
-import           UI.UIState (Name)
+import           UI.Display (drawUI)
+import           UI.Components (theMap)
+import           UI.State (Name)
 import           GameTypes (Tick(..), initGame, Game)
 import           Event (handleEventWrapper)
 

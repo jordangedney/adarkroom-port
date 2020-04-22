@@ -1,4 +1,4 @@
-module UI.UI where
+module UI.Display where
 
 import Brick
 import Brick.Widgets.Center
@@ -12,9 +12,9 @@ import qualified Data.Function as Function
 import Util
 import GameTypes
 import GameEvent (_fireStoked, _gatherWood, _checkTraps)
-import UI.UIState
-import UI.EventsUI
-import UI.UIComponents
+import UI.State
+import UI.Events
+import UI.Components
 import Constants
 
 import qualified Outside

@@ -9,7 +9,7 @@ import Data.Yaml
 
 import Control.Lens (makeLenses)
 
-import UI.UIState (UIState, uiStateInit)
+import UI.State (UIState, uiStateInit)
 import GameEvent (GameEvents, gameEventsInit)
 
 data Tick = Tick deriving (Eq, Show, Generic, ToJSON, FromJSON)

@@ -11,7 +11,7 @@ import System.Random (StdGen)
 import Control.Lens (over, set, view, (&))
 import Data.List (nub, intercalate)
 
-import UI.UIState (showStores, showOutside, showItems,
+import UI.State (showStores, showOutside, showItems,
                 showBait, showFur, showMeat, showScales, showTeeth, showCloth, showCharm)
 import GameEvent (GameEvent(GatherWood, CheckTraps))
 import GameTypes (Game, Location(Outside),
