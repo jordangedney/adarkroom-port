@@ -6,7 +6,7 @@ import Brick.Widgets.Border
 import Brick.Widgets.Border.Style
 
 import Control.Lens
-import Data.List (sortBy)
+import Data.List (sortBy, transpose)
 import qualified Data.Function as Function
 
 import Util
@@ -67,7 +67,8 @@ storesWindow game =
   let showStoreWindow = view (uiState . showStores) game
       getStored getter = view (stored . getter) game
       should getter = view (uiState . showItems . getter) game
-      stockpileItems = [(name, show (getStored amount))| (name, amount, itemShouldBeShown) <-
+      stockpileItems = [(name, show (getStored amount))|
+                        (name, amount, itemShouldBeShown) <-
         [ ("wood",   wood,   showWood)
         , ("bait",   bait,   showBait)
         , ("fur",    fur,    showFur)
@@ -87,7 +88,8 @@ roomButtons game =
   let fireIsOut = view fireValue game == Dead
       lightFireButton = actionButton game LightButton "light fire"
       stokeFireButton =
-        buttonWithCoolDown game _fireStoked "stoke fire" StokeButton stokeCooldown
+        buttonWithCoolDown
+          game _fireStoked "stoke fire" StokeButton stokeCooldown
       fireButton = if fireIsOut then lightFireButton else stokeFireButton
 
       buildMenuUnlocked  = view (milestones . trapsUnlocked) game
@@ -100,7 +102,8 @@ roomButtons game =
       cartIsBuilt = view (stored . carts) game > 0
       cartButton = if cartIsBuilt then greyedButton "cart"
                    else actionButton game CartButton "cart"
-      buildables = if buildCartsUnlocked then trapButton <=> cartButton else trapButton
+      buildables = if buildCartsUnlocked then trapButton <=> cartButton
+                   else trapButton
 
       buildMenu = padTop (Pad 1) (str "build:") <=> buildables
 
@@ -108,10 +111,10 @@ roomButtons game =
 
 forestButtons :: Game -> Widget Name
 forestButtons game =
-  let gatherWoodButton =
-        buttonWithCoolDown game _gatherWood "gather wood" GatherButton gatherCooldown
-      checkTrapsButton =
-        buttonWithCoolDown game _checkTraps "check traps" CheckTrapsButton checkTrapsCooldown
+  let gatherWoodButton = buttonWithCoolDown game
+        _gatherWood "gather wood" GatherButton gatherCooldown
+      checkTrapsButton = buttonWithCoolDown game
+        _checkTraps "check traps" CheckTrapsButton checkTrapsCooldown
       haveTraps = view (stored . traps) game > 0
       buttons = if haveTraps then vBox [gatherWoodButton, checkTrapsButton]
                 else gatherWoodButton
@@ -153,11 +156,15 @@ locationsWindow g =
         else textButton g button (justifyLeft16 $ locationTxt locat)
 
       top    = if _showOutside . _uiState $ g
-               then stylize RoomButton Room <+> str "|   " <+> stylize OutsideButton Outside
+               then stylize RoomButton Room
+                    <+> str "|   "
+                    <+> stylize OutsideButton Outside
                else stylize RoomButton Room
 
       bottom = if _showPath . _uiState $ g
-               then stylize PathButton Path <+> str "|   " <+> stylize ShipButton Ship
+               then stylize PathButton Path
+                    <+> str "|   "
+                    <+> stylize ShipButton Ship
                else str ""
 
   in padBottom (Pad 1)
@@ -189,35 +196,113 @@ bottomMenu g =
       buttons = interleave [withLabelsApplied, paddingBetweenButtons]
    in padLeft (Pad leftPadding) (hBox buttons)
 
+displayPath :: Game -> Widget Name
+displayPath game =
+  borderWithLabel (str (formatTitle "rucksack" 19))
+  -- $ vBox (replicate 59 (str  (replicate 59 '.' <> "!")) ++ [str "foo"])
+  $ vBox (map str dummyMap)
+
 locationMenu :: Game -> Widget Name
 locationMenu game =
   let emptySpace = str (replicate 30 '\n')
-      buttons = padRight (Pad 3) $ game &
-        case view location game of
-          Room    -> roomButtons
-          Outside -> forestButtons
-          Path    -> error "TODO"
-          Ship    -> error "TODO"
 
-      stores = game &
-        case view location game of
-          Room    -> roomStores
-          Outside -> forestStores
-          Path    -> error "TODO"
-          Ship    -> error "TODO"
+      room =
+        padRight (Pad 3) (roomButtons game) <+> roomStores game <=> emptySpace
+      forest =
+        padRight (Pad 3) (forestButtons game) <+> forestStores game <=> emptySpace
+      path = displayPath game
+      ship = room
 
-  in vLimit 24 (buttons <+> stores <=> emptySpace)
+      currentLocation =
+        case view location game of
+          Room    -> room
+          Outside -> forest
+          Path    -> path
+          Ship    -> ship
+
+  in vLimit 97 currentLocation
 
 
 -- The path map is 60 x 60,
 drawGameWindow :: Game -> Widget Name
 drawGameWindow game =
-  let showGameTick = str (if view debug game then show (view tickCount game) ++ "  " else "")
-      notifications = vBox [vLimit 27 (eventsWindow game), showGameTick]
-      gameActions = padLeft (Pad 3) (vBox [locationsWindow game, locationMenu game])
+  let showGameTick =
+        str (if view debug game then show (view tickCount game) ++ "  " else "")
+      notifications = vBox [vLimit 97 (eventsWindow game), showGameTick]
+      gameActions =
+        padLeft (Pad 3) (vBox [locationsWindow game, locationMenu game])
       actions = vBox [gameActions, bottomMenu game]
-      outerBorder = center . hLimit 77 . vLimit 30 . withBorderStyle unicodeRounded . border
+      outerBorder = center . hLimit 200 . vLimit 97 . withBorderStyle unicodeRounded . border
   in outerBorder (hBox [notifications , actions])
 
 drawUI :: Game -> [Widget Name]
 drawUI game = ($ game) <$> [drawDialogWindow, drawGameWindow]
+
+
+rot90 x = transpose . map reverse $ x
+
+
+-- dummyMap = rot90 . rot90 . rot90 $
+dummyMap =
+  [ "....,,,,,,,,,.......;;;;;;;;;;;;;Y;;;;;;;;;;;;;;;;;.........,"
+  , ",,,,,,,,,,,,......;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;.........,"
+  , ",,,,,,,,,,,,......;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;.........,"
+  , ",,,.,,,,,,,.....;;;;;;;;;;;;;;H;;;;;;;;;;;;;;;;;;;..........,"
+  , ",,,.,,,,,,....;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;......;...,"
+  , ",,,,,,........;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;......;...,"
+  , ".,,,,........;;;;;;;;;;;;;;;.;;;;;B;;;;;;;;;;;;;;;......;;;;;"
+  , "..,,,........;;;;;;;;;;;.....;;;;;;;;;;;;;;;;;;;;;......;;;;;"
+  , "..,,,.......;;;;;;;;;;;......;;;;;;;;;;;;;;;;;;;;;........;;;"
+  , "...,,,...,..;;;;;;;,,........;;;;;;;;;;;;;;;;;;;...........;;"
+  , "....,,;;;;..;;;;;;,,,........;;;;;;;;;;;;;;;;;;;............."
+  , "....,,Y,;;;,;;;;,,,,........;;;;;;;......;;;................."
+  , "....,,,,,;;;;;;,,,,......Y;;;;;;;;;.....;;;.....,....F......."
+  , "....,,,,,,;;;;;,,,,.....;;;;;;;;;;;....;;;;.................."
+  , "....,,,,,,;;;;,,,,.....;;;;;;;;;;;;....;;;..................."
+  , "....,,,,,,;;;;,,,,.....;;;;;;;;;.......;;;................F.."
+  , "..Y...,,,,,,,;;;......;;;;;;;M;;......;;;;..;................"
+  , "......,,,,,,,,;;;;....;;;;;;.........;;;;;..;................"
+  , "Y.....,,,,,,,,........;;;H;.O........;;;;;....B.............."
+  , "......,,,,,,,,,,,....;;;;;,..........;;;;;..................."
+  , "......,,,,,,,,,,,....;;;;;,..........;;;.;..................."
+  , ".....Y.,,F,,,,,,,....;;;;,,.........;;;..;..................."
+  , ".........,,,,,,,,,...,,O,,,..,,.....;;O;.;..................."
+  , ".........,,,,,,,,,,,..,,,,,C.,......;,;;;;..................."
+  , ".........,,,,,,,,,,,....,,...,......;;;;;;O;................."
+  , "Y........,,,,,,,,,,,,,,......,......;;;;;;;;.B..............."
+  , ".........,,,,,,,,,,,,,,,,..,,,.......;;O;;;;................B"
+  , "Y..........,,,,,,,,,,,,,,V,,,....,,..;;;;;;;................."
+  , "F.......B..,,,,,,,,,,,,,,,,,.......H.....;;;;................"
+  , "............,,,,,,,,,,,,,,,,H,H..........;;;;;..............B"
+  , "............,,,,,,,,,,,,,,,,.;A;.........;;;;;..............."
+  , "F...........,,,,,,,,,,,,,,,,P##,......V..;;;;;...S..........."
+  , ".............,,,,,,,,,,,,,,,.,#,V;;...O.....................Y"
+  , ".............,,,,,,,,,,,,,,,,,#,..;;........................."
+  , ".Y..............,,,,,,,,,,,,,IP.............................."
+  , "...Y........Y...,,,,,,,,,,,,,,,.............................."
+  , "B..................,,,,H,,,,,,...H..................W........"
+  , ",..................,,,,,,,,O,................................"
+  , ",,..................,,,,,,,,,................................"
+  , ",,..................,,,,,,,.....O............................"
+  , ",,,,.................,,,,,..............Y...................."
+  , ",,,,,............,,,,,,,,,.............,,...................."
+  , ",,,,,............,,,,,,,...............,....................."
+  , ",,,,,.Y..........,,,,,,,....................................."
+  , ",,,,,............,,,,,,,.....H..O..O........................."
+  , ",,,,,,.......,,,,,,,,,,.....................,,..............."
+  , ",,,,,,.......,.,,,,,,,.....................,,,,Y,,,,........."
+  , ",,,,,,,,,....,,,,,,,,,...................,,,,,,,,,,,........."
+  , ",,,,,,,,,....,,,,,,......................,,,,,,,,,,,,,......."
+  , ",,,,,,,,,Y,,,,,,Y........................,,,,,,,,,,,,,,,....."
+  , ",,,,,,,,.,,,,,,......................,,,,,,,,,,,,,,,,,,,....."
+  , ",,,,,,,,.,,,,,,.........H...........,,,,,,,,,,,,,,,,,,,,,,..."
+  , ",,,,,,,,.,,,,,......................,,,,,,,,,,,,,,,,,,,,,,,,,"
+  , ",,,,,,,,,,,,...............Y......,,,,,,,,,,,,,,,,,,,,,,,,,,,"
+  , ",,,,,,,,,,....................,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"
+  , ",,,,,,,,,,...................,,,,,,,,,,,,,,,,Y,,,,,,,,,,,,,,,"
+  , ",,,,,,,,,,...................,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"
+  , ",,,,,,,,,,...................,,,,,,,,,,,,,,,,,,,,,,,,,,,,..,,"
+  , ",,,,,,,,.....................,,,,,,,,,H,,,,,,,,,,,,,,,,,....."
+  , ",,,,,,.......................,B,,,,,,,,,,,,,,,,,,,,,,,,,....."
+  , ";,,,,...............Y........,,B,,B,,,,,,,,,,,,,,,,,,,,......"
+  ]

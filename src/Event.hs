@@ -74,12 +74,16 @@ handleButtonEvent :: Name -> Game -> Game
 handleButtonEvent NoOpButton = id
 
 handleButtonEvent RoomButton = Room.arrival
+
 handleButtonEvent LightButton = Fire.light
 handleButtonEvent StokeButton = Fire.stoke
 
 handleButtonEvent OutsideButton    = Outside.arrival
 handleButtonEvent GatherButton     = Outside.gather
 handleButtonEvent CheckTrapsButton = error "This should be handled up above"
+
+-- handleButtonEvent PathButton    = Path.arrival
+-- handleButtonEvent ShipButton    = Path.arrival
 
 handleButtonEvent TrapButton = Builder.buildTrap
 handleButtonEvent CartButton = Builder.buildCart
