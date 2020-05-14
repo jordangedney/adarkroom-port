@@ -234,9 +234,6 @@ drawGameWindow game =
       outerBorder = center . hLimit 200 . vLimit 97 . withBorderStyle unicodeRounded . border
   in outerBorder (hBox [notifications , actions])
 
-  [doo(i) for i in blah]
-  map(doo, blah)
-
 drawUI :: Game -> [Widget Name]
 drawUI game = ($ game) <$> [drawDialogWindow, drawGameWindow]
 
