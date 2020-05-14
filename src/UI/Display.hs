@@ -6,7 +6,7 @@ import Brick.Widgets.Border
 import Brick.Widgets.Border.Style
 
 import Control.Lens
-import Data.List (sortBy, transpose)
+import Data.List (sortBy, intersperse)
 import qualified Data.Function as Function
 
 import Util
@@ -222,7 +222,6 @@ locationMenu game =
 
   in vLimit 97 currentLocation
 
-
 -- The path map is 60 x 60,
 drawGameWindow :: Game -> Widget Name
 drawGameWindow game =
@@ -235,15 +234,13 @@ drawGameWindow game =
       outerBorder = center . hLimit 200 . vLimit 97 . withBorderStyle unicodeRounded . border
   in outerBorder (hBox [notifications , actions])
 
+  [doo(i) for i in blah]
+  map(doo, blah)
+
 drawUI :: Game -> [Widget Name]
 drawUI game = ($ game) <$> [drawDialogWindow, drawGameWindow]
 
-
-rot90 x = transpose . map reverse $ x
-
-
--- dummyMap = rot90 . rot90 . rot90 $
-dummyMap =
+dummyMap = map (intersperse ' ')
   [ "....,,,,,,,,,.......;;;;;;;;;;;;;Y;;;;;;;;;;;;;;;;;.........,"
   , ",,,,,,,,,,,,......;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;.........,"
   , ",,,,,,,,,,,,......;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;.........,"
