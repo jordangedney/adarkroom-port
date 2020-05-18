@@ -139,8 +139,8 @@ eventsWindow g =
   $ topEvents'
   <=> withAttr blueText (strWrap bottomEvents)
 
-locationsWindow :: Game -> Widget Name
-locationsWindow g =
+locationsWindow' :: Game -> Widget Name
+locationsWindow' g =
   let shouldShow showP label = if showP . _uiState $ g then label else ""
 
       locationTxt Room    = if _fireValue g == Dead then "A Dark Room"
@@ -153,7 +153,7 @@ locationsWindow g =
         if _location g == locat
         then (withAttr underlined . str $ locationTxt locat)
              <+> str (replicate (16 - length (locationTxt locat)) ' ')
-        else textButton g button (justifyLeft16 $ locationTxt locat)
+        else textButton g button (justifyLeftX 16 $ locationTxt locat)
 
       top    = if _showOutside . _uiState $ g
                then stylize RoomButton Room
@@ -164,6 +164,43 @@ locationsWindow g =
       bottom = if _showPath . _uiState $ g
                then stylize PathButton Path
                     <+> str "|   "
+                    <+> stylize ShipButton Ship
+               else str ""
+
+  in padBottom (Pad 1)
+     $ vLimit 2
+     $ hBox [vBox [top, bottom]]
+     <=> str " "
+
+locationsWindow :: Game -> Widget Name
+locationsWindow g =
+  let -- shouldShow showP label = if showP . _uiState $ g then label else ""
+      shouldShow showP label = if showP . _uiState $ g then label else ""
+
+      locationTxt Room    = if _fireValue g == Dead then "A Dark Room"
+                            else "A Firelit Room"
+      locationTxt Outside = shouldShow _showOutside "A Silent Forest"
+      locationTxt Path    = shouldShow _showPath    "A Dusty Path"
+      locationTxt Ship    = shouldShow _showShip    "An Old Starship"
+
+      width = 31
+
+      stylize button locat =
+        if _location g == locat
+        then (withAttr underlined . str $ locationTxt locat)
+             <+> str (replicate (width - length (locationTxt locat)) ' ')
+        else textButton g button (justifyLeftX width $ locationTxt locat)
+
+      top    = if _showOutside . _uiState $ g
+               then stylize RoomButton Room
+                    <+> str "|                "
+                    <+> stylize OutsideButton Outside
+               else stylize RoomButton Room
+
+      bottom = if _showPath . _uiState $ g
+               then stylize PathButton Path
+                    -- <+> str "|   "
+                    <+> str "|                "
                     <+> stylize ShipButton Ship
                else str ""
 
@@ -188,8 +225,9 @@ bottomMenu g =
                         ]
       hiddenEmptyLabels = filter (("" /=) . snd) buttonsToLabels
       lengthOfLabels = (-2) + sum (map ((+2) . length . snd) hiddenEmptyLabels)
-      width = 45
-      leftPadding = width - lengthOfLabels
+      -- This bad boy controls the whole width of the outer border.
+      width = 69
+      leftPadding = width - lengthOfLabels - 1
 
       paddingBetweenButtons = replicate (length hiddenEmptyLabels) (str "  ")
       withLabelsApplied = map (\(a, b) -> a b) hiddenEmptyLabels
@@ -198,7 +236,10 @@ bottomMenu g =
 
 displayPath :: Game -> Widget Name
 displayPath game =
-  borderWithLabel (str (formatTitle "rucksack" 19))
+  vLimit 44 $
+  hLimit 64 $
+  borderWithLabel
+    (str (formatTitle "1234567890123456789012345678901234567890123456789012345678" 60))
   -- $ vBox (replicate 59 (str  (replicate 59 '.' <> "!")) ++ [str "foo"])
   $ vBox (map str dummyMap)
 
@@ -213,25 +254,28 @@ locationMenu game =
       path = displayPath game
       ship = room
 
+      bottomMenuAtBottomOfWindow = padBottom (Pad 15)
+
       currentLocation =
         case view location game of
-          Room    -> room
-          Outside -> forest
+          Room    -> bottomMenuAtBottomOfWindow room
+          Outside -> bottomMenuAtBottomOfWindow forest
           Path    -> path
-          Ship    -> ship
+          Ship    -> bottomMenuAtBottomOfWindow ship
 
-  in vLimit 97 currentLocation
+  in vLimit 44 currentLocation
 
--- The path map is 60 x 60,
 drawGameWindow :: Game -> Widget Name
 drawGameWindow game =
   let showGameTick =
         str (if view debug game then show (view tickCount game) ++ "  " else "")
       notifications = vBox [vLimit 97 (eventsWindow game), showGameTick]
+
       gameActions =
         padLeft (Pad 3) (vBox [locationsWindow game, locationMenu game])
       actions = vBox [gameActions, bottomMenu game]
-      outerBorder = center . hLimit 200 . vLimit 97 . withBorderStyle unicodeRounded . border
+
+      outerBorder = center . hLimit 100 . vLimit 50 . withBorderStyle unicodeRounded . border
   in outerBorder (hBox [notifications , actions])
 
 drawUI :: Game -> [Widget Name]

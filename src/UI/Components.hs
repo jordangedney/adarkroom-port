@@ -10,8 +10,8 @@ import GameTypes
 import UI.State
 import GameEvent
 
-justifyLeft16 :: String -> String
-justifyLeft16 s = take 16 $ s ++ repeat ' '
+justifyLeftX :: Int -> String -> String
+justifyLeftX x s = take x $ s ++ repeat ' '
 
 justifyCenter15 :: String -> String
 justifyCenter15 s =

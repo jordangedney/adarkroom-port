@@ -135,9 +135,9 @@ uiStateInit = UIState
   { _lastReportedClick   = Nothing
   , _showItems           = showItemsInit
   , _showStores          = False
-  , _showOutside         = False
+  , _showOutside         = True
   , _showPath            = True
-  , _showShip            = False
+  , _showShip            = True
   , _showForestBuildings = False
   , _dialogBox           = True
   }
