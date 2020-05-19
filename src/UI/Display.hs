@@ -248,7 +248,8 @@ locationMenu game =
   let emptySpace = str (replicate 30 '\n')
 
       room =
-        padRight (Pad 3) (roomButtons game) <+> roomStores game <=> emptySpace
+        -- padRight (Pad 3) (roomButtons game) <+> roomStores game <=> emptySpace
+        hBox [roomButtons game, center $ padLeft (Pad 4 ) (roomStores game <=> emptySpace)]
       forest =
         padRight (Pad 3) (forestButtons game) <+> forestStores game <=> emptySpace
       path = displayPath game

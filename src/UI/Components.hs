@@ -26,21 +26,26 @@ formatTitle label width =
       endingOffset = if titleLength < width then replicate (width - titleLength) '─' else ""
   in titleWithWS <> endingOffset
 
-buttonThatIsCooling :: Game -> String -> (GameEvents -> (GameEvent, Int)) -> Int -> Widget Name
-buttonThatIsCooling g label coolDownGetter maxTime =
+buttonThatIsCooling
+  :: Game -> String -> (GameEvents -> (GameEvent, Int)) -> Int -> Widget Name
+buttonThatIsCooling game label cooldownGetter maxTime =
   let amountCooling =
-        fromIntegral (snd . coolDownGetter . _upcomingEvents $ g) / fromIntegral maxTime
-  in withDefAttr blueBackground
-  $ border
-  $ updateAttrMap (mapAttrNames [ (progressBarDone, P.progressCompleteAttr)
-                                , (progressBarToDo, P.progressIncompleteAttr)])
-  $ P.progressBar (Just label) amountCooling
+        (game & _upcomingEvents & cooldownGetter & snd & fromIntegral)
+        / fromIntegral maxTime
+      blueBox = withDefAttr blueBackground . border
+      progressAttrs =
+        updateAttrMap (mapAttrNames
+                       [ (progressBarDone, P.progressCompleteAttr)
+                       , (progressBarToDo, P.progressIncompleteAttr)])
+      progressbar = progressAttrs (P.progressBar (Just label) amountCooling)
+  in blueBox progressbar
 
-buttonWithCoolDown ::
-  Game -> (GameEvents -> (GameEvent, Int)) -> String -> Name -> Int -> Widget Name
+buttonWithCoolDown
+  :: Game -> (GameEvents -> (GameEvent, Int)) -> String -> Name -> Int
+  -> Widget Name
 buttonWithCoolDown game cooldownTimer label button maxTime =
-  if isActive $ cooldownTimer . _upcomingEvents $ game
-  then buttonThatIsCooling game label cooldownTimer maxTime
+  if game & _upcomingEvents & cooldownTimer & isActive
+  then hLimit 17 $ buttonThatIsCooling game label cooldownTimer maxTime
   else actionButton game button label
 
 newButton :: String -> Widget Name
@@ -56,7 +61,9 @@ blueButton buttonId label =
 
 actionButton :: Game -> Name -> String -> Widget Name
 actionButton game buttonId label =
-  if view (uiState . dialogBox) game then greyedButton label else blueButton buttonId label
+  if view (uiState . dialogBox) game
+  then greyedButton label
+  else blueButton buttonId label
 
 dialogButton :: Name -> String -> Widget Name
 dialogButton = blueButton
