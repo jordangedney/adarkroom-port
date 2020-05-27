@@ -33,7 +33,7 @@ forestStores game width =
       currentPopulation = view (stored . people) game
       maxPopulation = Outside.maxPopulation game
       popCount = show currentPopulation <> "/" <> show maxPopulation
-      gapLen =  14 - (length popCount)
+      gapLen =  14 - length popCount
       title = "forest" <> " " <> replicate gapLen '─' <> " pop " <> popCount
 
       buildingsWindow = vBox [ storeWidget ForestVP title buildings width
@@ -90,7 +90,8 @@ roomButtons game =
       stokeFireButton =
         buttonWithCoolDown
           game _fireStoked "stoke fire" StokeButton stokeCooldown
-      fireButton = if fireIsOut then lightFireButton else stokeFireButton
+      fireButton = if fireIsOut then lightFireButton
+                   else stokeFireButton <+> str "  " <+> stokeFireButton <+> str "  " <+> stokeFireButton
 
       buildMenuUnlocked  = view (milestones . trapsUnlocked) game
       buildCartsUnlocked = view (milestones . cartsUnlocked) game
@@ -237,7 +238,7 @@ bottomMenu g =
 displayPath :: Game -> Widget Name
 displayPath _game =
   vLimit 44 $
-  hLimit 64 $
+  hLimit 100 $
   borderWithLabel
     (str (formatTitle "1234567890123456789012345678901234567890123456789012345678" 60))
   -- $ vBox (replicate 59 (str  (replicate 59 '.' <> "!")) ++ [str "foo"])
@@ -248,7 +249,7 @@ locationMenu game =
   let emptySpace = str (replicate 30 '\n')
 
       storeWidth = 30
-      storePadding = padLeft (Pad 15)
+      storePadding = padLeft (Pad 8)
       room = roomButtons game
              <+> storePadding (roomStores game storeWidth <=> emptySpace)
       forest = forestButtons game
@@ -277,7 +278,8 @@ drawGameWindow game =
         padLeft (Pad 3) (vBox [locationsWindow game, locationMenu game])
       actions = vBox [gameActions, bottomMenu game]
 
-      outerBorder = center . hLimit 100 . vLimit 50 . withBorderStyle unicodeRounded . border
+      -- outerBorder = center . hLimit 100 . vLimit 50 . withBorderStyle unicodeRounded . border
+      outerBorder = center . hLimit 130 . vLimit 50 . withBorderStyle unicodeRounded . border
   in outerBorder (hBox [notifications , actions])
 
 drawUI :: Game -> [Widget Name]
