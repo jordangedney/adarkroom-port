@@ -19,11 +19,11 @@ import Constants
 
 import qualified Outside
 
-roomStores :: Game -> Widget Name
+roomStores :: Game -> Int -> Widget Name
 roomStores = storesWindow
 
-forestStores :: Game -> Widget Name
-forestStores game =
+forestStores :: Game -> Int -> Widget Name
+forestStores game width =
   let showBuildings = view (uiState . showForestBuildings) game
       getStored getter = view (stored . getter) game
       buildings' = [(name, show amount)| (name, amount, itemShouldBeShown) <-
@@ -35,9 +35,9 @@ forestStores game =
       popCount = show currentPopulation <> "/" <> show maxPopulation
       buildings = ("pop", popCount) : buildings'
 
-      buildingsWindow = vBox [ storeWidget ForestVP "forest" buildings 20
-                             , storesWindow game]
-  in if showBuildings then buildingsWindow else storesWindow game
+      buildingsWindow = vBox [ storeWidget ForestVP "forest" buildings width
+                             , storesWindow game width]
+  in if showBuildings then buildingsWindow else storesWindow game width
 
 storeWidget :: Name -> String -> [(String, String)] -> Int -> Widget Name
 storeWidget name label stockpileItems' width =
@@ -54,7 +54,7 @@ storeWidget name label stockpileItems' width =
       toDisplay =
         unlines $ map (withWhitespace . countWhitespace) stockpileItems
 
-      showWindow = borderWithLabel (str (formatTitle label 19))
+      showWindow = borderWithLabel (str (formatTitle label (width - 1)))
                     . center
                     . viewport name Vertical $ str toDisplay
 
@@ -62,8 +62,8 @@ storeWidget name label stockpileItems' width =
       limitWindowSize = vLimit (height + 2) . hLimit (width + 2)
   in limitWindowSize showWindow
 
-storesWindow :: Game -> Widget Name
-storesWindow game =
+storesWindow :: Game -> Int -> Widget Name
+storesWindow game width =
   let showStoreWindow = view (uiState . showStores) game
       getStored getter = view (stored . getter) game
       should getter = view (uiState . showItems . getter) game
@@ -78,7 +78,6 @@ storesWindow game =
         , ("cloth",  cloth,  showCloth)
         , ("charm",  charm,  showCharm)
         ], should itemShouldBeShown]
-      width = 20
       showNothing = str (replicate (width + 2) ' ')
       showWindow = storeWidget StoreVP "stores" stockpileItems width
   in if showStoreWindow then showWindow else showNothing
@@ -235,7 +234,7 @@ bottomMenu g =
    in padLeft (Pad leftPadding) (hBox buttons)
 
 displayPath :: Game -> Widget Name
-displayPath game =
+displayPath _game =
   vLimit 44 $
   hLimit 64 $
   borderWithLabel
@@ -247,11 +246,12 @@ locationMenu :: Game -> Widget Name
 locationMenu game =
   let emptySpace = str (replicate 30 '\n')
 
-      room =
-        -- padRight (Pad 3) (roomButtons game) <+> roomStores game <=> emptySpace
-        hBox [roomButtons game, center $ padLeft (Pad 4 ) (roomStores game <=> emptySpace)]
-      forest =
-        padRight (Pad 3) (forestButtons game) <+> forestStores game <=> emptySpace
+      storeWidth = 30
+      storePadding = padLeft (Pad 15)
+      room = roomButtons game
+             <+> storePadding (roomStores game storeWidth <=> emptySpace)]
+      forest = forestButtons game
+             <+> storePadding (forestStores game storeWidth) <=> emptySpace
       path = displayPath game
       ship = room
 
@@ -282,6 +282,7 @@ drawGameWindow game =
 drawUI :: Game -> [Widget Name]
 drawUI game = ($ game) <$> [drawDialogWindow, drawGameWindow]
 
+dummyMap :: [String]
 dummyMap = map (intersperse ' ')
   [ "....,,,,,,,,,.......;;;;;;;;;;;;;Y;;;;;;;;;;;;;;;;;.........,"
   , ",,,,,,,,,,,,......;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;.........,"
