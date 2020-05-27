@@ -26,16 +26,17 @@ forestStores :: Game -> Int -> Widget Name
 forestStores game width =
   let showBuildings = view (uiState . showForestBuildings) game
       getStored getter = view (stored . getter) game
-      buildings' = [(name, show amount)| (name, amount, itemShouldBeShown) <-
+      buildings = [(name, show amount)| (name, amount, itemShouldBeShown) <-
         [ ("cart", getStored carts, getStored carts > 0)
         , ("trap", getStored traps, getStored traps > 0)
         ], itemShouldBeShown]
       currentPopulation = view (stored . people) game
       maxPopulation = Outside.maxPopulation game
       popCount = show currentPopulation <> "/" <> show maxPopulation
-      buildings = ("pop", popCount) : buildings'
+      gapLen =  14 - (length popCount)
+      title = "forest" <> " " <> replicate gapLen '─' <> " pop " <> popCount
 
-      buildingsWindow = vBox [ storeWidget ForestVP "forest" buildings width
+      buildingsWindow = vBox [ storeWidget ForestVP title buildings width
                              , storesWindow game width]
   in if showBuildings then buildingsWindow else storesWindow game width
 
