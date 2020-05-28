@@ -83,6 +83,17 @@ storesWindow game width =
       showWindow = storeWidget StoreVP "stores" stockpileItems width
   in if showStoreWindow then showWindow else showNothing
 
+drawRoom game =
+  let leftCol =
+        padRight (Pad 4) $ actionButton game LightButton "light fire"
+      leftMidCol =
+        padRight (Pad 4) $ actionButton game LightButton "light fire"
+      rightMidCol =
+        padRight (Pad 3) $ actionButton game LightButton "light fire"
+      rightCol = roomStores game 30
+
+  in hBox [leftCol, leftMidCol, rightMidCol, rightCol]
+
 roomButtons :: Game -> Widget Name
 roomButtons game =
   let fireIsOut = view fireValue game == Dead
@@ -244,14 +255,16 @@ displayPath _game =
   -- $ vBox (replicate 59 (str  (replicate 59 '.' <> "!")) ++ [str "foo"])
   $ vBox (map str dummyMap)
 
+
 locationMenu :: Game -> Widget Name
 locationMenu game =
   let emptySpace = str (replicate 30 '\n')
 
       storeWidth = 30
       storePadding = padLeft (Pad 8)
-      room = roomButtons game
+      room' = roomButtons game
              <+> storePadding (roomStores game storeWidth <=> emptySpace)
+      room = drawRoom game
       forest = forestButtons game
              <+> storePadding (forestStores game storeWidth) <=> emptySpace
       path = displayPath game
@@ -280,7 +293,7 @@ drawGameWindow game =
 
       -- outerBorder = center . hLimit 100 . vLimit 50 . withBorderStyle unicodeRounded . border
       outerBorder = center . hLimit 130 . vLimit 50 . withBorderStyle unicodeRounded . border
-  in outerBorder (hBox [notifications , actions])
+  in outerBorder (padAll 1 (hBox [notifications , actions]))
 
 drawUI :: Game -> [Widget Name]
 drawUI game = ($ game) <$> [drawDialogWindow, drawGameWindow]
