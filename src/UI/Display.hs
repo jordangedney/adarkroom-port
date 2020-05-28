@@ -83,6 +83,7 @@ storesWindow game width =
       showWindow = storeWidget StoreVP "stores" stockpileItems width
   in if showStoreWindow then showWindow else showNothing
 
+
 drawRoom game =
   let leftCol =
         padRight (Pad 4) $ actionButton game LightButton "light fire"
@@ -92,7 +93,10 @@ drawRoom game =
         padRight (Pad 3) $ actionButton game LightButton "light fire"
       rightCol = roomStores game 30
 
-  in hBox [leftCol, leftMidCol, rightMidCol, rightCol]
+      emptySpace = str (replicate 30 '\n')
+      lotsOEmpty = vBox (replicate 30 emptySpace)
+
+  in hBox [leftCol, leftMidCol, rightMidCol, rightCol] <=> lotsOEmpty
 
 roomButtons :: Game -> Widget Name
 roomButtons game =
@@ -237,8 +241,8 @@ bottomMenu g =
                         ]
       hiddenEmptyLabels = filter (("" /=) . snd) buttonsToLabels
       lengthOfLabels = (-2) + sum (map ((+2) . length . snd) hiddenEmptyLabels)
-      -- This bad boy controls the whole width of the outer border.
-      width = 69
+      -- How far right the bottom row is
+      width = 98
       leftPadding = width - lengthOfLabels - 1
 
       paddingBetweenButtons = replicate (length hiddenEmptyLabels) (str "  ")
@@ -288,7 +292,7 @@ drawGameWindow game =
       notifications = vBox [vLimit 97 (eventsWindow game), showGameTick]
 
       gameActions =
-        padLeft (Pad 3) (vBox [locationsWindow game, locationMenu game])
+        padLeft (Pad 3) (vBox [locationsWindow game, vLimit 42 (locationMenu game)])
       actions = vBox [gameActions, bottomMenu game]
 
       -- outerBorder = center . hLimit 100 . vLimit 50 . withBorderStyle unicodeRounded . border
