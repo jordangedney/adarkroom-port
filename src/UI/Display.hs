@@ -33,7 +33,7 @@ forestStores game width =
       currentPopulation = view (stored . people) game
       maxPopulation = Outside.maxPopulation game
       popCount = show currentPopulation <> "/" <> show maxPopulation
-      gapLen =  14 - length popCount
+      gapLen =  7 - length popCount
       title = "forest" <> " " <> replicate gapLen '─' <> " pop " <> popCount
 
       buildingsWindow = vBox [ storeWidget ForestVP title buildings width
@@ -84,31 +84,24 @@ storesWindow game width =
   in if showStoreWindow then showWindow else showNothing
 
 
-drawRoom game =
-  let leftCol =
-        padRight (Pad 4) $ actionButton game LightButton "light fire"
-      leftMidCol =
-        padRight (Pad 4) $ actionButton game LightButton "light fire"
-      rightMidCol =
-        padRight (Pad 3) $ actionButton game LightButton "light fire"
-      rightCol = roomStores game 30
+craftButtons :: Game -> Widget Name
+craftButtons game =
+  let craftDemo =
+        str "  craft:"
+        -- <=> hCenterWith (Just '!') (actionButton game LightButton "light fire")
+        <=> hCenter (actionButton game LightButton "light fire")
+  in padTop (Pad 4) craftDemo
 
-      emptySpace = str (replicate 30 '\n')
-      lotsOEmpty = vBox (replicate 30 emptySpace)
+buyButtons :: Game -> Widget Name
+buyButtons game =
+  let buyDemo =
+        str "  buy:"
+        -- <=> hCenterWith (Just '!') (actionButton game LightButton "light fire")
+        <=> hCenter (actionButton game LightButton "light fire")
+  in padTop (Pad 4) buyDemo
 
-  in hBox [leftCol, leftMidCol, rightMidCol, rightCol] <=> lotsOEmpty
-
-roomButtons :: Game -> Widget Name
-roomButtons game =
-  let fireIsOut = view fireValue game == Dead
-      lightFireButton = actionButton game LightButton "light fire"
-      stokeFireButton =
-        buttonWithCoolDown
-          game _fireStoked "stoke fire" StokeButton stokeCooldown
-      fireButton = if fireIsOut then lightFireButton
-                   else stokeFireButton <+> str "  " <+> stokeFireButton <+> str "  " <+> stokeFireButton
-
-      buildMenuUnlocked  = view (milestones . trapsUnlocked) game
+buildButtons game =
+  let buildMenuUnlocked  = view (milestones . trapsUnlocked) game
       buildCartsUnlocked = view (milestones . cartsUnlocked) game
 
       fullOnTraps = view (stored . traps) game >= maximumNumberOfTraps
@@ -123,7 +116,46 @@ roomButtons game =
 
       buildMenu = padTop (Pad 1) (str "build:") <=> buildables
 
-  in if buildMenuUnlocked then fireButton <=> buildMenu else fireButton
+  in if buildMenuUnlocked then buildMenu else str ""
+
+drawRoom :: Game -> Widget Name
+drawRoom game =
+  let leftCol = ensureWidth (hCenter (fireButton <=> buildButtons game))
+      leftMidCol = ensureWidth (craftButtons game)
+      rightMidCol = ensureWidth (buyButtons game)
+      rightCol = hCenter (roomStores game 23)
+
+      ensureWidth x = hLimit 21 (x <=> emptySpace)
+      emptySpace = str (replicate 30 ' ')
+
+      fireIsOut = view fireValue game == Dead
+      lightFireButton = actionButton game LightButton "light fire"
+      stokeFireButton =
+        buttonWithCoolDown
+          game _fireStoked "stoke fire" StokeButton stokeCooldown
+      fireButton = if fireIsOut then lightFireButton else stokeFireButton
+
+  in hBox [leftCol, leftMidCol, rightMidCol, rightCol]
+
+drawForest :: Game -> Widget Name
+drawForest game =
+  let leftCol = ensureWidth (hCenter buttons)
+      leftMidCol = ensureWidth (str "")
+      rightMidCol = ensureWidth (str "")
+      rightCol = hCenter (forestStores game 23)
+
+      ensureWidth x = hLimit 21 (x <=> emptySpace)
+      emptySpace = str (replicate 30 ' ')
+
+      gatherWoodButton = buttonWithCoolDown game
+        _gatherWood "gather wood" GatherButton gatherCooldown
+      checkTrapsButton = buttonWithCoolDown game
+        _checkTraps "check traps" CheckTrapsButton checkTrapsCooldown
+      haveTraps = view (stored . traps) game > 0
+      buttons = if haveTraps then vBox [gatherWoodButton, checkTrapsButton]
+                else gatherWoodButton
+
+  in hBox [leftCol, leftMidCol, rightMidCol, rightCol]
 
 forestButtons :: Game -> Widget Name
 forestButtons game =
@@ -155,75 +187,31 @@ eventsWindow g =
   $ topEvents'
   <=> withAttr blueText (strWrap bottomEvents)
 
-locationsWindow' :: Game -> Widget Name
-locationsWindow' g =
-  let shouldShow showP label = if showP . _uiState $ g then label else ""
-
-      locationTxt Room    = if _fireValue g == Dead then "A Dark Room"
-                            else "A Firelit Room"
-      locationTxt Outside = shouldShow _showOutside "A Silent Forest"
-      locationTxt Path    = shouldShow _showPath    "A Dusty Path"
-      locationTxt Ship    = shouldShow _showShip    "An Old Starship"
-
-      stylize button locat =
-        if _location g == locat
-        then (withAttr underlined . str $ locationTxt locat)
-             <+> str (replicate (16 - length (locationTxt locat)) ' ')
-        else textButton g button (justifyLeftX 16 $ locationTxt locat)
-
-      top    = if _showOutside . _uiState $ g
-               then stylize RoomButton Room
-                    <+> str "|   "
-                    <+> stylize OutsideButton Outside
-               else stylize RoomButton Room
-
-      bottom = if _showPath . _uiState $ g
-               then stylize PathButton Path
-                    <+> str "|   "
-                    <+> stylize ShipButton Ship
-               else str ""
-
-  in padBottom (Pad 1)
-     $ vLimit 2
-     $ hBox [vBox [top, bottom]]
-     <=> str " "
-
 locationsWindow :: Game -> Widget Name
-locationsWindow g =
-  let -- shouldShow showP label = if showP . _uiState $ g then label else ""
-      shouldShow showP label = if showP . _uiState $ g then label else ""
-
-      locationTxt Room    = if _fireValue g == Dead then "A Dark Room"
+locationsWindow game =
+  let locationTxt Room    = if _fireValue game == Dead then "A Dark Room"
                             else "A Firelit Room"
-      locationTxt Outside = shouldShow _showOutside "A Silent Forest"
-      locationTxt Path    = shouldShow _showPath    "A Dusty Path"
-      locationTxt Ship    = shouldShow _showShip    "An Old Starship"
+      locationTxt Outside = "A Silent Forest"
+      locationTxt Path    = "A Dusty Path"
+      locationTxt Ship    = "An Old Starship"
 
-      width = 31
+      stylize button room =
+        let atLocation = _location game == room
+            withUnderline = withAttr underlined (str (locationTxt room))
+            withoutUnderline = textButton game button (locationTxt room)
+        in if atLocation then withUnderline else withoutUnderline
 
-      stylize button locat =
-        if _location g == locat
-        then (withAttr underlined . str $ locationTxt locat)
-             <+> str (replicate (width - length (locationTxt locat)) ' ')
-        else textButton g button (justifyLeftX width $ locationTxt locat)
+      showUnlocked showP button locat =
+        let locationUnlocked = showP (_uiState game)
+        in if locationUnlocked then str " | " <+> stylize button locat else str ""
 
-      top    = if _showOutside . _uiState $ g
-               then stylize RoomButton Room
-                    <+> str "|                "
-                    <+> stylize OutsideButton Outside
-               else stylize RoomButton Room
+      leftCol     = padLeft (Pad 3) (stylize RoomButton Room)
+      leftMidCol  = showUnlocked _showOutside OutsideButton Outside
+      rightMidCol = showUnlocked _showPath PathButton Path
+      rightCol    = showUnlocked _showShip ShipButton Ship
 
-      bottom = if _showPath . _uiState $ g
-               then stylize PathButton Path
-                    -- <+> str "|   "
-                    <+> str "|                "
-                    <+> stylize ShipButton Ship
-               else str ""
+  in  padBottom (Pad 1) (hBox [leftCol, leftMidCol, rightMidCol, rightCol])
 
-  in padBottom (Pad 1)
-     $ vLimit 2
-     $ hBox [vBox [top, bottom]]
-     <=> str " "
 
 bottomMenu :: Game -> Widget Name
 bottomMenu g =
@@ -242,7 +230,7 @@ bottomMenu g =
       hiddenEmptyLabels = filter (("" /=) . snd) buttonsToLabels
       lengthOfLabels = (-2) + sum (map ((+2) . length . snd) hiddenEmptyLabels)
       -- How far right the bottom row is
-      width = 98
+      width = 94
       leftPadding = width - lengthOfLabels - 1
 
       paddingBetweenButtons = replicate (length hiddenEmptyLabels) (str "  ")
@@ -250,49 +238,41 @@ bottomMenu g =
       buttons = interleave [withLabelsApplied, paddingBetweenButtons]
    in padLeft (Pad leftPadding) (hBox buttons)
 
-displayPath :: Game -> Widget Name
-displayPath _game =
-  vLimit 44 $
-  hLimit 100 $
-  borderWithLabel
-    (str (formatTitle "1234567890123456789012345678901234567890123456789012345678" 60))
-  -- $ vBox (replicate 59 (str  (replicate 59 '.' <> "!")) ++ [str "foo"])
-  $ vBox (map str dummyMap)
-
+drawPath :: Game -> Widget Name
+drawPath _game =
+  let gameMap = hLimit 90 .
+            padLeft (Pad 2) .
+            withBorderStyle unicodeRounded . border
+  in gameMap (vBox (map str dummyMap))
 
 locationMenu :: Game -> Widget Name
 locationMenu game =
-  let emptySpace = str (replicate 30 '\n')
+  let emptySpace = str (replicate 50 '\n')
 
-      storeWidth = 30
-      storePadding = padLeft (Pad 8)
-      room' = roomButtons game
-             <+> storePadding (roomStores game storeWidth <=> emptySpace)
       room = drawRoom game
-      forest = forestButtons game
-             <+> storePadding (forestStores game storeWidth) <=> emptySpace
-      path = displayPath game
+      forest = drawForest game
+      path = drawPath game
       ship = room
-
-      bottomMenuAtBottomOfWindow = padBottom (Pad 15)
 
       currentLocation =
         case view location game of
-          Room    -> bottomMenuAtBottomOfWindow room
-          Outside -> bottomMenuAtBottomOfWindow forest
+          Room    -> room
+          Outside -> forest
           Path    -> path
-          Ship    -> bottomMenuAtBottomOfWindow ship
+          Ship    -> ship
 
-  in vLimit 44 currentLocation
+      setBottomBar = vLimit 43
+
+  in setBottomBar (currentLocation <=> emptySpace)
 
 drawGameWindow :: Game -> Widget Name
 drawGameWindow game =
   let showGameTick =
         str (if view debug game then show (view tickCount game) ++ "  " else "")
-      notifications = vBox [vLimit 97 (eventsWindow game), showGameTick]
+      notifications = padLeft (Pad 2) (vBox [vLimit 97 (eventsWindow game), showGameTick])
 
       gameActions =
-        padLeft (Pad 3) (vBox [locationsWindow game, vLimit 42 (locationMenu game)])
+        padLeft (Pad 2) (vBox [locationsWindow game, locationMenu game])
       actions = vBox [gameActions, bottomMenu game]
 
       -- outerBorder = center . hLimit 100 . vLimit 50 . withBorderStyle unicodeRounded . border
