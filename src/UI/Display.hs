@@ -240,26 +240,28 @@ bottomMenu g =
 
 drawPath :: Game -> Widget Name
 drawPath _game =
-  let gameMap = hLimit 90 .
-            padLeft (Pad 2) .
-            withBorderStyle unicodeRounded . border
-  in gameMap (vBox (map str dummyMap))
+  let gameMap = withBorderStyle unicodeRounded . border
+      align = hLimit 90 . padLeft (Pad 2)
+      inventoryTitle = str "rucksack"
+      inventory = hCenter $ borderWithLabel inventoryTitle emptySpace
+      emptySpace = str (replicate 500 ' ')
+  in align (vBox [inventory, map str dummyMap & vBox & gameMap])
 
 locationMenu :: Game -> Widget Name
 locationMenu game =
   let emptySpace = str (replicate 50 '\n')
 
-      room = drawRoom game
-      forest = drawForest game
-      path = drawPath game
+      room = drawRoom
+      forest = drawForest
+      path = drawPath
       ship = room
 
       currentLocation =
-        case view location game of
-          Room    -> room
-          Outside -> forest
-          Path    -> path
-          Ship    -> ship
+        game & case view location game of
+                 Room    -> room
+                 Outside -> forest
+                 Path    -> path
+                 Ship    -> ship
 
       setBottomBar = vLimit 43
 
