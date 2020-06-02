@@ -10,10 +10,13 @@ import GameTypes
 import UI.State
 import GameEvent
 
-emptyLine :: Widget n
+blank :: Widget Name
+blank = str ""
+
+emptyLine :: Widget Name
 emptyLine = str (replicate 500 ' ')
 
-emptyColumn :: Widget n
+emptyColumn :: Widget Name
 emptyColumn = str (replicate 500 '\n')
 
 justifyLeftX :: Int -> String -> String

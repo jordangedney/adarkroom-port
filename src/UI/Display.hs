@@ -86,11 +86,12 @@ storesWindow game width =
 
 craftButtons :: Game -> Widget Name
 craftButtons game =
-  let craftDemo =
+  let craftMenuUnlocked  = view (milestones . trapsUnlocked) game
+      craftDemo =
         str "  craft:"
         -- <=> hCenterWith (Just '!') (actionButton game LightButton "light fire")
         <=> hCenter (actionButton game LightButton "light fire")
-  in padTop (Pad 4) craftDemo
+  in if craftMenuUnlocked then padTop (Pad 4) craftDemo else blank
 
 buyButtons :: Game -> Widget Name
 buyButtons game =
@@ -117,7 +118,7 @@ buildButtons game =
 
       buildMenu = padTop (Pad 1) (str "build:") <=> buildables
 
-  in if buildMenuUnlocked then buildMenu else str ""
+  in if buildMenuUnlocked then buildMenu else blank
 
 drawRoom :: Game -> Widget Name
 drawRoom game =
@@ -140,8 +141,8 @@ drawRoom game =
 drawForest :: Game -> Widget Name
 drawForest game =
   let leftCol = ensureWidth (hCenter buttons)
-      leftMidCol = ensureWidth (str "")
-      rightMidCol = ensureWidth (str "")
+      leftMidCol = ensureWidth blank
+      rightMidCol = ensureWidth blank
       rightCol = hCenter (forestStores game 23)
 
       ensureWidth x = hLimit 21 (x <=> emptyLine)
@@ -167,7 +168,7 @@ eventsWindow g =
                            _ -> whiteText)
                     | (s, t) <- withWhitespace]
       topEvents = map (\(s, style) -> withAttr  style (strWrap s)) $ take 9 withStyling
-      topEvents' = foldl (<=>) (str "") topEvents
+      topEvents' = foldl (<=>) blank topEvents
       bottomEvents = unlines $ drop 9 $ map fst withWhitespace
   in hLimit 30
   $ viewport EventsVP Vertical
@@ -190,7 +191,7 @@ locationsWindow game =
 
       showUnlocked showP button locat =
         let locationUnlocked = showP (_uiState game)
-        in if locationUnlocked then str " | " <+> stylize button locat else str ""
+        in if locationUnlocked then str " | " <+> stylize button locat else blank
 
       leftCol     = padLeft (Pad 3) (stylize RoomButton Room)
       leftMidCol  = showUnlocked _showOutside OutsideButton Outside
