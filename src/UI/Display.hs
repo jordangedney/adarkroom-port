@@ -100,6 +100,7 @@ buyButtons game =
         <=> hCenter (actionButton game LightButton "light fire")
   in padTop (Pad 4) buyDemo
 
+buildButtons :: Game -> Widget Name
 buildButtons game =
   let buildMenuUnlocked  = view (milestones . trapsUnlocked) game
       buildCartsUnlocked = view (milestones . cartsUnlocked) game
@@ -125,8 +126,7 @@ drawRoom game =
       rightMidCol = ensureWidth (buyButtons game)
       rightCol = hCenter (roomStores game 23)
 
-      ensureWidth x = hLimit 21 (x <=> emptySpace)
-      emptySpace = str (replicate 30 ' ')
+      ensureWidth x = hLimit 21 (x <=> emptyLine)
 
       fireIsOut = view fireValue game == Dead
       lightFireButton = actionButton game LightButton "light fire"
@@ -144,8 +144,7 @@ drawForest game =
       rightMidCol = ensureWidth (str "")
       rightCol = hCenter (forestStores game 23)
 
-      ensureWidth x = hLimit 21 (x <=> emptySpace)
-      emptySpace = str (replicate 30 ' ')
+      ensureWidth x = hLimit 21 (x <=> emptyLine)
 
       gatherWoodButton = buttonWithCoolDown game
         _gatherWood "gather wood" GatherButton gatherCooldown
@@ -156,18 +155,6 @@ drawForest game =
                 else gatherWoodButton
 
   in hBox [leftCol, leftMidCol, rightMidCol, rightCol]
-
-forestButtons :: Game -> Widget Name
-forestButtons game =
-  let gatherWoodButton = buttonWithCoolDown game
-        _gatherWood "gather wood" GatherButton gatherCooldown
-      checkTrapsButton = buttonWithCoolDown game
-        _checkTraps "check traps" CheckTrapsButton checkTrapsCooldown
-      haveTraps = view (stored . traps) game > 0
-      buttons = if haveTraps then vBox [gatherWoodButton, checkTrapsButton]
-                else gatherWoodButton
-
-  in buttons
 
 eventsWindow :: Game -> Widget Name
 eventsWindow g =
@@ -243,29 +230,18 @@ drawPath _game =
   let gameMap = withBorderStyle unicodeRounded . border
       align = hLimit 90 . padLeft (Pad 2)
       inventoryTitle = str "rucksack"
-      inventory = hCenter $ borderWithLabel inventoryTitle emptySpace
-      emptySpace = str (replicate 500 ' ')
+      inventory = hCenter $ borderWithLabel inventoryTitle emptyLine
   in align (vBox [inventory, map str dummyMap & vBox & gameMap])
 
 locationMenu :: Game -> Widget Name
 locationMenu game =
-  let emptySpace = str (replicate 50 '\n')
-
-      room = drawRoom
-      forest = drawForest
-      path = drawPath
-      ship = room
-
-      currentLocation =
-        game & case view location game of
-                 Room    -> room
-                 Outside -> forest
-                 Path    -> path
-                 Ship    -> ship
-
-      setBottomBar = vLimit 43
-
-  in setBottomBar (currentLocation <=> emptySpace)
+  let currentLocation = game &
+        case view location game of
+          Room    -> drawRoom
+          Outside -> drawForest
+          Path    -> drawPath
+          Ship    -> drawRoom
+  in vLimit 43 (currentLocation <=> emptyColumn)
 
 drawGameWindow :: Game -> Widget Name
 drawGameWindow game =
@@ -277,7 +253,6 @@ drawGameWindow game =
         padLeft (Pad 2) (vBox [locationsWindow game, locationMenu game])
       actions = vBox [gameActions, bottomMenu game]
 
-      -- outerBorder = center . hLimit 100 . vLimit 50 . withBorderStyle unicodeRounded . border
       outerBorder = center . hLimit 130 . vLimit 50 . withBorderStyle unicodeRounded . border
   in outerBorder (padAll 1 (hBox [notifications , actions]))
 
