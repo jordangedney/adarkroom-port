@@ -1,7 +1,9 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module RandomEvents where
 
-import System.Random (StdGen)
-import Control.Lens (view, over, (&))
+import System.Random (StdGen, randomR)
+import Control.Lens (view, over, set, (&))
 
 import GameTypes (Game, stored, fur, tickCount, nextRandomAt)
 
@@ -20,6 +22,10 @@ give100fur game =
 shouldDoRandomEvent :: Game -> Bool
 shouldDoRandomEvent game = view tickCount game == view nextRandomAt game
 
+
 doRandomEvent :: StdGen -> Game -> Game
 doRandomEvent randomGen game =
-  game
+  let ticksPerMinute = 10 * 60
+      (nextRandom :: Int, gen) =
+        randomR (ticksPerMinute * 3, ticksPerMinute * 6) randomGen
+  in game & set nextRandomAt (view tickCount game + nextRandom)

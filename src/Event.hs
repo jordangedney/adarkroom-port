@@ -42,7 +42,6 @@ handleEventWrapper game event =
       random <- liftIO newStdGen
       game & setMouseDown e m & Outside.checkTraps random & continue
 
-
     _                            -> step (autosave game)
 
 

@@ -212,6 +212,7 @@ bottomMenu g =
                         , (textButton g CheatButton, "ch.")
                         , changingButton hyper HyperButton "classic." "hyper."
                         , changingButton debug PauseButton  "pause." ""
+                        -- , changingButton debug DebugButton  "debug. " ""
                         , changingButton debug PrevButton "prev. " ""
                         ]
       hiddenEmptyLabels = filter (("" /=) . snd) buttonsToLabels
@@ -247,7 +248,7 @@ drawGameWindow :: Game -> Widget Name
 drawGameWindow game =
   let showGameTick =
         str (if view debug game then show (view tickCount game) ++ "  " else "")
-      notifications = padLeft (Pad 2) (vBox [vLimit 97 (eventsWindow game), showGameTick])
+      notifications = padLeft (Pad 2) (vBox [vLimit 45 (eventsWindow game), showGameTick])
 
       gameActions =
         padLeft (Pad 2) (vBox [locationsWindow game, locationMenu game])
