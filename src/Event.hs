@@ -24,11 +24,16 @@ handleEventWrapper game event =
       autosave g = g & over previousStates (g:)
   in case event of
     -- Don't autosave
-    (AppEvent Tick)              -> step game
     (MouseDown PrevButton _ _ _) -> step game
     (MouseUp PrevButton _ _)     -> step game
 
     -- Events which use IO:
+    (AppEvent Tick)              ->
+      if RandomEvents.shouldDoRandomEvent game
+      then do
+        random <- liftIO newStdGen
+        step (RandomEvents.doRandomEvent random game)
+      else step game
     (MouseDown SaveButton _ _ _) -> do
       liftIO (save game)
       step game
@@ -40,6 +45,7 @@ handleEventWrapper game event =
 
     _                            -> step (autosave game)
 
+
 gameTick :: Game -> Game
 gameTick game =
   let updatedTickers =
@@ -48,8 +54,8 @@ gameTick game =
              & over events (take 15 . map (over _2 (+1)))
       doEventIfReady e = if snd e == 0 then getGameEvent e else id
       allEvents = toList (view upcomingEvents updatedTickers)
-      withStateAfterIngameEvents = foldr doEventIfReady updatedTickers allEvents
-  in if view paused game then game else withStateAfterIngameEvents
+      stateAfterIngameEvents = foldr doEventIfReady updatedTickers allEvents
+  in if view paused game then game else stateAfterIngameEvents
 
 handleEvent :: Game -> BrickEvent Name Tick -> Game
 handleEvent game (AppEvent Tick) =

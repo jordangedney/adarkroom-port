@@ -44,6 +44,8 @@ data Milestones = Milestones
   , _builderIsHelping    :: Bool
   , _seenForest          :: Bool
   , _trapsUnlocked       :: Bool
+  , _craftUnlocked       :: Bool
+  , _buyUnlocked         :: Bool
   , _preCartsUnlocked    :: Bool
   , _cartsUnlocked       :: Bool
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
@@ -56,7 +58,9 @@ milestonesInit = Milestones
   , _builderIsHelping = False
   , _seenForest       = False
   , _trapsUnlocked    = False
-  , _preCartsUnlocked    = False
+  , _craftUnlocked    = False
+  , _buyUnlocked      = False
+  , _preCartsUnlocked = False
   , _cartsUnlocked    = False
   }
 
@@ -105,6 +109,7 @@ data Game = Game
   , _roomEventBacklog   :: [String]
   , _forestEventBacklog :: [String]
   , _tickCount          :: Int
+  , _nextRandomAt       :: Int
   , _uiState            :: UIState
   , _fireValue          :: FireState
   , _roomTemperature    :: RoomTemperature
@@ -128,6 +133,7 @@ initGame                = Game
   , _roomEventBacklog   = []
   , _forestEventBacklog = []
   , _tickCount          = 0
+  , _nextRandomAt       = 1
   , _uiState            = uiStateInit
   , _fireValue          = Dead
   , _roomTemperature    = Cold -- instead of Freezing so initial status is displayed

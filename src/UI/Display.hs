@@ -86,20 +86,19 @@ storesWindow game width =
 
 craftButtons :: Game -> Widget Name
 craftButtons game =
-  let craftMenuUnlocked  = view (milestones . trapsUnlocked) game
+  let craftMenuUnlocked  = view (milestones . craftUnlocked) game
       craftDemo =
         str "  craft:"
-        -- <=> hCenterWith (Just '!') (actionButton game LightButton "light fire")
         <=> hCenter (actionButton game LightButton "light fire")
   in if craftMenuUnlocked then padTop (Pad 4) craftDemo else blank
 
 buyButtons :: Game -> Widget Name
 buyButtons game =
-  let buyDemo =
+  let buyMenuUnlocked  = view (milestones . buyUnlocked) game
+      buyDemo =
         str "  buy:"
-        -- <=> hCenterWith (Just '!') (actionButton game LightButton "light fire")
         <=> hCenter (actionButton game LightButton "light fire")
-  in padTop (Pad 4) buyDemo
+  in if buyMenuUnlocked then padTop (Pad 4) buyDemo else blank
 
 buildButtons :: Game -> Widget Name
 buildButtons game =
