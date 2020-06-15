@@ -1,67 +1,97 @@
 module RandomEvents.EventType where
 
-import System.Random
+import Control.Lens (view)
+
 import GameTypes
 
-data BeggarState
-  = Start
-  | Scales
-  | Teeth
-  | Cloth
-  deriving (Show, Eq)
-
-data BeggarEvent
- = Give50
- | Give100
- | Leave
- deriving (Show, Eq)
-
 data Scene = Scene
-  { text :: [String]
-  , notification :: String
-  -- , blink :: undefined
-  , buttons :: [BeggarEvent]
+  { title :: String
+  , isAvailable :: Game -> Bool
+  , startingScene :: SceneEvent
   }
 
-type FSM s e = s -> e -> Game -> StdGen -> (Game, s)
---
--- beggarScene :: FSM BeggarState BeggarEvent
--- beggarScene Start Give50 game random =
---   if view (stored . fur) game >= 50
---   then
---   game & over (stored . fur) (+ (-50))
---
---                                  text: [
---                                         _('a beggar arrives.'),
---                                         _('asks for any spare furs to keep him warm at night.')
---                                 ],
---                                 notification: _('a beggar arrives'),
---                                 blink: true,
---                                 buttons: {
---                                         '50furs': {
---                                                 text: _('give 50'),
---                                                 cost: {fur: 50},
---                                                 nextScene: { 0.5: 'scales', 0.8: 'teeth', 1: 'cloth' }
---                                         },
---                                         '100furs': {
---                                                 text: _('give 100'),
---                                                 cost: {fur: 100},
---                                                 nextScene: { 0.5: 'teeth', 0.8: 'scales', 1: 'cloth' }
---                                         },
---                                         'deny': {
---                                                 text: _('turn him away'),
---                                                 nextScene: 'end'
---                                         }
---                                 }
---                         },
---
---
--- data RandomEvent = RandomEvent
---   { title :: String
---     isAvailable :: Game -> Bool
---
---   }
---
+data SceneEvent = SceneEvent
+  { text :: [String]
+  , notification :: Maybe String
+--   , blink :: Bool
+  , reward :: Maybe (Item, Int)
+  , buttons :: [SceneChoice]
+  }
+
+data SceneChoice = SceneChoice
+  { txt :: String
+  , cost :: Maybe (Item, Int)
+  , nextScene :: Maybe [(Float, SceneEvent)]
+  }
+
+
+data Item = Fur | Cloth | Scale | Teeth
+
+theBeggar :: Scene
+theBeggar = Scene
+  { title = "The Beggar"
+  , isAvailable = (\g -> view location g == Room && view (stored . fur) g > 0)
+  , startingScene = start
+  }
+  where start = SceneEvent
+          { text = [ "a beggar arrives."
+                   , "asks for any spare furs to keep him warm at night."]
+          , notification = Just "a beggar arrives"
+          -- , blink = True
+          , reward = Nothing
+          , buttons =
+            [ SceneChoice { txt = "give 50"
+                          , cost = Just (Fur, 50)
+                          , nextScene = Just [
+                              (0.5, scales'), (0.8, teeth'), (1.0, cloth')]
+                          }
+
+            , SceneChoice { txt = "give 100"
+                          , cost = Just (Fur, 100)
+                          , nextScene = Just [
+                              (0.5, teeth'), (0.8, scales'), (1.0, cloth')]
+                          }
+
+            , SceneChoice { txt = "turn him away"
+                          , cost = Nothing
+                          , nextScene = Nothing
+                          }
+            ]
+          }
+        scales' = SceneEvent
+          { text = [ "the beggar expresses his thanks.",
+                     "leaves a pile of small scales behind." ]
+          , notification = Nothing
+          , reward = Just (Scale, 20)
+          , buttons = [ SceneChoice { txt = "say goodbye"
+                                    , cost = Nothing
+                                    , nextScene = Nothing
+                                    }
+                      ]
+          }
+        teeth' = SceneEvent
+          { text = [ "the beggar expresses his thanks.",
+                     "leaves a pile of small teeth behind." ]
+          , notification = Nothing
+          , reward = Just (Teeth, 20)
+          , buttons = [ SceneChoice { txt = "say goodbye"
+                                    , cost = Nothing
+                                    , nextScene = Nothing
+                                    }
+                      ]
+          }
+        cloth' = SceneEvent
+          { text = [ "the beggar expresses his thanks.",
+                     "leaves some scraps of cloth behind."]
+          , notification = Nothing
+          , reward = Just (Cloth, 20)
+          , buttons = [ SceneChoice { txt = "say goodbye"
+                                    , cost = Nothing
+                                    , nextScene = Nothing
+                                    }
+                      ]
+          }
+
 -- { /* The Beggar  --  trade fur for better good */
 --                 title: _('The Beggar'),
 --                 isAvailable: function() {
