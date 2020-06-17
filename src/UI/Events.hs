@@ -8,6 +8,7 @@ import Control.Lens (view, (&))
 import UI.State
 import GameTypes
 import UI.Components
+import Data.Maybe (isJust)
 
 drawDialogWindow :: Game -> Widget Name
 drawDialogWindow = theFurBeggar
@@ -44,4 +45,4 @@ theFurBeggar game =
         <=> blankLine
         <=> dialogButton ExitEventButton "turn him away"
 
-  in if view (uiState . dialogBox) game then dialogWindow else str ""
+  in if isJust (view inEvent game) then dialogWindow else str ""

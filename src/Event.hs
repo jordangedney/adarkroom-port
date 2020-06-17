@@ -6,11 +6,11 @@ import Brick (BrickEvent(..), EventM, Next, Location, continue)
 import Control.Lens (over, set, view, _2, (&))
 
 import Game (getGameEvent)
-import GameTypes (Game, Tick(..), Location(..), tickCount, upcomingEvents, events, uiState,
-                  debug, hyper, initGame, previousStates, paused, location,
+import GameTypes (Game, Tick(..), Location(..), tickCount, upcomingEvents, events, uiState, inEvent,
+                  debug, hyper, initGame, previousStates, paused, location, inEvent,
                   stored, bait, fur, meat, scales, teeth, cloth, charm)
 import GameEvent (tickEvents, toList)
-import UI.State (Name(..), lastReportedClick, dialogBox)
+import UI.State (Name(..), lastReportedClick)
 import SaveGame (save)
 import qualified Fire
 import qualified Outside
@@ -104,8 +104,11 @@ handleButtonEvent HyperButton = over hyper not
 handleButtonEvent DebugButton = over debug not
 handleButtonEvent PrevButton = set paused True . head . view previousStates
 handleButtonEvent PauseButton = over paused not
-handleButtonEvent DialogButton = over (uiState . dialogBox) not
-handleButtonEvent ExitEventButton = set (uiState . dialogBox) False
+handleButtonEvent DialogButton = over inEvent (\ x ->
+                                                 case x of
+                                                   Just _ -> Nothing
+                                                   Nothing -> Just undefined )
+handleButtonEvent ExitEventButton = set inEvent Nothing
 handleButtonEvent CheatButton =
     over (stored . bait)   (+ 50)
   . over (stored . fur)    (+ 50)

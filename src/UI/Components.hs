@@ -9,6 +9,7 @@ import Control.Lens (view, (&))
 import GameTypes
 import UI.State
 import GameEvent
+import Data.Maybe (isJust)
 
 blank :: Widget Name
 blank = str ""
@@ -70,7 +71,7 @@ blueButton buttonId label =
 
 actionButton :: Game -> Name -> String -> Widget Name
 actionButton game buttonId label =
-  if view (uiState . dialogBox) game
+  if isJust (view inEvent game)
   then greyedButton label
   else blueButton buttonId label
 
