@@ -15,21 +15,23 @@ deriving instance ToJSON Location
 deriving instance FromJSON Location
 
 data Name
-  = StoreVP
+  = NoOpButton
+
+  -- Scrollable (?) windows
+  | StoreVP
   | ForestVP
   | EventsVP
-  | NoOpButton
 
-  -- RandomEvents
+  -- Random events
   | FurBeggarFiftyButton
   | FurBeggarHundredButton
   | ExitEventButton
 
-  -- Room Buttons
+  -- Room buttons
   | LightButton
   | StokeButton
 
-  -- Forest Buttons
+  -- Forest buttons
   | GatherButton
   | CheckTrapsButton
 
@@ -43,7 +45,7 @@ data Name
   | DialogButton
   | CheatButton
 
-  -- Swap between Rooms
+  -- Move between rooms
   | RoomButton
   | OutsideButton
   | PathButton
