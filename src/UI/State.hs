@@ -18,26 +18,32 @@ data Name
   = StoreVP
   | ForestVP
   | EventsVP
-  | LightButton
-  | StokeButton
   | NoOpButton
-  | DialogButton
-  | CheatButton
 
-  | ExitEventButton
+  -- RandomEvents
   | FurBeggarFiftyButton
   | FurBeggarHundredButton
+  | ExitEventButton
 
+  -- Room Buttons
+  | LightButton
+  | StokeButton
+
+  -- Forest Buttons
   | GatherButton
   | CheckTrapsButton
 
+  -- User options
   | RestartButton
   | SaveButton
   | HyperButton
   | DebugButton
   | PrevButton
   | PauseButton
+  | DialogButton
+  | CheatButton
 
+  -- Swap between Rooms
   | RoomButton
   | OutsideButton
   | PathButton

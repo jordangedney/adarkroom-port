@@ -26,7 +26,6 @@ data SceneChoice = SceneChoice
   , nextScene :: Maybe [(Float, SceneEvent)]
   }
 
-
 theBeggar :: Scene
 theBeggar = Scene
   { title = "The Beggar"
