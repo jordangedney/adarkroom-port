@@ -13,7 +13,7 @@ import Util
 import GameTypes
 import GameEvent (_fireStoked, _gatherWood, _checkTraps)
 import UI.State
-import UI.Events
+import UI.RandomEvent
 import UI.Components
 import Constants
 

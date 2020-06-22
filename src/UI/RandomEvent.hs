@@ -1,4 +1,4 @@
-module UI.Events where
+module UI.RandomEvent where
 
 import Brick
 import Brick.Widgets.Border (borderWithLabel)
