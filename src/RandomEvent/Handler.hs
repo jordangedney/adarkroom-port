@@ -1,12 +1,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module RandomEvents where
+module RandomEvent.Handler where
 
 import System.Random (StdGen, randomR)
 import Control.Lens (view, over, set, (&))
 
 import GameTypes (Game, stored, fur, tickCount, nextRandomAt)
-import RandomEvents.Events (theBeggar)
+import RandomEvent.EventType (allEvents)
 
 
 -- The Fur Beggar
@@ -15,7 +15,7 @@ give50fur game =
   game & over (stored . fur) (+ (-50))
 
 
--- give100fur :: Game -> Game
+give100fur :: Game -> Game
 give100fur game =
   game & over (stored . fur) (+ (-100))
 
@@ -30,8 +30,6 @@ doRandomEvent randomGen game =
       (nextRandom :: Int, gen) =
         randomR (ticksPerMinute * 3, ticksPerMinute * 6) randomGen
 
-      allRandomEvents = [ theBeggar
-                        ]
 
       -- availableEvents = [e | e <- allRandomEvents, (isAvailable e game)]
 

@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 
-module RandomEvents.EventType where
+module RandomEvent.EventType where
 
 import GHC.Generics
 import Data.Yaml

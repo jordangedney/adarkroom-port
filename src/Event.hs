@@ -16,7 +16,7 @@ import qualified Fire
 import qualified Outside
 import qualified Room
 import qualified Builder
-import qualified RandomEvents
+import qualified RandomEvent.Handler as RandomEvent
 
 handleEventWrapper :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEventWrapper game event =
@@ -29,10 +29,10 @@ handleEventWrapper game event =
 
     -- Events which use IO:
     (AppEvent Tick)              ->
-      if RandomEvents.shouldDoRandomEvent game
+      if RandomEvent.shouldDoRandomEvent game
       then do
         random <- liftIO newStdGen
-        step (RandomEvents.doRandomEvent random game)
+        step (RandomEvent.doRandomEvent random game)
       else step game
     (MouseDown SaveButton _ _ _) -> do
       liftIO (save game)
@@ -93,8 +93,8 @@ handleButtonEvent CheckTrapsButton = error "This should be handled up above"
 handleButtonEvent TrapButton = Builder.buildTrap
 handleButtonEvent CartButton = Builder.buildCart
 
-handleButtonEvent FurBeggarFiftyButton = RandomEvents.give50fur
-handleButtonEvent FurBeggarHundredButton = RandomEvents.give100fur
+handleButtonEvent FurBeggarFiftyButton = RandomEvent.give50fur
+handleButtonEvent FurBeggarHundredButton = RandomEvent.give100fur
 
 handleButtonEvent PathButton = set location Path
 handleButtonEvent ShipButton = set location Ship

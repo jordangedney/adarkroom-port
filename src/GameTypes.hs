@@ -11,7 +11,7 @@ import Control.Lens (makeLenses)
 
 import UI.State (UIState, uiStateInit)
 import GameEvent (GameEvents, gameEventsInit)
-import RandomEvents.EventType (RandomEvent)
+import RandomEvent.EventType (RandomEvent)
 
 data Tick = Tick deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
