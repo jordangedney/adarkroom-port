@@ -11,7 +11,7 @@ import Control.Lens (makeLenses)
 
 import UI.State (UIState, uiStateInit)
 import GameEvent (GameEvents, gameEventsInit)
-import RandomEvent.EventType (RandomEvent)
+import RandomEvent.Event (Scene)
 
 data Tick = Tick deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
@@ -39,8 +39,6 @@ data BuilderState
   | Sleeping
   | Helping
   deriving (Eq, Show, Enum, Ord, Generic, ToJSON, FromJSON)
-
-data Item = Fur | Cloth | Scale | Teeth
 
 data Milestones = Milestones
   { _fireLit             :: Bool
@@ -123,7 +121,7 @@ data Game = Game
   , _debug              :: Bool
   , _previousStates     :: [Game]
   , _paused             :: Bool
-  , _inEvent            :: Maybe RandomEvent
+  , _inEvent            :: Maybe Scene
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''Game

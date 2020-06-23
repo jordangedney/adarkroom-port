@@ -17,7 +17,7 @@ import qualified Outside
 import qualified Room
 import qualified Builder
 import qualified RandomEvent.Handler as RandomEvent
-import qualified RandomEvent.EventType as RandomEvent
+import qualified RandomEvent.Event as RandomEvent
 
 handleEventWrapper :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEventWrapper game event =
@@ -107,7 +107,7 @@ handleButtonEvent PauseButton = over paused not
 handleButtonEvent DialogButton = over inEvent (\ x ->
                                                  case x of
                                                    Just _ -> Nothing
-                                                   Nothing -> Just RandomEvent.TheBeggar)
+                                                   Nothing -> Just RandomEvent.theBeggar)
 handleButtonEvent ExitEventButton = set inEvent Nothing
 handleButtonEvent CheatButton =
     over (stored . bait)   (+ 50)

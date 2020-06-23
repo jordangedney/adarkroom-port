@@ -1,17 +1,27 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
+
 module RandomEvent.Event where
 
+import GHC.Generics
+import Data.Yaml
+
 import RandomEvent.EventType (RandomEvent(..), RandomEventChoice(..))
-import GameTypes (Item(..))
 
 getEvent :: RandomEvent -> Scene
 getEvent TheBeggar = theBeggar
+
+-- This should be in GameTypes, but dependency cycles are a bitch
+data Item = Fur | Cloth | Scale | Teeth
+  deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 data Scene = Scene
   { title :: String
   -- , isAvailable :: Game -> Bool
   , eventType :: RandomEvent
-  , startingScene :: SceneEvent
-  }
+  , currentScene :: SceneEvent
+  } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 data SceneEvent = SceneEvent
   { text :: [String]
@@ -19,7 +29,7 @@ data SceneEvent = SceneEvent
 --   , blink :: Bool
   , reward :: Maybe (Item, Int)
   , buttons :: [SceneChoice]
-  }
+  } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 data SceneChoice = SceneChoice
   { txt :: String
@@ -27,7 +37,7 @@ data SceneChoice = SceneChoice
   -- Brick requires that every UI component have a unique type association.
   , uiID :: RandomEventChoice
   , nextScene :: Maybe [(Float, SceneEvent)]
-  }
+  } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 
 theBeggar :: Scene
@@ -35,7 +45,7 @@ theBeggar = Scene
   { title = "The Beggar"
   -- , isAvailable = (\g -> view location g == Room && view (stored . fur) g > 0)
   , eventType = TheBeggar
-  , startingScene = start
+  , currentScene = start
   }
   where start = SceneEvent
           { text = [ "a beggar arrives."
