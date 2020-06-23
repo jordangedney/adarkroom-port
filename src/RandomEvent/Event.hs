@@ -1,14 +1,15 @@
 module RandomEvent.Event where
 
-import RandomEvent.EventType (RandomEvent(..))
+import RandomEvent.EventType (RandomEvent(..), RandomEventChoice(..))
 import GameTypes (Item(..))
 
 getEvent :: RandomEvent -> Scene
-getEvent BeggarEvent = theBeggar
+getEvent TheBeggar = theBeggar
 
 data Scene = Scene
   { title :: String
   -- , isAvailable :: Game -> Bool
+  , eventType :: RandomEvent
   , startingScene :: SceneEvent
   }
 
@@ -23,13 +24,17 @@ data SceneEvent = SceneEvent
 data SceneChoice = SceneChoice
   { txt :: String
   , cost :: Maybe (Item, Int)
+  -- Brick requires that every UI component have a unique type association.
+  , uiID :: RandomEventChoice
   , nextScene :: Maybe [(Float, SceneEvent)]
   }
+
 
 theBeggar :: Scene
 theBeggar = Scene
   { title = "The Beggar"
   -- , isAvailable = (\g -> view location g == Room && view (stored . fur) g > 0)
+  , eventType = TheBeggar
   , startingScene = start
   }
   where start = SceneEvent
@@ -41,18 +46,21 @@ theBeggar = Scene
           , buttons =
             [ SceneChoice { txt = "give 50"
                           , cost = Just (Fur, 50)
+                          , uiID = FurBeggarFifty
                           , nextScene = Just [
                               (0.5, scales'), (0.8, teeth'), (1.0, cloth')]
                           }
 
             , SceneChoice { txt = "give 100"
                           , cost = Just (Fur, 100)
+                          , uiID = FurBeggarHundred
                           , nextScene = Just [
                               (0.5, teeth'), (0.8, scales'), (1.0, cloth')]
                           }
 
             , SceneChoice { txt = "turn him away"
                           , cost = Nothing
+                          , uiID = End
                           , nextScene = Nothing
                           }
             ]
@@ -64,6 +72,7 @@ theBeggar = Scene
           , reward = Just (Scale, 20)
           , buttons = [ SceneChoice { txt = "say goodbye"
                                     , cost = Nothing
+                                    , uiID = End
                                     , nextScene = Nothing
                                     }
                       ]
@@ -75,6 +84,7 @@ theBeggar = Scene
           , reward = Just (Teeth, 20)
           , buttons = [ SceneChoice { txt = "say goodbye"
                                     , cost = Nothing
+                                    , uiID = End
                                     , nextScene = Nothing
                                     }
                       ]
@@ -86,6 +96,7 @@ theBeggar = Scene
           , reward = Just (Cloth, 20)
           , buttons = [ SceneChoice { txt = "say goodbye"
                                     , cost = Nothing
+                                    , uiID = End
                                     , nextScene = Nothing
                                     }
                       ]

@@ -8,10 +8,15 @@ import Control.Lens (view, (&))
 import UI.State
 import GameTypes
 import UI.Components
-import Data.Maybe (isJust)
+
+import RandomEvent.EventType (RandomEventChoice(..), RandomEvent(..))
 
 drawDialogWindow :: Game -> Widget Name
-drawDialogWindow = theFurBeggar
+drawDialogWindow game =
+  case view inEvent game of
+    Nothing -> str ""
+    Just e  -> game & case e of
+      TheBeggar -> theFurBeggar
 
 optionalDialogButton :: Bool -> Name -> String -> Widget Name
 optionalDialogButton predicate buttonID label =
@@ -39,10 +44,10 @@ theFurBeggar game =
         optionalDialogButton (view (stored . fur) game >= amnt) bttnId ("give " ++ show amnt)
 
       buttons =
-        giveFur 50 FurBeggarFiftyButton
+        giveFur 50 (RandomEventButton FurBeggarFifty)
         <+> str "    "
-        <+> giveFur 100 FurBeggarHundredButton
+        <+> giveFur 100 (RandomEventButton FurBeggarHundred)
         <=> blankLine
         <=> dialogButton ExitEventButton "turn him away"
 
-  in if isJust (view inEvent game) then dialogWindow else str ""
+  in dialogWindow

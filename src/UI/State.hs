@@ -11,6 +11,8 @@ import Data.Yaml
 import Control.Lens (makeLenses)
 import Brick.Types (Location)
 
+import RandomEvent.EventType (RandomEventChoice)
+
 deriving instance ToJSON Location
 deriving instance FromJSON Location
 
@@ -23,9 +25,8 @@ data Name
   | EventsVP
 
   -- Random events
-  | FurBeggarFiftyButton
-  | FurBeggarHundredButton
   | ExitEventButton
+  | RandomEventButton RandomEventChoice
 
   -- Room buttons
   | LightButton
@@ -76,7 +77,7 @@ data Name
   | IronswordButton
   | SteelswordButton
   | RifleButton
-  deriving (Eq, Show, Enum, Ord, Generic, ToJSON, FromJSON)
+  deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 data ShowItems = ShowItems
   { _showWood       :: Bool
