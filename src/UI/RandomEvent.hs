@@ -50,41 +50,48 @@ genericEvent event game =
         optionalDialogButton (view (stored . fur) game >= amnt) bttnId ("give " ++ show amnt)
 
       buttons =
-        giveFur 50 (RandomEventButton FurBeggarFifty)
-        <+> str "    "
-        <+> giveFur 100 (RandomEventButton FurBeggarHundred)
-        <=> blankLine
-        <=> dialogButton ExitEventButton "turn him away"
+        choices scene
+        & map (\x -> case cost x of
+                  -- Nothing -> dialogButton (RandomEventButton  (uiID x)) (choiceTxt x)
+                  Nothing -> dialogButton ExitEventButton  (choiceTxt x)
+                  Just (_, y) -> giveFur y (RandomEventButton (uiID x)))
+        & vBox
+      -- buttons =
+      --   giveFur 50 (RandomEventButton FurBeggarFifty)
+      --   <+> str "    "
+      --   <+> giveFur 100 (RandomEventButton FurBeggarHundred)
+      --   <=> blankLine
+      --   <=> dialogButton ExitEventButton "turn him away"
 
   in dialogWindow
 
 
-theFurBeggar' :: Game -> Widget Name
-theFurBeggar' game =
-  let width = 54
-      dialogWindow =
-        dialogItems
-        & borderWithLabel (str (formatTitle "The Beggar" (width - 1)))
-        & centerLayer
-
-      blankLine = str " "
-      dialogText =
-        padBottom (Pad 2)
-          (str "a beggar arrives." <=> blankLine
-           <=> str "asks for any spare furs to keep him warm at night.")
-
-      dialogItems =
-        hLimit width $ str (replicate width ' ') -- Control dialog box width
-        <=> padLeft (Pad 2 ) (dialogText <=> padBottom (Pad 1) buttons)
-
-      giveFur amnt bttnId =
-        optionalDialogButton (view (stored . fur) game >= amnt) bttnId ("give " ++ show amnt)
-
-      buttons =
-        giveFur 50 (RandomEventButton FurBeggarFifty)
-        <+> str "    "
-        <+> giveFur 100 (RandomEventButton FurBeggarHundred)
-        <=> blankLine
-        <=> dialogButton ExitEventButton "turn him away"
-
-  in dialogWindow
+-- theFurBeggar' :: Game -> Widget Name
+-- theFurBeggar' game =
+--   let width = 54
+--       dialogWindow =
+--         dialogItems
+--         & borderWithLabel (str (formatTitle "The Beggar" (width - 1)))
+--         & centerLayer
+--
+--       blankLine = str " "
+--       dialogText =
+--         padBottom (Pad 2)
+--           (str "a beggar arrives." <=> blankLine
+--            <=> str "asks for any spare furs to keep him warm at night.")
+--
+--       dialogItems =
+--         hLimit width $ str (replicate width ' ') -- Control dialog box width
+--         <=> padLeft (Pad 2 ) (dialogText <=> padBottom (Pad 1) buttons)
+--
+--       giveFur amnt bttnId =
+--         optionalDialogButton (view (stored . fur) game >= amnt) bttnId ("give " ++ show amnt)
+--
+--       buttons =
+--         giveFur 50 (RandomEventButton FurBeggarFifty)
+--         <+> str "    "
+--         <+> giveFur 100 (RandomEventButton FurBeggarHundred)
+--         <=> blankLine
+--         <=> dialogButton ExitEventButton "turn him away"
+--
+--   in dialogWindow

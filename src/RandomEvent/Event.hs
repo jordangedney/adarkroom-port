@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 
@@ -28,11 +27,11 @@ data SceneEvent = SceneEvent
   , notification :: Maybe String
 --   , blink :: Bool
   , reward :: Maybe (Item, Int)
-  , buttons :: [SceneChoice]
+  , choices :: [SceneChoice]
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 data SceneChoice = SceneChoice
-  { txt :: String
+  { choiceTxt :: String
   , cost :: Maybe (Item, Int)
   -- Brick requires that every UI component have a unique type association.
   , uiID :: RandomEventChoice
@@ -53,22 +52,22 @@ theBeggar = Scene
           , notification = Just "a beggar arrives"
           -- , blink = True
           , reward = Nothing
-          , buttons =
-            [ SceneChoice { txt = "give 50"
+          , choices =
+            [ SceneChoice { choiceTxt = "give 50"
                           , cost = Just (Fur, 50)
                           , uiID = FurBeggarFifty
                           , nextScene = Just [
                               (0.5, scales'), (0.8, teeth'), (1.0, cloth')]
                           }
 
-            , SceneChoice { txt = "give 100"
+            , SceneChoice { choiceTxt = "give 100"
                           , cost = Just (Fur, 100)
                           , uiID = FurBeggarHundred
                           , nextScene = Just [
                               (0.5, teeth'), (0.8, scales'), (1.0, cloth')]
                           }
 
-            , SceneChoice { txt = "turn him away"
+            , SceneChoice { choiceTxt = "turn him away"
                           , cost = Nothing
                           , uiID = End
                           , nextScene = Nothing
@@ -80,7 +79,7 @@ theBeggar = Scene
                      "leaves a pile of small scales behind." ]
           , notification = Nothing
           , reward = Just (Scale, 20)
-          , buttons = [ SceneChoice { txt = "say goodbye"
+          , choices = [ SceneChoice { choiceTxt = "say goodbye"
                                     , cost = Nothing
                                     , uiID = End
                                     , nextScene = Nothing
@@ -92,7 +91,7 @@ theBeggar = Scene
                      "leaves a pile of small teeth behind." ]
           , notification = Nothing
           , reward = Just (Teeth, 20)
-          , buttons = [ SceneChoice { txt = "say goodbye"
+          , choices = [ SceneChoice { choiceTxt = "say goodbye"
                                     , cost = Nothing
                                     , uiID = End
                                     , nextScene = Nothing
@@ -104,7 +103,7 @@ theBeggar = Scene
                      "leaves some scraps of cloth behind."]
           , notification = Nothing
           , reward = Just (Cloth, 20)
-          , buttons = [ SceneChoice { txt = "say goodbye"
+          , choices = [ SceneChoice { choiceTxt = "say goodbye"
                                     , cost = Nothing
                                     , uiID = End
                                     , nextScene = Nothing
