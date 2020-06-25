@@ -10,7 +10,9 @@ import UI.State
 import GameTypes
 import UI.Components
 
-import RandomEvent.Event (Scene(..), SceneEvent(..), SceneChoice(..), Item(..))
+import RandomEvent.Event (Scene(..), SceneEvent(..), SceneChoice(..))
+import RandomEvent.Handler (canAfford)
+
 
 drawDialogWindow :: Game -> Widget Name
 drawDialogWindow game =
@@ -35,37 +37,32 @@ genericEvent event game =
         & padBottom (Pad sidePadding)
 
       buttonMaker choice =
-        let item Fur   = fur
-            item Cloth = cloth
-            item Scale = scales
-            item Teeth = teeth
-            canAfford (i, amnt) = view (stored . item i) game >= amnt
-            btn y = y (RandomEventButton choice) (choiceTxt choice)
+        let btn y = y (RandomEventButton choice) (choiceTxt choice)
         in case cost choice of
              Nothing -> btn dialogButton
-             Just c -> btn (optionalDialogButton (canAfford c))
+             Just c -> btn (optionalDialogButton (canAfford c game))
 
       mapButLast :: (a -> a) -> [a] -> [a]
       mapButLast _ [] = []
       mapButLast _ [x] = [x]
       mapButLast f (x:xs) = f x : mapButLast f xs
 
-      mapLast :: (a -> a) -> [a] -> [a]
-      mapLast _ [] = []
-      mapLast f [x] = [f x]
-      mapLast f (x:xs) = x : mapLast f xs
+      applyLast :: (a -> a) -> [a] -> [a]
+      applyLast _ [] = []
+      applyLast f [x] = [f x]
+      applyLast f (x:xs) = x : applyLast f xs
 
       buttons =
         choices (currentScene event)
         & map buttonMaker
         & mapButLast (<+> str "    ")
-        & mapLast (<+> str (replicate sidePadding ' '))
+        & applyLast (<+> str (replicate sidePadding ' '))
         & hBox
 
-      controlDialogBoxWidth = hLimit width $ str (replicate width ' ')
+      controlDialogBoxWidth = hLimit width (str (replicate width ' '))
 
       dialogItems = controlDialogBoxWidth <=>
-                    (padLeft (Pad 2 ) (dialogText <=> padBottom (Pad 1) buttons))
+                    (padLeft (Pad sidePadding) (dialogText <=> padBottom (Pad 1) buttons))
 
   in dialogItems
      & borderWithLabel (str (formatTitle (title event) (width - 1)))
