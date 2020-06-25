@@ -25,7 +25,7 @@ handleEventWrapper game event =
   let step g = continue $ handleEvent g event
       autosave g = g & over previousStates (g:)
   in case event of
-    -- Don't autosave
+    -- Don't autosave:
     (MouseDown PrevButton _ _ _) -> step game
     (MouseUp PrevButton _ _)     -> step game
 
@@ -36,14 +36,22 @@ handleEventWrapper game event =
         random <- liftIO newStdGen
         step (RandomEvent.doRandomEvent random game)
       else step game
+
     (MouseDown SaveButton _ _ _) -> do
       liftIO (save game)
       step game
+
+    (MouseDown (RandomEventButton RandomEvent.End) _ _ _) -> do
+      step (game & set inEvent Nothing)
+    (MouseDown (RandomEventButton x) _ _ _) -> do
+      random <- liftIO newStdGen
+      step (RandomEvent.handleButton random x game)
 
     (MouseDown e@CheckTrapsButton  _ _ m) -> do
       random <- liftIO newStdGen
       game & setMouseDown e m & Outside.checkTraps random & continue
 
+    -- Normal events:
     _                            -> step (autosave game)
 
 
@@ -89,14 +97,8 @@ handleButtonEvent OutsideButton    = Outside.arrival
 handleButtonEvent GatherButton     = Outside.gather
 handleButtonEvent CheckTrapsButton = error "This should be handled up above"
 
--- handleButtonEvent PathButton    = Path.arrival
--- handleButtonEvent ShipButton    = Path.arrival
-
 handleButtonEvent TrapButton = Builder.buildTrap
 handleButtonEvent CartButton = Builder.buildCart
-
-handleButtonEvent (RandomEventButton RandomEvent.End) = set inEvent Nothing
-handleButtonEvent (RandomEventButton x) = RandomEvent.handleButton x
 
 handleButtonEvent PathButton = set location Path
 handleButtonEvent ShipButton = set location Ship

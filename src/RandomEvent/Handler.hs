@@ -30,12 +30,12 @@ doRandomEvent randomGen game =
       (nextRandom :: Int, gen) =
         randomR (ticksPerMinute * 3, ticksPerMinute * 6) randomGen
 
-
       -- availableEvents = [e | e <- allRandomEvents, (isAvailable e game)]
-
 
   in game & set nextRandomAt (view tickCount game + nextRandom)
 
-handleButton :: RandomEventChoice -> Game -> Game
-handleButton FurBeggarFifty   g = g & over (stored . fur) (subtract 50)
-handleButton FurBeggarHundred g = g & over (stored . fur) (subtract 100)
+handleButton :: StdGen -> RandomEventChoice -> Game -> Game
+handleButton random FurBeggarFifty game =
+  game & over (stored . fur) (subtract 50)
+
+handleButton random FurBeggarHundred g = g & over (stored . fur) (subtract 100)
