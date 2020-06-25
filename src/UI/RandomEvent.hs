@@ -11,7 +11,7 @@ import GameTypes
 import UI.Components
 
 import RandomEvent.EventType (RandomEventChoice(..), RandomEvent(..))
-import RandomEvent.Event (getEvent, Scene(..), SceneEvent(..), SceneChoice(..), Item(..))
+import RandomEvent.Event (Scene(..), SceneEvent(..), SceneChoice(..), Item(..))
 
 drawDialogWindow :: Game -> Widget Name
 drawDialogWindow game =
@@ -26,12 +26,14 @@ optionalDialogButton predicate buttonID label =
 genericEvent :: Scene -> Game -> Widget Name
 genericEvent event game =
   let width = 54
+      sidePadding = 2
+
       dialogText =
         text (currentScene event)
         & intersperse "\n"
         & map str
         & vBox
-        & padBottom (Pad 2)
+        & padBottom (Pad sidePadding)
 
       buttonMaker choice =
         let item Fur   = fur
@@ -44,12 +46,22 @@ genericEvent event game =
              Nothing -> btn dialogButton
              Just c -> btn (optionalDialogButton (canAfford c))
 
+      mapButLast :: (a -> a) -> [a] -> [a]
+      mapButLast _ [] = []
+      mapButLast _ [x] = [x]
+      mapButLast f (x:xs) = f x : mapButLast f xs
+
+      mapLast :: (a -> a) -> [a] -> [a]
+      mapLast _ [] = []
+      mapLast f [x] = [f x]
+      mapLast f (x:xs) = x : mapLast f xs
+
       buttons =
         choices (currentScene event)
         & map buttonMaker
-        & map (<+> str "    ")
+        & mapButLast (<+> str "    ")
+        & mapLast (<+> str (replicate sidePadding ' '))
         & hBox
-        -- & vBox
 
       controlDialogBoxWidth = hLimit width $ str (replicate width ' ')
 
@@ -59,34 +71,3 @@ genericEvent event game =
   in dialogItems
      & borderWithLabel (str (formatTitle (title event) (width - 1)))
      & centerLayer
-
-
--- theFurBeggar' :: Game -> Widget Name
--- theFurBeggar' game =
---   let width = 54
---       dialogWindow =
---         dialogItems
---         & borderWithLabel (str (formatTitle "The Beggar" (width - 1)))
---         & centerLayer
---
---       blankLine = str " "
---       dialogText =
---         padBottom (Pad 2)
---           (str "a beggar arrives." <=> blankLine
---            <=> str "asks for any spare furs to keep him warm at night.")
---
---       dialogItems =
---         hLimit width $ str (replicate width ' ') -- Control dialog box width
---         <=> padLeft (Pad 2 ) (dialogText <=> padBottom (Pad 1) buttons)
---
---       giveFur amnt bttnId =
---         optionalDialogButton (view (stored . fur) game >= amnt) bttnId ("give " ++ show amnt)
---
---       buttons =
---         giveFur 50 (RandomEventButton FurBeggarFifty)
---         <+> str "    "
---         <+> giveFur 100 (RandomEventButton FurBeggarHundred)
---         <=> blankLine
---         <=> dialogButton ExitEventButton "turn him away"
---
---   in dialogWindow
