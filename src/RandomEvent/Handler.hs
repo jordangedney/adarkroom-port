@@ -6,7 +6,7 @@ import System.Random (StdGen, randomR)
 import Control.Lens (view, over, set, (&))
 
 import GameTypes (Game, stored, fur, tickCount, nextRandomAt)
-import RandomEvent.EventType (RandomEventChoice(..))
+import RandomEvent.Event (SceneChoice)
 
 
 -- The Fur Beggar
@@ -34,8 +34,8 @@ doRandomEvent randomGen game =
 
   in game & set nextRandomAt (view tickCount game + nextRandom)
 
-handleButton :: StdGen -> RandomEventChoice -> Game -> Game
-handleButton random FurBeggarFifty game =
+handleButton :: StdGen -> SceneChoice -> Game -> Game
+handleButton random x game =
   game & over (stored . fur) (subtract 50)
 
-handleButton random FurBeggarHundred g = g & over (stored . fur) (subtract 100)
+-- handleButton random FurBeggarHundred g = g & over (stored . fur) (subtract 100)

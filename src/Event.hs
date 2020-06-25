@@ -41,8 +41,6 @@ handleEventWrapper game event =
       liftIO (save game)
       step game
 
-    (MouseDown (RandomEventButton RandomEvent.End) _ _ _) -> do
-      step (game & set inEvent Nothing)
     (MouseDown (RandomEventButton x) _ _ _) -> do
       random <- liftIO newStdGen
       step (RandomEvent.handleButton random x game)

@@ -10,7 +10,6 @@ import UI.State
 import GameTypes
 import UI.Components
 
-import RandomEvent.EventType (RandomEventChoice(..), RandomEvent(..))
 import RandomEvent.Event (Scene(..), SceneEvent(..), SceneChoice(..), Item(..))
 
 drawDialogWindow :: Game -> Widget Name
@@ -41,7 +40,7 @@ genericEvent event game =
             item Scale = scales
             item Teeth = teeth
             canAfford (i, amnt) = view (stored . item i) game >= amnt
-            btn y = y (RandomEventButton (uiID choice)) (choiceTxt choice)
+            btn y = y (RandomEventButton choice) (choiceTxt choice)
         in case cost choice of
              Nothing -> btn dialogButton
              Just c -> btn (optionalDialogButton (canAfford c))

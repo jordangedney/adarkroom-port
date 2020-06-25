@@ -11,7 +11,7 @@ import Data.Yaml
 import Control.Lens (makeLenses)
 import Brick.Types (Location)
 
-import RandomEvent.EventType (RandomEventChoice)
+import RandomEvent.Event (SceneChoice)
 
 deriving instance ToJSON Location
 deriving instance FromJSON Location
@@ -26,7 +26,7 @@ data Name
 
   -- Random events
   | ExitEventButton
-  | RandomEventButton RandomEventChoice
+  | RandomEventButton SceneChoice
 
   -- Room buttons
   | LightButton
