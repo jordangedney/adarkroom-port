@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module RandomEvent.Handler where
 
@@ -6,7 +7,7 @@ import System.Random (StdGen, randomR)
 import Control.Lens (view, over, set, (&))
 
 import GameTypes (Game, stored, fur, tickCount, nextRandomAt, cloth, scales, teeth, inEvent)
-import RandomEvent.Event (SceneChoice(..), Item(..))
+import RandomEvent.Event (SceneChoice(..), Item(..), currentScene)
 import Util (randomChoices)
 
 shouldDoRandomEvent :: Game -> Bool
@@ -33,6 +34,10 @@ canAfford (i, amnt) game =
 handleButton :: StdGen -> SceneChoice -> Game -> Game
 handleButton _ (SceneChoice _ _ Nothing) game =
   game & set inEvent Nothing
-
-handleButton random x game =
-  game & over (stored . fur) (subtract 50)
+handleButton random (SceneChoice txt cost (Just nextScene')) game =
+  let next = undefined
+      swapScenes g = case (view inEvent game) of
+        Nothing -> g
+        Just scene -> g & set inEvent (Just (scene {currentScene = snd (head nextScene')}))
+  in game & over (stored . fur) (subtract 50)
+          & swapScenes

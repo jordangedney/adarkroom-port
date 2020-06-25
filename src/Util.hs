@@ -23,12 +23,14 @@ interleave = concat . transpose
 -- randomChoice' :: Int -> a -> [(Int, a)] -> a
 -- randomChoice' :: Integer -> a -> [(Integer, (Integer, a))] -> a
 -- randomChoice' :: Integer -> b -> [(Integer, b)] -> b
+randomChoice' :: (Ord a, Num a) => b -> [(a, b)] -> a -> b
 randomChoice' defaultValue probabilities rand =
   let sorted = sortBy (compare `on` fst) probabilities
       probs = drop 1 (scanl (\(s, _) (a, b) -> (s - a, b)) (rand, undefined) sorted)
-      choice = headDef (undefined, defaultValue) (filter (\(a, b) -> a <= 0) probs)
+      choice = headDef (undefined, defaultValue) (filter (\(a, _) -> a <= 0) probs)
   in snd choice
 
+randomChoices :: StdGen -> a -> [(Integer, a)] -> [a]
 randomChoices randomGen defaultValue probabilities =
   let percents = listOfRandomPercentages randomGen
   in map (randomChoice' defaultValue probabilities) percents
