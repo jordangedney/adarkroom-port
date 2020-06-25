@@ -18,6 +18,7 @@ import qualified Room
 import qualified Builder
 import qualified RandomEvent.Handler as RandomEvent
 import qualified RandomEvent.Event as RandomEvent
+import qualified RandomEvent.EventType as RandomEvent
 
 handleEventWrapper :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEventWrapper game event =
@@ -94,6 +95,7 @@ handleButtonEvent CheckTrapsButton = error "This should be handled up above"
 handleButtonEvent TrapButton = Builder.buildTrap
 handleButtonEvent CartButton = Builder.buildCart
 
+handleButtonEvent (RandomEventButton RandomEvent.End) = set inEvent Nothing
 handleButtonEvent (RandomEventButton x) = RandomEvent.handleButton x
 
 handleButtonEvent PathButton = set location Path
@@ -108,7 +110,6 @@ handleButtonEvent DialogButton = over inEvent (\ x ->
                                                  case x of
                                                    Just _ -> Nothing
                                                    Nothing -> Just RandomEvent.theBeggar)
-handleButtonEvent ExitEventButton = set inEvent Nothing
 handleButtonEvent CheatButton =
     over (stored . bait)   (+ 50)
   . over (stored . fur)    (+ 50)

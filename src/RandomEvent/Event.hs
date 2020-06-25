@@ -38,7 +38,6 @@ data SceneChoice = SceneChoice
   , nextScene :: Maybe [(Float, SceneEvent)]
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
-
 theBeggar :: Scene
 theBeggar = Scene
   { title = "The Beggar"

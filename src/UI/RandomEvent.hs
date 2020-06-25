@@ -11,7 +11,7 @@ import GameTypes
 import UI.Components
 
 import RandomEvent.EventType (RandomEventChoice(..), RandomEvent(..))
-import RandomEvent.Event (getEvent, Scene(..), SceneEvent(..), SceneChoice(..))
+import RandomEvent.Event (getEvent, Scene(..), SceneEvent(..), SceneChoice(..), Item(..))
 
 drawDialogWindow :: Game -> Widget Name
 drawDialogWindow game =
@@ -26,44 +26,39 @@ optionalDialogButton predicate buttonID label =
 genericEvent :: Scene -> Game -> Widget Name
 genericEvent event game =
   let width = 54
-
-      scene = currentScene event
-
-      dialogWindow =
-        dialogItems
-        & borderWithLabel (str (formatTitle (title event) (width - 1)))
-        & centerLayer
-
-      blankLine = str " "
       dialogText =
-        text scene
+        text (currentScene event)
         & intersperse "\n"
         & map str
         & vBox
         & padBottom (Pad 2)
 
-      dialogItems =
-        hLimit width $ str (replicate width ' ') -- Control dialog box width
-        <=> padLeft (Pad 2 ) (dialogText <=> padBottom (Pad 1) buttons)
-
-      giveFur amnt bttnId =
-        optionalDialogButton (view (stored . fur) game >= amnt) bttnId ("give " ++ show amnt)
+      buttonMaker choice =
+        let item Fur   = fur
+            item Cloth = cloth
+            item Scale = scales
+            item Teeth = teeth
+            canAfford (i, amnt) = view (stored . item i) game >= amnt
+            btn y = y (RandomEventButton (uiID choice)) (choiceTxt choice)
+        in case cost choice of
+             Nothing -> btn dialogButton
+             Just c -> btn (optionalDialogButton (canAfford c))
 
       buttons =
-        choices scene
-        & map (\x -> case cost x of
-                  -- Nothing -> dialogButton (RandomEventButton  (uiID x)) (choiceTxt x)
-                  Nothing -> dialogButton ExitEventButton  (choiceTxt x)
-                  Just (_, y) -> giveFur y (RandomEventButton (uiID x)))
-        & vBox
-      -- buttons =
-      --   giveFur 50 (RandomEventButton FurBeggarFifty)
-      --   <+> str "    "
-      --   <+> giveFur 100 (RandomEventButton FurBeggarHundred)
-      --   <=> blankLine
-      --   <=> dialogButton ExitEventButton "turn him away"
+        choices (currentScene event)
+        & map buttonMaker
+        & map (<+> str "    ")
+        & hBox
+        -- & vBox
 
-  in dialogWindow
+      controlDialogBoxWidth = hLimit width $ str (replicate width ' ')
+
+      dialogItems = controlDialogBoxWidth <=>
+                    (padLeft (Pad 2 ) (dialogText <=> padBottom (Pad 1) buttons))
+
+  in dialogItems
+     & borderWithLabel (str (formatTitle (title event) (width - 1)))
+     & centerLayer
 
 
 -- theFurBeggar' :: Game -> Widget Name
