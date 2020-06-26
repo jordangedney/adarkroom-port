@@ -15,6 +15,7 @@ data Item = Fur | Cloth | Scale | Teeth
 data Scene = Scene
   { title :: String
   -- , isAvailable :: Game -> Bool
+  , windowSize :: Int
   , currentScene :: SceneEvent
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
@@ -36,6 +37,7 @@ theBeggar :: Scene
 theBeggar = Scene
   { title = "The Beggar"
   -- , isAvailable = (\g -> view location g == Room && view (stored . fur) g > 0)
+  , windowSize = 63
   , currentScene = start
   }
   where start = SceneEvent

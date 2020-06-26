@@ -26,7 +26,7 @@ optionalDialogButton predicate buttonID label =
 
 genericEvent :: Scene -> Game -> Widget Name
 genericEvent event game =
-  let width = 54
+  let width = windowSize event
       sidePadding = 2
 
       dialogText =
@@ -62,7 +62,7 @@ genericEvent event game =
       controlDialogBoxWidth = hLimit width (str (replicate width ' '))
 
       dialogItems = controlDialogBoxWidth <=>
-                    (padLeft (Pad sidePadding) (dialogText <=> padBottom (Pad 1) buttons))
+                    padLeft (Pad sidePadding) (dialogText <=> padBottom (Pad 1) buttons)
 
   in dialogItems
      & borderWithLabel (str (formatTitle (title event) (width - 1)))
