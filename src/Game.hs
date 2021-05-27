@@ -20,3 +20,4 @@ getGameEvent (RoomChanged,        _) = Room.update
 getGameEvent (GatherWood,         _) = id
 getGameEvent (FireStoked,         _) = id
 getGameEvent (CheckTraps,         _) = id
+

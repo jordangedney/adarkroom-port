@@ -30,12 +30,15 @@ randomChoice' defaultValue probabilities rand =
       choice = headDef (undefined, defaultValue) (filter (\(a, _) -> a <= 0) probs)
   in snd choice
 
-randomChoices :: StdGen -> a -> [(Integer, a)] -> [a]
+randomChoices :: StdGen -> a -> [(Int, a)] -> [a]
 randomChoices randomGen defaultValue probabilities =
   let percents = listOfRandomPercentages randomGen
   in map (randomChoice' defaultValue probabilities) percents
 
-listOfRandomPercentages :: StdGen -> [Integer]
+randomChoice :: StdGen -> a -> [(Int, a)] -> a
+randomChoice r d p = head (randomChoices r d p)
+
+listOfRandomPercentages :: StdGen -> [Int]
 listOfRandomPercentages randomGen =
   let (percentage, gen) = randomR (1, 100) randomGen
   in percentage : listOfRandomPercentages gen

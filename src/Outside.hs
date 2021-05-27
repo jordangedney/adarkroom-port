@@ -35,7 +35,7 @@ firstArrival :: Game -> Game
 firstArrival game =
   let doNothing = game
       haveGoneOutsideBefore = view (milestones . seenForest) game
-      firstTimeOutsideMessage = "the sky is grey and the wind blows relentlessly"
+      firstTimeOutsideMessage = "the sky is grey and the wind blows relentlessly."
       firstTimeOutside =
         game & set (milestones . seenForest) True
              & addEvent firstTimeOutsideMessage
@@ -52,7 +52,7 @@ gather game =
       woodGathered =
         game & over (stored . wood) (+ amountToGather)
              & updateEvents GatherWood gatherCooldown
-             & addEvent "dry brush and dead branches litter the forest floor"
+             & addEvent "dry brush and dead branches litter the forest floor."
 
   in if view (milestones . builderIsHelping) game
      then woodGathered & set (milestones . preCartsUnlocked) True

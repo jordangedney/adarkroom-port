@@ -30,7 +30,7 @@ data SceneEvent = SceneEvent
 data SceneChoice = SceneChoice
   { choiceTxt :: String
   , cost :: Maybe (Item, Int)
-  , nextScene :: Maybe [(Float, SceneEvent)]
+  , nextScene :: Maybe ([(Int, SceneEvent)], SceneEvent)
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 theBeggar :: Scene
@@ -49,14 +49,14 @@ theBeggar = Scene
           , choices =
             [ SceneChoice { choiceTxt = "give 50"
                           , cost = Just (Fur, 50)
-                          , nextScene = Just [
-                              (0.5, scales'), (0.8, teeth'), (1.0, cloth')]
+                          , nextScene = Just ([
+                              (50, scales'), (30, teeth')], cloth')
                           }
 
             , SceneChoice { choiceTxt = "give 100"
                           , cost = Just (Fur, 100)
-                          , nextScene = Just [
-                              (0.5, teeth'), (0.8, scales'), (1.0, cloth')]
+                          , nextScene = Just ([
+                              (50, teeth'), (30, scales')],  cloth')
                           }
 
             , SceneChoice { choiceTxt = "turn him away"

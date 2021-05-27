@@ -8,7 +8,7 @@ import Control.Lens (view, over, set, (&))
 
 import GameTypes (Game, stored, fur, tickCount, nextRandomAt, cloth, scales, teeth, inEvent)
 import RandomEvent.Event (SceneChoice(..), Item(..), currentScene)
-import Util (randomChoices)
+import Util (randomChoice)
 
 shouldDoRandomEvent :: Game -> Bool
 shouldDoRandomEvent game = view tickCount game == view nextRandomAt game
@@ -34,10 +34,11 @@ canAfford (i, amnt) game =
 handleButton :: StdGen -> SceneChoice -> Game -> Game
 handleButton _ (SceneChoice _ _ Nothing) game =
   game & set inEvent Nothing
-handleButton random (SceneChoice txt cost (Just nextScene')) game =
-  let next = undefined
-      swapScenes g = case (view inEvent game) of
+handleButton random (SceneChoice txt cost (Just (possibleScenes, defaultNextScene))) game =
+  let swapScenes g = case (view inEvent game) of
         Nothing -> g
-        Just scene -> g & set inEvent (Just (scene {currentScene = snd (head nextScene')}))
+        Just scene ->
+          let next = randomChoice random defaultNextScene possibleScenes
+          in g & set inEvent (Just (scene {currentScene = next}))
   in game & over (stored . fur) (subtract 50)
           & swapScenes
