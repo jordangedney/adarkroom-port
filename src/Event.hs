@@ -18,7 +18,6 @@ import qualified Room
 import qualified Builder
 import qualified RandomEvent.Handler as RandomEvent
 import qualified RandomEvent.Event as RandomEvent
-import qualified RandomEvent.EventType as RandomEvent
 
 handleEventWrapper :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEventWrapper game event =

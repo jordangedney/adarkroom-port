@@ -31,10 +31,17 @@ canAfford (i, amnt) game =
       item Teeth = teeth
   in view (stored . item i) game >= amnt
 
+-- getItem :: Item -> Game ->
+item :: Functor f => Item -> (Int -> f Int) -> Game -> f Game
+item Fur   = (stored . fur)
+item Cloth = (stored . cloth)
+item Scale = (stored . scales)
+item Teeth = (stored . teeth)
+
 handleButton :: StdGen -> SceneChoice -> Game -> Game
 handleButton _ (SceneChoice _ _ Nothing) game =
   game & set inEvent Nothing
-handleButton random (SceneChoice txt cost (Just (possibleScenes, defaultNextScene))) game =
+handleButton random (SceneChoice _ cost (Just (possibleScenes, defaultNextScene))) game =
   let swapScenes g = case (view inEvent game) of
         Nothing -> g
         Just scene ->
