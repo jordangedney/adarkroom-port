@@ -3,3 +3,4 @@ save.data
 a-dark-room.cabal
 *~
 dist-newstyle
+.DS_Store
