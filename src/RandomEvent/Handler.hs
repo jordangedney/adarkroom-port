@@ -1,13 +1,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-
 module RandomEvent.Handler where
 
 import System.Random (StdGen, randomR)
 import Control.Lens (view, over, set, (&))
 
 import GameTypes (Game, stored, fur, tickCount, nextRandomAt, cloth, scales,
-                  teeth, inEvent, location, Location(..), hyperspeedAmt)
+                  teeth, inEvent, location, Location(..), hyperspeedAmt, bait, compass)
 import RandomEvent.Event (SceneChoice(..), Item(..), currentScene,
                           Scene, theBeggar)
 import Util (randomChoice)
@@ -31,13 +30,18 @@ doRandomEvent game randomGen =
       Just es -> updated & set inEvent (Just (head es))
       Nothing -> updated
 
-canAfford :: (Item, Int) -> Game -> Bool
-canAfford (i, amnt) game =
+canAfford' :: (Item, Int) -> Game -> Bool
+canAfford' (i, amnt) game =
   let itm Fur   = fur
       itm Cloth = cloth
       itm Scale = scales
       itm Teeth = teeth
+      itm Bait = bait
+      itm Compass = compass
   in view (stored . itm i) game >= amnt
+
+canAfford :: [(Item, Int)] -> Game -> Bool
+canAfford items game = all (`canAfford'` game) items
 
 -- getItem :: Item -> Game ->
 item :: Functor f => Item -> (Int -> f Int) -> Game -> f Game
@@ -45,6 +49,8 @@ item Fur   = stored . fur
 item Cloth = stored . cloth
 item Scale = stored . scales
 item Teeth = stored . teeth
+item Bait = stored . bait
+item Compass = stored . compass
 
 handleButton :: StdGen -> SceneChoice -> Game -> Game
 handleButton _ (SceneChoice _ _ Nothing) game =
