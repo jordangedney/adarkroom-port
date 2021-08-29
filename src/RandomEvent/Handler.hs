@@ -11,6 +11,7 @@ import GameTypes (Game, stored, fur, tickCount, nextRandomAt, cloth, scales,
 import RandomEvent.Event (SceneChoice(..), Item(..), currentScene,
                           Scene, theBeggar, theNomad, StayOrGo(..))
 import Util (randomChoice, choice)
+import GameUtil (notifyRoom)
 
 shouldDoRandomEvent :: Game -> Bool
 shouldDoRandomEvent game = view tickCount game == view nextRandomAt game
@@ -32,33 +33,34 @@ doRandomEvent game randomGen =
             Just es -> updated & set inEvent (Just (choice randomGen es))
             Nothing -> updated
 
+item Fur   = fur
+item Cloth = cloth
+item Scale = scales
+item Teeth = teeth
+item Bait = bait
+item Compass = compass
+
 canAfford' :: (Item, Int) -> Game -> Bool
-canAfford' (i, amnt) game =
-  let itm Fur   = fur
-      itm Cloth = cloth
-      itm Scale = scales
-      itm Teeth = teeth
-      itm Bait = bait
-      itm Compass = compass
-  in view (stored . itm i) game >= amnt
+canAfford' (i, amnt) game = view (stored . item i) game >= amnt
 
 canAfford :: [(Item, Int)] -> Game -> Bool
 canAfford items game = all (`canAfford'` game) items
 
--- getItem :: Item -> Game ->
-item :: Functor f => Item -> (Int -> f Int) -> Game -> f Game
-item Fur   = stored . fur
-item Cloth = stored . cloth
-item Scale = stored . scales
-item Teeth = stored . teeth
-item Bait = stored . bait
-item Compass = stored . compass
+getItem :: Functor f => Item -> (Int -> f Int) -> Game -> f Game
+getItem i = stored . item i
 
 handleButton :: StdGen -> SceneChoice -> Game -> Game
 handleButton _ (SceneChoice _ _ Nothing) game =
   game & set inEvent Nothing
-handleButton _ (SceneChoice _ _ (Just (Stay notification reward)))  game =
-                     game
+handleButton _ (SceneChoice _ choiceCost (Just (Stay notification (rItem, rAmt))))  game =
+  let pay = case choiceCost of
+        Nothing -> game
+        Just xs -> foldl (\g (i, amt) -> g & over (getItem i) (subtract amt)) game xs
+      notify = case notification of
+        Nothing -> pay
+        Just alert -> notifyRoom alert pay
+      loot = notify & over (getItem rItem) (+ rAmt)
+  in loot
 
 handleButton random (SceneChoice _ _ (Just (Go (possibleScenes, defaultNextScene)))) game =
   let swapScenes g = case view inEvent game of
