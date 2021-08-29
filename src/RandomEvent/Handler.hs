@@ -2,13 +2,14 @@
 
 module RandomEvent.Handler where
 
+import Data.Maybe (isJust)
 import System.Random (StdGen, randomR)
 import Control.Lens (view, over, set, (&))
 
 import GameTypes (Game, stored, fur, tickCount, nextRandomAt, cloth, scales,
                   teeth, inEvent, location, Location(..), hyperspeedAmt, bait, compass)
 import RandomEvent.Event (SceneChoice(..), Item(..), currentScene,
-                          Scene, theBeggar, theNomad)
+                          Scene, theBeggar, theNomad, StayOrGo(..))
 import Util (randomChoice, choice)
 
 shouldDoRandomEvent :: Game -> Bool
@@ -26,9 +27,10 @@ setNextRandomEvent game randomGen =
 doRandomEvent :: Game -> StdGen -> Game
 doRandomEvent game randomGen =
   let updated = setNextRandomEvent game randomGen
-  in case availableEvents game of
-      Just es -> updated & set inEvent (Just (choice randomGen es))
-      Nothing -> updated
+  in if isJust (view inEvent game) then updated
+     else case availableEvents game of
+            Just es -> updated & set inEvent (Just (choice randomGen es))
+            Nothing -> updated
 
 canAfford' :: (Item, Int) -> Game -> Bool
 canAfford' (i, amnt) game =
@@ -55,7 +57,10 @@ item Compass = stored . compass
 handleButton :: StdGen -> SceneChoice -> Game -> Game
 handleButton _ (SceneChoice _ _ Nothing) game =
   game & set inEvent Nothing
-handleButton random (SceneChoice _ _ (Just (possibleScenes, defaultNextScene))) game =
+handleButton _ (SceneChoice _ _ (Just (Stay notification reward)))  game =
+                     game
+
+handleButton random (SceneChoice _ _ (Just (Go (possibleScenes, defaultNextScene)))) game =
   let swapScenes g = case view inEvent game of
         Nothing -> g
         Just scene ->
