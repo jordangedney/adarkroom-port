@@ -27,8 +27,8 @@ randomChoice' :: (Ord a, Num a) => b -> [(a, b)] -> a -> b
 randomChoice' defaultValue probabilities rand =
   let sorted = sortBy (compare `on` fst) probabilities
       probs = drop 1 (scanl (\(s, _) (a, b) -> (s - a, b)) (rand, undefined) sorted)
-      choice = headDef (undefined, defaultValue) (filter (\(a, _) -> a <= 0) probs)
-  in snd choice
+      choice' = headDef (undefined, defaultValue) (filter (\(a, _) -> a <= 0) probs)
+  in snd choice'
 
 randomChoices :: StdGen -> a -> [(Int, a)] -> [a]
 randomChoices randomGen defaultValue probabilities =
@@ -37,6 +37,11 @@ randomChoices randomGen defaultValue probabilities =
 
 randomChoice :: StdGen -> a -> [(Int, a)] -> a
 randomChoice r d p = head (randomChoices r d p)
+
+choice :: StdGen -> [a] -> a
+choice rnd xs = xs !! rand where
+  n = length xs
+  (rand, _) = randomR (0, n-1) rnd
 
 listOfRandomPercentages :: StdGen -> [Int]
 listOfRandomPercentages randomGen =

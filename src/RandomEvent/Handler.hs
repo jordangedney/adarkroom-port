@@ -8,8 +8,8 @@ import Control.Lens (view, over, set, (&))
 import GameTypes (Game, stored, fur, tickCount, nextRandomAt, cloth, scales,
                   teeth, inEvent, location, Location(..), hyperspeedAmt, bait, compass)
 import RandomEvent.Event (SceneChoice(..), Item(..), currentScene,
-                          Scene, theBeggar)
-import Util (randomChoice)
+                          Scene, theBeggar, theNomad)
+import Util (randomChoice, choice)
 
 shouldDoRandomEvent :: Game -> Bool
 shouldDoRandomEvent game = view tickCount game == view nextRandomAt game
@@ -27,7 +27,7 @@ doRandomEvent :: Game -> StdGen -> Game
 doRandomEvent game randomGen =
   let updated = setNextRandomEvent game randomGen
   in case availableEvents game of
-      Just es -> updated & set inEvent (Just (head es))
+      Just es -> updated & set inEvent (Just (choice randomGen es))
       Nothing -> updated
 
 canAfford' :: (Item, Int) -> Game -> Bool
@@ -67,6 +67,8 @@ handleButton random (SceneChoice _ _ (Just (possibleScenes, defaultNextScene))) 
 availableEvents :: Game -> Maybe [Scene]
 availableEvents g =
   let events =
-        [(theBeggar, view location g == Room && view (stored . fur) g > 0)]
+        [(theBeggar, view location g == Room && view (stored . fur) g > 0)
+        ,(theNomad, view location g == Room && view (stored . fur) g > 0)
+        ]
       avail = [e | (e, p) <- events, p]
   in if null avail then Nothing else Just avail
