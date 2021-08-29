@@ -8,7 +8,8 @@ import Control.Lens (over, set, view, _2, (&))
 import Game (getGameEvent)
 import GameTypes (Game, Tick(..), Location(..), tickCount, upcomingEvents, events, uiState, inEvent,
                   debug, hyper, initGame, previousStates, paused, location, inEvent,
-                  stored, bait, fur, meat, scales, teeth, cloth, charm)
+                  stored, bait, fur, meat, scales, teeth, cloth, charm,
+                  hyperspeedAmt)
 import GameEvent (tickEvents, toList)
 import UI.State (Name(..), lastReportedClick)
 import SaveGame (save)
@@ -33,7 +34,7 @@ handleEventWrapper game event =
       if RandomEvent.shouldDoRandomEvent game
       then do
         random <- liftIO newStdGen
-        step (RandomEvent.doRandomEvent random game)
+        step (RandomEvent.doRandomEvent game random)
       else step game
 
     (MouseDown SaveButton _ _ _) -> do
@@ -47,6 +48,15 @@ handleEventWrapper game event =
     (MouseDown e@CheckTrapsButton  _ _ m) -> do
       random <- liftIO newStdGen
       game & setMouseDown e m & Outside.checkTraps random & continue
+
+    (MouseDown e@HyperButton   _ _ m) -> do
+      -- Change the tick at which the next random event occurs to avoid
+      -- accidentally skipping over it.
+      random <- liftIO newStdGen
+      game & setMouseDown e m
+           & over hyper not
+           & flip RandomEvent.setNextRandomEvent random
+           & continue
 
     -- Normal events:
     _                            -> step (autosave game)
@@ -65,10 +75,11 @@ gameTick game =
 
 handleEvent :: Game -> BrickEvent Name Tick -> Game
 handleEvent game (AppEvent Tick) =
-  -- XXX the gui ticks twice at once
-  let doubleSpeedEnabled = view hyper game
-      fasterFaster = gameTick . gameTick . gameTick . gameTick $ game
-  in if doubleSpeedEnabled then fasterFaster else gameTick game
+  -- XXX the gui ticks how ever many times a hyper step is
+  let (hyperEnabled, hsAmt) = (view hyper game, view hyperspeedAmt game)
+      fasterFaster 0 = game
+      fasterFaster n = gameTick (fasterFaster (n - 1))
+  in if hyperEnabled then fasterFaster hsAmt else gameTick game
 
 handleEvent g (MouseDown e _ _ m) = handleMouseDown g e m
 handleEvent g MouseUp {} = set (uiState . lastReportedClick) Nothing g
@@ -92,7 +103,8 @@ handleButtonEvent StokeButton = Fire.stoke
 
 handleButtonEvent OutsideButton    = Outside.arrival
 handleButtonEvent GatherButton     = Outside.gather
-handleButtonEvent CheckTrapsButton = error "This should be handled up above"
+handleButtonEvent CheckTrapsButton =
+  error "This should be handled in handleEventWrapper"
 
 handleButtonEvent TrapButton = Builder.buildTrap
 handleButtonEvent CartButton = Builder.buildCart
@@ -101,7 +113,8 @@ handleButtonEvent PathButton = set location Path
 handleButtonEvent ShipButton = set location Ship
 
 handleButtonEvent RestartButton = const initGame
-handleButtonEvent HyperButton = over hyper not
+handleButtonEvent HyperButton =
+  error "This should be handled in handleEventWrapper"
 handleButtonEvent DebugButton = over debug not
 handleButtonEvent PrevButton = set paused True . head . view previousStates
 handleButtonEvent PauseButton = over paused not

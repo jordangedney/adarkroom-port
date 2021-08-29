@@ -247,7 +247,10 @@ locationMenu game =
 drawGameWindow :: Game -> Widget Name
 drawGameWindow game =
   let showGameTick =
-        str (if view debug game then show (view tickCount game) ++ "  " else "")
+        str (if view debug game then
+               show (view tickCount game) ++ "  "
+                                          ++ show (view nextRandomAt game)
+              else "")
       notifications = padLeft (Pad 2) (vBox [vLimit 45 (eventsWindow game), showGameTick])
 
       gameActions =

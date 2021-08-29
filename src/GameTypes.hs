@@ -110,6 +110,7 @@ data Game = Game
   , _roomEventBacklog   :: [String]
   , _forestEventBacklog :: [String]
   , _tickCount          :: Int
+  , _hyperspeedAmt      :: Int
   , _nextRandomAt       :: Int
   , _uiState            :: UIState
   , _fireValue          :: FireState
@@ -126,6 +127,9 @@ data Game = Game
 
 makeLenses ''Game
 
+hyperspeedAmt' :: Int
+hyperspeedAmt' = 4
+
 initGame :: Game
 initGame                = Game
   { _location           = Room
@@ -135,7 +139,8 @@ initGame                = Game
   , _roomEventBacklog   = []
   , _forestEventBacklog = []
   , _tickCount          = 0
-  , _nextRandomAt       = 1
+  , _hyperspeedAmt      = hyperspeedAmt'
+  , _nextRandomAt       = hyperspeedAmt'
   , _uiState            = uiStateInit
   , _fireValue          = Dead
   , _roomTemperature    = Cold -- instead of Freezing so initial status is displayed
