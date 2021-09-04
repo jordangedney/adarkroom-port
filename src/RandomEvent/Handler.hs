@@ -7,7 +7,7 @@ import System.Random (StdGen, randomR)
 import Control.Lens (view, over, set, (&))
 
 import GameTypes (Game, stored, fur, tickCount, nextRandomAt, cloth, scales,
-                  teeth, inEvent, location, Location(..), hyperspeedAmt, bait, compass)
+                  teeth, inEvent, location, Location(..), hyperspeedAmt, bait, compass, Stored)
 import RandomEvent.Event (SceneChoice(..), Item(..), currentScene,
                           Scene, theBeggar, theNomad, StayOrGo(..))
 import Util (randomChoice, choice)
@@ -33,6 +33,7 @@ doRandomEvent game randomGen =
             Just es -> updated & set inEvent (Just (choice randomGen es))
             Nothing -> updated
 
+item :: Functor f => Item -> (Int -> f Int) -> Stored -> f Stored
 item Fur   = fur
 item Cloth = cloth
 item Scale = scales
@@ -40,6 +41,7 @@ item Teeth = teeth
 item Bait = bait
 item Compass = compass
 
+itemToStr :: Item -> String
 itemToStr Fur     = "fur"
 itemToStr Cloth   = "cloth"
 itemToStr Scale   = "scales"
@@ -77,8 +79,8 @@ handleButton _ (SceneChoice _ choiceCost (Just (Stay notification (rItem, rAmt))
       costMsg [] g = g
       -- Handle the hidden requirement allowing players to only buy one compass
       costMsg ((Compass, 0):xs) g = costMsg xs g
-      costMsg ((i, cost):xs) g =
-        notifyRoom ("not enough " <> itemToStr i <> " (" <> show cost <> ").") g
+      costMsg ((i, cost'):xs) g =
+        notifyRoom ("not enough " <> itemToStr i <> " (" <> show cost' <> ").") g
         & costMsg xs
   in loot
 
