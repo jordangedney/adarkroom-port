@@ -81,6 +81,11 @@ dialogButton = blueButton
 greyedButton :: String -> Widget Name
 greyedButton label = newButton label & withDefAttr progressBarToDo
 
+cantAffordButton buttonId label =
+  newButton label
+  & withDefAttr progressBarToDo
+  & clickable buttonId
+
 textButton :: Game -> Name -> String -> Widget Name
 textButton game buttonId label =
   let button = clickable buttonId (str label)

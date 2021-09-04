@@ -40,6 +40,13 @@ item Teeth = teeth
 item Bait = bait
 item Compass = compass
 
+itemToStr Fur     = "fur"
+itemToStr Cloth   = "cloth"
+itemToStr Scale   = "scales"
+itemToStr Teeth   = "teeth"
+itemToStr Bait    = "bait"
+itemToStr Compass = "compass"
+
 canAfford' :: (Item, Int) -> Game -> Bool
 -- Prevent players from buying more than one compass
 canAfford' (Compass, 0) game = view (stored . compass) game == 0
@@ -55,13 +62,24 @@ handleButton :: StdGen -> SceneChoice -> Game -> Game
 handleButton _ (SceneChoice _ _ Nothing) game =
   game & set inEvent Nothing
 handleButton _ (SceneChoice _ choiceCost (Just (Stay notification (rItem, rAmt))))  game =
-  let pay = case choiceCost of
+  let loot = case choiceCost of
         Nothing -> game
-        Just xs -> foldl (\g (i, amt) -> g & over (getItem i) (subtract amt)) game xs
-      notify = case notification of
-        Nothing -> pay
-        Just alert -> notifyRoom alert pay
-      loot = notify & over (getItem rItem) (+ rAmt)
+        Just xs -> if canAfford xs game
+                  then foldl (\g (i, amt) -> g & over (getItem i) (subtract amt)) game xs
+                       & notify
+                       & over (getItem rItem) (+ rAmt)
+                  else if view (stored . compass) game == 1
+                       then game
+                       else costMsg xs game
+      notify g = case notification of
+        Nothing -> g
+        Just alert -> notifyRoom alert g
+      costMsg [] g = g
+      -- Handle the hidden requirement allowing players to only buy one compass
+      costMsg ((Compass, 0):xs) g = costMsg xs g
+      costMsg ((i, cost):xs) g =
+        notifyRoom ("not enough " <> itemToStr i <> " (" <> show cost <> ").") g
+        & costMsg xs
   in loot
 
 handleButton random (SceneChoice _ _ (Just (Go (possibleScenes, defaultNextScene)))) game =

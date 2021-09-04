@@ -22,7 +22,7 @@ drawDialogWindow game =
 
 optionalDialogButton :: Bool -> Name -> String -> Widget Name
 optionalDialogButton predicate buttonID label =
-  if predicate then dialogButton buttonID label else greyedButton label
+  if predicate then dialogButton buttonID label else cantAffordButton buttonID label
 
 genericEvent :: Scene -> Game -> Widget Name
 genericEvent event game =
