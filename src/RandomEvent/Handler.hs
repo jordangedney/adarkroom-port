@@ -41,6 +41,8 @@ item Bait = bait
 item Compass = compass
 
 canAfford' :: (Item, Int) -> Game -> Bool
+-- Prevent players from buying more than one compass
+canAfford' (Compass, 0) game = view (stored . compass) game == 0
 canAfford' (i, amnt) game = view (stored . item i) game >= amnt
 
 canAfford :: [(Item, Int)] -> Game -> Bool

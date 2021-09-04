@@ -107,8 +107,10 @@ theNomad = Scene
   , currentScene = start
   }
   where start = SceneEvent
-          { text = [ "a nomad shuffles into view, laden with makeshift bags bound with rough twine."
-                   , "won't say from where he came, but it's clear that he's not staying."]
+          { text = [ "a nomad shuffles into view, \
+                     \laden with makeshift bags bound with rough twine."
+                   , "won't say from where he came, \
+                     \but it's clear that he's not staying."]
           , notification = Just "a nomad arrives, looking to trade"
           -- , blink = True
           , reward = Nothing
@@ -128,10 +130,12 @@ theNomad = Scene
                                         (Bait, 1))
                           }
             , SceneChoice { choiceTxt = "buy compass"
-                          , cost = Just [(Fur, 300), (Scale, 15), (Teeth, 5)]
+                          , cost = Just
+                            [(Fur, 300), (Scale, 15), (Teeth, 5), (Compass, 0)]
                           , nextScene =
                               Just (Stay
-                              (Just "the old compass is dented and dusty, but it looks to work.")
+                              (Just "the old compass is dented and dusty, \
+                                    \but it looks to work.")
                               (Compass, 1))
                           }
             , SceneChoice { choiceTxt = "turn him away"
