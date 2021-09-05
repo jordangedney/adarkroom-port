@@ -9,7 +9,7 @@ import Data.Yaml
 -- import RandomEvent.EventType (RandomEvent(..))
 
 -- This should be in GameTypes, but dependency cycles are a bitch
-data Item = Fur | Cloth | Scale | Teeth | Bait | Compass
+data Item = Fur | Cloth | Scale | Teeth | Bait | Compass | Wood
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 data Scene = Scene
@@ -150,4 +150,57 @@ theNomad = Scene
                           , nextScene = Nothing
                           }
             ]
+          }
+
+noisesOutside :: Scene
+noisesOutside = Scene
+  { title = "Noises"
+  , windowSize = 51
+  , currentScene = start
+  }
+  where start = SceneEvent
+          { text = [ "through the walls, shuffling noises can be heard."
+                   , "\n"
+                   , "can't tell what they're up to."
+                   ]
+          , notification = Just "strange noises can be heard through the walls"
+          -- , blink = True
+          , reward = Nothing
+          , choices =
+            [ SceneChoice { choiceTxt = "investigate"
+                          , cost = Nothing
+                          , nextScene = Just $ Go ([(30, stuff)], nothing)
+                          }
+            , SceneChoice { choiceTxt = "ignore them"
+                          , cost = Nothing
+                          , nextScene = Nothing
+                          }
+            ]
+          }
+        stuff = SceneEvent
+          { text = [ "a bundle of sticks lies just beyond the threshold,"
+                   , "wrapped in coarse furs."
+                   , "\n"
+                   , "the night is silent."
+                   ]
+          , notification = Nothing
+          , reward = Just [(Wood, 100), (Fur, 10)]
+          , choices = [ SceneChoice { choiceTxt = "go back inside"
+                                    , cost = Nothing
+                                    , nextScene = Nothing
+                                    }
+                      ]
+          }
+        nothing = SceneEvent
+          { text = [ "vague shapes move, just out of sight."
+                   , "\n"
+                   , "the sounds stop."
+                   ]
+          , notification = Nothing
+          , reward = Nothing
+          , choices = [ SceneChoice { choiceTxt = "go back inside"
+                                    , cost = Nothing
+                                    , nextScene = Nothing
+                                    }
+                      ]
           }

@@ -38,8 +38,9 @@ genericEvent event game =
              Nothing -> btn dialogButton
              Just c -> btn (optionalDialogButton (canAfford c game))
 
-      groupsOfTwo [] = str ""
+      groupsOfTwo [] = error "events should at least have a leave button"
       groupsOfTwo [x] = x
+      groupsOfTwo (x:y:[]) = hBox [(x <+> str "    "), y]
       groupsOfTwo (x:y:xs) =
         hBox [(x <+> str "    "), y]
         <=> str " "

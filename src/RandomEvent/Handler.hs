@@ -7,7 +7,8 @@ import System.Random (StdGen, randomR)
 import Control.Lens (view, over, set, (&))
 
 import GameTypes (Game, stored, fur, tickCount, nextRandomAt, cloth, scales,
-                  teeth, inEvent, location, Location(..), hyperspeedAmt, bait, compass, Stored)
+                  teeth, inEvent, location, Location(..), hyperspeedAmt, bait,
+                  compass, Stored, wood)
 import RandomEvent.Event (SceneChoice(..), Item(..), currentScene,
                           Scene, theBeggar, theNomad, StayOrGo(..))
 import Util (randomChoice, choice)
@@ -40,6 +41,7 @@ item Scale = scales
 item Teeth = teeth
 item Bait = bait
 item Compass = compass
+item Wood = wood
 
 itemToStr :: Item -> String
 itemToStr Fur     = "fur"
@@ -48,6 +50,7 @@ itemToStr Scale   = "scales"
 itemToStr Teeth   = "teeth"
 itemToStr Bait    = "bait"
 itemToStr Compass = "compass"
+itemToStr Wood = "wood"
 
 canAfford' :: (Item, Int) -> Game -> Bool
 -- Prevent players from buying more than one compass
