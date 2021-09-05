@@ -14,6 +14,8 @@ data Item = Fur | Cloth | Scale | Teeth | Bait | Compass
 
 data Scene = Scene
   { title :: String
+  -- Used to hold the window position to a set size
+  -- (so it doesn't change size between scenes)
   , windowSize :: Int
   , currentScene :: SceneEvent
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
@@ -38,11 +40,12 @@ data SceneChoice = SceneChoice
 theBeggar :: Scene
 theBeggar = Scene
   { title = "The Beggar"
-  , windowSize = 63
+  , windowSize = 52
   , currentScene = start
   }
   where start = SceneEvent
           { text = [ "a beggar arrives."
+                   , "\n"
                    , "asks for any spare furs to keep him warm at night."]
           , notification = Just "a beggar arrives"
           -- , blink = True
@@ -67,8 +70,9 @@ theBeggar = Scene
             ]
           }
         scales' = SceneEvent
-          { text = [ "the beggar expresses his thanks.",
-                     "leaves a pile of small scales behind." ]
+          { text = [ "the beggar expresses his thanks."
+                   , "\n"
+                   , "leaves a pile of small scales behind." ]
           , notification = Nothing
           , reward = Just [(Scale, 20)]
           , choices = [ SceneChoice { choiceTxt = "say goodbye"
@@ -78,8 +82,9 @@ theBeggar = Scene
                       ]
           }
         teeth' = SceneEvent
-          { text = [ "the beggar expresses his thanks.",
-                     "leaves a pile of small teeth behind." ]
+          { text = [ "the beggar expresses his thanks."
+                   , "\n"
+                   , "leaves a pile of small teeth behind." ]
           , notification = Nothing
           , reward = Just [(Teeth, 20)]
           , choices = [ SceneChoice { choiceTxt = "say goodbye"
@@ -89,8 +94,9 @@ theBeggar = Scene
                       ]
           }
         cloth' = SceneEvent
-          { text = [ "the beggar expresses his thanks.",
-                     "leaves some scraps of cloth behind."]
+          { text = [ "the beggar expresses his thanks."
+                   , "\n"
+                   , "leaves some scraps of cloth behind."]
           , notification = Nothing
           , reward = Just [(Cloth, 20)]
           , choices = [ SceneChoice { choiceTxt = "say goodbye"
@@ -103,14 +109,15 @@ theBeggar = Scene
 theNomad :: Scene
 theNomad = Scene
   { title = "The Nomad"
-  , windowSize = 63
+  , windowSize = 51
   , currentScene = start
   }
   where start = SceneEvent
-          { text = [ "a nomad shuffles into view, \
-                     \laden with makeshift bags bound with rough twine."
-                   , "won't say from where he came, \
-                     \but it's clear that he's not staying."]
+          { text = [ "a nomad shuffles into view, laden with makeshift"
+                   , "bags bound with rough twine."
+                   , "\n"
+                   , "won't say from where he came, but it's clear that"
+                   , "he's not staying."]
           , notification = Just "a nomad arrives, looking to trade"
           -- , blink = True
           , reward = Nothing

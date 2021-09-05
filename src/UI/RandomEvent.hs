@@ -4,7 +4,6 @@ import Brick
 import Brick.Widgets.Border (borderWithLabel)
 import Brick.Widgets.Center (centerLayer)
 import Control.Lens (view, (&))
-import Data.List (intersperse)
 
 import UI.State
 import GameTypes
@@ -27,14 +26,11 @@ optionalDialogButton predicate buttonID label =
 genericEvent :: Scene -> Game -> Widget Name
 genericEvent event game =
   let width = windowSize event
-      sidePadding = 2
 
       dialogText =
         text (currentScene event)
-        & intersperse "\n"
         & map str
         & vBox
-        & padBottom (Pad sidePadding)
 
       buttonMaker choice =
         let btn y = y (RandomEventButton choice) (choiceTxt choice)
@@ -42,27 +38,25 @@ genericEvent event game =
              Nothing -> btn dialogButton
              Just c -> btn (optionalDialogButton (canAfford c game))
 
-      mapButLast :: (a -> a) -> [a] -> [a]
-      mapButLast _ [] = []
-      mapButLast _ [x] = [x]
-      mapButLast f (x:xs) = f x : mapButLast f xs
-
-      applyLast :: (a -> a) -> [a] -> [a]
-      applyLast _ [] = []
-      applyLast f [x] = [f x]
-      applyLast f (x:xs) = x : applyLast f xs
+      groupsOfTwo [] = str ""
+      groupsOfTwo [x] = x
+      groupsOfTwo (x:y:xs) =
+        hBox [(x <+> str "    "), y]
+        <=> str " "
+        <=> groupsOfTwo xs
 
       buttons =
         choices (currentScene event)
         & map buttonMaker
-        & mapButLast (<+> str "    ")
-        & applyLast (<+> str (replicate sidePadding ' '))
-        & hBox
+        & groupsOfTwo
 
       controlDialogBoxWidth = hLimit width (str (replicate width ' '))
 
-      dialogItems = controlDialogBoxWidth <=>
-                    padLeft (Pad sidePadding) (dialogText <=> padBottom (Pad 1) buttons)
+      dialogItems =
+        controlDialogBoxWidth
+        <=> (padBottom (Pad 1) dialogText <=> buttons)
+        & padBottom (Pad 1)
+        & padLeft (Pad 2)
 
   in dialogItems
      & borderWithLabel (str (formatTitle (title event) (width - 1)))

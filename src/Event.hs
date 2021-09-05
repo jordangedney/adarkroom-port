@@ -118,10 +118,10 @@ handleButtonEvent HyperButton =
 handleButtonEvent DebugButton = over debug not
 handleButtonEvent PrevButton = set paused True . head . view previousStates
 handleButtonEvent PauseButton = over paused not
-handleButtonEvent DialogButton = over inEvent (\ x ->
-                                                 case x of
-                                                   Just _ -> Nothing
-                                                   Nothing -> Just RandomEvent.theNomad)
+handleButtonEvent DialogButton =
+  over inEvent (\ x -> case x of
+                        Just _ -> Nothing
+                        Nothing -> Just RandomEvent.theNomad)
 handleButtonEvent CheatButton =
     over (stored . bait)   (+ 50)
   . over (stored . fur)    (+ 50)
