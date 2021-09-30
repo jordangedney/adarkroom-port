@@ -81,10 +81,14 @@ handleButton r (SceneChoice _ (Just cs) next) game =
   if canAfford cs game
   then foldl (\g (i, amt) -> g & over (getItem i) (subtract amt)) game cs
        & doSceneChoice r next
-  else if view (stored . compass) game == 1
+  else if tryingToBuyCompassTwice cs game
        then game
        else costMsg cs game
   where
+    tryingToBuyCompassTwice costs g =
+      (filter (\(c, amt) -> c == Compass && amt == 0) costs & null & not)
+      && ((view (stored . compass) g) == 1)
+
     costMsg [] g = g
     -- Handle the hidden requirement allowing players to only buy one compass
     costMsg ((Compass, 0):xs) g = costMsg xs g
