@@ -52,49 +52,45 @@ itemToStr Bait    = "bait"
 itemToStr Compass = "compass"
 itemToStr Wood = "wood"
 
-canAfford' :: (Item, Int) -> Game -> Bool
--- Prevent players from buying more than one compass
-canAfford' (Compass, 0) game = view (stored . compass) game == 0
-canAfford' (i, amnt) game = view (stored . item i) game >= amnt
-
 canAfford :: [(Item, Int)] -> Game -> Bool
-canAfford items game = all (`canAfford'` game) items
+canAfford items game = all afford items
+  where afford (Compass, 0) = view (stored . compass) game == 0
+        afford (i, amnt) = view (stored . item i) game >= amnt
 
 getItem :: Functor f => Item -> (Int -> f Int) -> Game -> f Game
 getItem i = stored . item i
 
-handleButton :: StdGen -> SceneChoice -> Game -> Game
-handleButton _ (SceneChoice _ _ Nothing) game =
-  game & set inEvent Nothing
-handleButton _ (SceneChoice _ choiceCost (Just (Stay notification (rItem, rAmt))))  game =
-  let loot = case choiceCost of
-        Nothing -> game
-        Just xs -> if canAfford xs game
-                  then foldl (\g (i, amt) -> g & over (getItem i) (subtract amt)) game xs
-                       & notify
-                       & over (getItem rItem) (+ rAmt)
-                  else if view (stored . compass) game == 1
-                       then game
-                       else costMsg xs game
+doSceneChoice :: StdGen -> Maybe StayOrGo -> Game -> Game
+doSceneChoice _ Nothing game = game & set inEvent Nothing
+doSceneChoice _ (Just (Stay notification (rItem, rAmt))) game =
+  let loot g = g & over (getItem rItem) (+ rAmt)
       notify g = case notification of
         Nothing -> g
         Just alert -> notifyRoom alert g
-      costMsg [] g = g
-      -- Handle the hidden requirement allowing players to only buy one compass
-      costMsg ((Compass, 0):xs) g = costMsg xs g
-      costMsg ((i, cost'):xs) g =
-        notifyRoom ("not enough " <> itemToStr i <> " (" <> show cost' <> ").") g
-        & costMsg xs
-  in loot
+  in game & loot & notify
+doSceneChoice random (Just (Go (possibleScenes, defaultNextScene))) game =
+  case view inEvent game of
+    Nothing -> game
+    Just scene ->
+      let next = randomChoice random defaultNextScene possibleScenes
+      in game & set inEvent (Just (scene {currentScene = next}))
 
-handleButton random (SceneChoice _ _ (Just (Go (possibleScenes, defaultNextScene)))) game =
-  let swapScenes g = case view inEvent game of
-        Nothing -> g
-        Just scene ->
-          let next = randomChoice random defaultNextScene possibleScenes
-          in g & set inEvent (Just (scene {currentScene = next}))
-  in game & over (stored . fur) (subtract 50)
-          & swapScenes
+handleButton :: StdGen -> SceneChoice -> Game -> Game
+handleButton r (SceneChoice _ Nothing next) game = doSceneChoice r next game
+handleButton r (SceneChoice _ (Just cs) next) game =
+  if canAfford cs game
+  then foldl (\g (i, amt) -> g & over (getItem i) (subtract amt)) game cs
+       & doSceneChoice r next
+  else if view (stored . compass) game == 1
+       then game
+       else costMsg cs game
+  where
+    costMsg [] g = g
+    -- Handle the hidden requirement allowing players to only buy one compass
+    costMsg ((Compass, 0):xs) g = costMsg xs g
+    costMsg ((i, cost'):xs) g =
+      notifyRoom ("not enough " <> itemToStr i <> " (" <> show cost' <> ").") g
+      & costMsg xs
 
 availableEvents :: Game -> Maybe [Scene]
 availableEvents g =
