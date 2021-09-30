@@ -155,13 +155,15 @@ theNomad = Scene
 noisesOutside :: Scene
 noisesOutside = Scene
   { title = "Noises"
-  , windowSize = 51
+  , windowSize = 52
   , currentScene = start
   }
   where start = SceneEvent
           { text = [ "through the walls, shuffling noises can be heard."
                    , "\n"
                    , "can't tell what they're up to."
+                   , "\n"
+                   , "\n"
                    ]
           , notification = Just "strange noises can be heard through the walls"
           -- , blink = True
@@ -178,10 +180,11 @@ noisesOutside = Scene
             ]
           }
         stuff = SceneEvent
-          { text = [ "a bundle of sticks lies just beyond the threshold,"
+          { text = [ "a bundle of sticks lies just beyond the threshold, "
                    , "wrapped in coarse furs."
                    , "\n"
                    , "the night is silent."
+                   , "\n"
                    ]
           , notification = Nothing
           , reward = Just [(Wood, 100), (Fur, 10)]
@@ -195,6 +198,8 @@ noisesOutside = Scene
           { text = [ "vague shapes move, just out of sight."
                    , "\n"
                    , "the sounds stop."
+                   , "\n"
+                   , "\n"
                    ]
           , notification = Nothing
           , reward = Nothing

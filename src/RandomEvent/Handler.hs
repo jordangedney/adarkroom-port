@@ -10,7 +10,7 @@ import GameTypes (Game, stored, fur, tickCount, nextRandomAt, cloth, scales,
                   teeth, inEvent, location, Location(..), hyperspeedAmt, bait,
                   compass, Stored, wood)
 import RandomEvent.Event (SceneChoice(..), Item(..), currentScene,
-                          Scene, theBeggar, theNomad, StayOrGo(..))
+                          Scene, theBeggar, theNomad, noisesOutside, StayOrGo(..))
 import Util (randomChoice, choice)
 import GameUtil (notifyRoom)
 
@@ -99,8 +99,9 @@ handleButton r (SceneChoice _ (Just cs) next) game =
 availableEvents :: Game -> Maybe [Scene]
 availableEvents g =
   let events =
-        [(theBeggar, view location g == Room && view (stored . fur) g > 0)
-        ,(theNomad, view location g == Room && view (stored . fur) g > 0)
+        [ (theBeggar, view location g == Room && view (stored . fur) g > 0)
+        , (theNomad, view location g == Room && view (stored . fur) g > 0)
+        , (noisesOutside, view location g == Room)
         ]
       avail = [e | (e, p) <- events, p]
   in if null avail then Nothing else Just avail
