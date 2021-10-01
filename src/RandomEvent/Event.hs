@@ -20,11 +20,19 @@ data Scene = Scene
   , currentScene :: SceneEvent
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
+-- GiveSome: (Item1, Percentage, Item2, Percentage2)
+-- Item1 gets reduced by percentage, Item2 is gained by Percentage2 of Percentage
+data Reward
+  = Give [(Item, Int)]
+  | GiveSome [(Item, Int, Item, Int)]
+  | None
+  deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
+
 data SceneEvent = SceneEvent
   { text :: [String]
   , notification :: Maybe String
 --   , blink :: Bool
-  , reward :: Maybe [(Item, Int)]
+  , reward :: Reward
   , choices :: [SceneChoice]
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
@@ -49,7 +57,7 @@ theBeggar = Scene
                    , "asks for any spare furs to keep him warm at night."]
           , notification = Just "a beggar arrives"
           -- , blink = True
-          , reward = Nothing
+          , reward = None
           , choices =
             [ SceneChoice { choiceTxt = "give 50"
                           , cost = Just [(Fur, 50)]
@@ -74,7 +82,7 @@ theBeggar = Scene
                    , "\n"
                    , "leaves a pile of small scales behind." ]
           , notification = Nothing
-          , reward = Just [(Scale, 20)]
+          , reward = Give [(Scale, 20)]
           , choices = [ SceneChoice { choiceTxt = "say goodbye"
                                     , cost = Nothing
                                     , nextScene = Nothing
@@ -86,7 +94,7 @@ theBeggar = Scene
                    , "\n"
                    , "leaves a pile of small teeth behind." ]
           , notification = Nothing
-          , reward = Just [(Teeth, 20)]
+          , reward = Give [(Teeth, 20)]
           , choices = [ SceneChoice { choiceTxt = "say goodbye"
                                     , cost = Nothing
                                     , nextScene = Nothing
@@ -98,7 +106,7 @@ theBeggar = Scene
                    , "\n"
                    , "leaves some scraps of cloth behind."]
           , notification = Nothing
-          , reward = Just [(Cloth, 20)]
+          , reward = Give [(Cloth, 20)]
           , choices = [ SceneChoice { choiceTxt = "say goodbye"
                                     , cost = Nothing
                                     , nextScene = Nothing
@@ -120,7 +128,7 @@ theNomad = Scene
                    , "he's not staying."]
           , notification = Just "a nomad arrives, looking to trade"
           -- , blink = True
-          , reward = Nothing
+          , reward = None
           , choices =
             [ SceneChoice { choiceTxt = "buy scales"
                           , cost = Just [(Fur, 100)]
@@ -167,7 +175,7 @@ noisesOutside = Scene
                    ]
           , notification = Just "strange noises can be heard through the walls"
           -- , blink = True
-          , reward = Nothing
+          , reward = None
           , choices =
             [ SceneChoice { choiceTxt = "investigate"
                           , cost = Nothing
@@ -187,7 +195,7 @@ noisesOutside = Scene
                    , "\n"
                    ]
           , notification = Nothing
-          , reward = Just [(Wood, 100), (Fur, 10)]
+          , reward = Give [(Wood, 100), (Fur, 10)]
           , choices = [ SceneChoice { choiceTxt = "go back inside"
                                     , cost = Nothing
                                     , nextScene = Nothing
@@ -202,7 +210,79 @@ noisesOutside = Scene
                    , "\n"
                    ]
           , notification = Nothing
-          , reward = Nothing
+          , reward = None
+          , choices = [ SceneChoice { choiceTxt = "go back inside"
+                                    , cost = Nothing
+                                    , nextScene = Nothing
+                                    }
+                      ]
+          }
+
+
+noisesInside :: Scene
+noisesInside = Scene
+  { title = "Noises"
+  , windowSize = 52
+  , currentScene = start
+  }
+  where start = SceneEvent
+          { text = ["scratching noises can be heard from the store room."
+                   , "\n"
+                   , "something's in there."
+                   , "\n"
+                   , "\n"
+                   ]
+          , notification = Just "something's in the store room"
+          -- , blink = True
+          , reward = None
+          , choices =
+            [ SceneChoice { choiceTxt = "investigate"
+                          , cost = Nothing
+                          , nextScene = Just $ Go ([
+                              (50, scales'), (30, teeth')], cloth')
+                          }
+            , SceneChoice { choiceTxt = "ignore them"
+                          , cost = Nothing
+                          , nextScene = Nothing
+                          }
+            ]
+          }
+        scales' = SceneEvent
+          { text = [ "some wood is missing."
+                   , "\n"
+                   , "the ground is littered with small scales"
+                   , "\n"
+                   ]
+          , notification = Nothing
+          , reward = GiveSome [(Wood, 10, Scale, 20)]
+          , choices = [ SceneChoice { choiceTxt = "go back inside"
+                                    , cost = Nothing
+                                    , nextScene = Nothing
+                                    }
+                      ]
+          }
+        teeth' = SceneEvent
+          { text = [ "some wood is missing."
+                   , "\n"
+                   , "the ground is littered with small teeth"
+                   , "\n"
+                   ]
+          , notification = Nothing
+          , reward = GiveSome [(Wood, 10, Teeth, 20)]
+          , choices = [ SceneChoice { choiceTxt = "go back inside"
+                                    , cost = Nothing
+                                    , nextScene = Nothing
+                                    }
+                      ]
+          }
+        cloth' = SceneEvent
+          { text = [ "some wood is missing."
+                   , "\n"
+                   , "the ground is littered with small cloth"
+                   , "\n"
+                   ]
+          , notification = Nothing
+          , reward = GiveSome [(Wood, 10, Cloth, 20)]
           , choices = [ SceneChoice { choiceTxt = "go back inside"
                                     , cost = Nothing
                                     , nextScene = Nothing

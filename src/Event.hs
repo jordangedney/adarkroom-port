@@ -121,7 +121,7 @@ handleButtonEvent PauseButton = over paused not
 handleButtonEvent DialogButton =
   over inEvent (\ x -> case x of
                         Just _ -> Nothing
-                        Nothing -> Just RandomEvent.noisesOutside)
+                        Nothing -> Just RandomEvent.noisesInside)
 handleButtonEvent CheatButton =
     over (stored . bait)   (+ 50)
   . over (stored . fur)    (+ 50)

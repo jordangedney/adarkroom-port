@@ -10,7 +10,9 @@ import GameTypes (Game, stored, fur, tickCount, nextRandomAt, cloth, scales,
                   teeth, inEvent, location, Location(..), hyperspeedAmt, bait,
                   compass, Stored, wood)
 import RandomEvent.Event (SceneChoice(..), Item(..), currentScene,
-                          Scene, theBeggar, theNomad, noisesOutside, StayOrGo(..))
+                          Scene, theBeggar, theNomad, noisesOutside, noisesInside,
+                          StayOrGo(..),
+                          SceneEvent(..), Reward(..))
 import Util (randomChoice, choice)
 import GameUtil (notifyRoom)
 
@@ -31,7 +33,9 @@ doRandomEvent game randomGen =
   let updated = setNextRandomEvent game randomGen
   in if isJust (view inEvent game) then updated
      else case availableEvents game of
-            Just es -> updated & set inEvent (Just (choice randomGen es))
+            Just es ->
+              let ev = choice randomGen es
+              in updated & set inEvent (Just ev) & addReward (currentScene ev)
             Nothing -> updated
 
 item :: Functor f => Item -> (Int -> f Int) -> Stored -> f Stored
@@ -62,11 +66,11 @@ getItem i = stored . item i
 
 doSceneChoice :: StdGen -> Maybe StayOrGo -> Game -> Game
 doSceneChoice _ Nothing game = game & set inEvent Nothing
-doSceneChoice _ (Just (Stay notification (rItem, rAmt))) game =
+doSceneChoice _ (Just (Stay alert (rItem, rAmt))) game =
   let loot g = g & over (getItem rItem) (+ rAmt)
-      notify g = case notification of
+      notify g = case alert of
         Nothing -> g
-        Just alert -> notifyRoom alert g
+        Just a -> notifyRoom a g
   in game & loot & notify
 doSceneChoice random (Just (Go (possibleScenes, defaultNextScene))) game =
   case view inEvent game of
@@ -74,6 +78,26 @@ doSceneChoice random (Just (Go (possibleScenes, defaultNextScene))) game =
     Just scene ->
       let next = randomChoice random defaultNextScene possibleScenes
       in game & set inEvent (Just (scene {currentScene = next}))
+              & addReward next
+
+addReward :: SceneEvent -> Game -> Game
+addReward (SceneEvent _ _ None _) game = game
+addReward (SceneEvent _ _ (Give xs) _) game =
+  foldl (\g (i, amt) -> g & over (getItem i) (+ amt)) game xs
+addReward (SceneEvent _ _ (GiveSome xs) _) game =
+  let go :: Game -> (Item, Int, Item, Int) -> Game
+      go g (toRemove, removePercent, toAdd, addPercent) =
+        let numAvail' = fromIntegral (view (getItem toRemove) g)
+                        & (* (fromIntegral removePercent * 0.01 :: Double))
+                        & floor
+            numAvail = if numAvail' == 0 then 1 else numAvail'
+            numAdd' = fromIntegral numAvail
+                      & (* (fromIntegral addPercent * 0.01 :: Double))
+                      & floor
+            numAdd = if numAdd' == 0 then 1 else numAdd'
+        in g & over (getItem toRemove) (subtract numAvail)
+             & over (getItem toAdd) (+ numAdd)
+  in foldl go game xs
 
 handleButton :: StdGen -> SceneChoice -> Game -> Game
 handleButton r (SceneChoice _ Nothing next) game = doSceneChoice r next game
@@ -103,6 +127,7 @@ availableEvents g =
         [ (theBeggar,     playerIn Room && playerHasFound fur)
         , (theNomad,      playerIn Room && playerHasFound fur)
         , (noisesOutside, playerIn Room && playerHasFound wood)
+        , (noisesInside,  playerIn Room && playerHasFound wood)
         ]
       avail = [e | (e, p) <- events, p]
       playerHasFound i = view (stored . i) g > 0
