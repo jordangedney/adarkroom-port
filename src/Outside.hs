@@ -99,7 +99,11 @@ checkTraps randomGen game =
 
       thingsGathered = foldr (\a b -> a b) game gatherDrops
 
-  in thingsGathered & unlockTrapItemView & updateEvents CheckTraps checkTrapsCooldown & addEvent eventMsg
+  in thingsGathered
+     & unlockTrapItemView
+     & updateEvents CheckTraps checkTrapsCooldown
+     & addEvent eventMsg
+     & over (stored . bait) (subtract additionalDrops)
 
 maxPopulation :: Game -> Int
 maxPopulation game = view (stored . huts) game * 4
