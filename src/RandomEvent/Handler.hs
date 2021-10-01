@@ -120,14 +120,13 @@ handleButton r (SceneChoice _ (Just cs) next) game =
       notifyRoom ("not enough " <> itemToStr i <> " (" <> show cost' <> ").") g
       & costMsg xs
 
-
 availableEvents :: Game -> Maybe [Scene]
 availableEvents g =
   let events =
         [ (theBeggar,     playerIn Room && playerHasFound fur)
         , (theNomad,      playerIn Room && playerHasFound fur)
-        , (noisesOutside, playerIn Room && playerHasFound wood)
-        , (noisesInside,  playerIn Room && playerHasFound wood)
+        , (noisesOutside, playerIn Room && view (stored . wood) g > 15)
+        , (noisesInside,  playerIn Room && view (stored . wood) g > 15)
         ]
       avail = [e | (e, p) <- events, p]
       playerHasFound i = view (stored . i) g > 0
