@@ -85,7 +85,7 @@ makeLenses ''Stored
 
 storedInit :: Stored
 storedInit = Stored
-  { _wood    = 10
+  { _wood    = 15
   , _traps   = 0
   , _carts   = 0
   , _huts    = 0
