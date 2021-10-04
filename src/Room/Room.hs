@@ -9,7 +9,7 @@ import Shared.Game
 import Shared.GameEvent (GameEvent(RoomChanged))
 import Shared.Constants (roomWarmDelay)
 
-import GameUtil (notifyRoom, clearRoomBacklog, updateEvents)
+import Util (notifyRoom, clearRoomBacklog, updateEvents)
 
 import qualified Room.Builder as Builder
 

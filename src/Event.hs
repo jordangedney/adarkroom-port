@@ -13,10 +13,9 @@ import SaveGame (save)
 import qualified Room.Fire as Fire
 import qualified Room.Room as Room
 import qualified Room.Builder as Builder
-import qualified Outside as Outside
 import qualified Room.Event as RE
+import qualified Outside as Outside
 
--- import qualified Room.Event as RandomEvent
 import qualified RandomEvent
 
 handleEventWrapper :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
@@ -59,30 +58,6 @@ handleEventWrapper game event =
 
     -- Normal events:
     _                            -> step (autosave game)
-
-getGameEvent :: GameEvent -> Game -> Game
-getGameEvent UnlockForest       = Outside.unlock
-getGameEvent FireShrinking      = Fire.shrinking
-getGameEvent BuilderUpdate      = Builder.update
-getGameEvent BuilderGathersWood = Builder.gatherWood
-getGameEvent UnlockTraps        = Builder.canBuildTraps
-getGameEvent RoomChanged        = Room.update
-
--- Button Cooldowns
-getGameEvent GatherWood         = id
-getGameEvent FireStoked         = id
-getGameEvent CheckTraps         = id
-
-gameTick :: Game -> Game
-gameTick game =
-  let updatedTickers =
-        game & over tickCount (+1)
-             & over upcomingEvents tickEvents
-             & over events (take 15 . map (over _2 (+1)))
-      doEventIfReady e = if snd e == 0 then getGameEvent (fst e) else id
-      allEvs = toList (view upcomingEvents updatedTickers)
-      stateAfterIngameEvents = foldr doEventIfReady updatedTickers allEvs
-  in if view paused game then game else stateAfterIngameEvents
 
 handleEvent :: Game -> BrickEvent Name Tick -> Game
 handleEvent game (AppEvent Tick) =
@@ -143,3 +118,27 @@ handleButtonEvent CheatButton =
   . over (stored . charm)  (+ 50)
 
 handleButtonEvent _ = id
+
+getGameEvent :: GameEvent -> Game -> Game
+getGameEvent UnlockForest       = Outside.unlock
+getGameEvent FireShrinking      = Fire.shrinking
+getGameEvent BuilderUpdate      = Builder.update
+getGameEvent BuilderGathersWood = Builder.gatherWood
+getGameEvent UnlockTraps        = Builder.canBuildTraps
+getGameEvent RoomChanged        = Room.update
+
+-- Button Cooldowns
+getGameEvent GatherWood         = id
+getGameEvent FireStoked         = id
+getGameEvent CheckTraps         = id
+
+gameTick :: Game -> Game
+gameTick game =
+  let updatedTickers =
+        game & over tickCount (+1)
+             & over upcomingEvents tickEvents
+             & over events (take 15 . map (over _2 (+1)))
+      doEventIfReady e = if snd e == 0 then getGameEvent (fst e) else id
+      allEvs = toList (view upcomingEvents updatedTickers)
+      stateAfterIngameEvents = foldr doEventIfReady updatedTickers allEvs
+  in if view paused game then game else stateAfterIngameEvents

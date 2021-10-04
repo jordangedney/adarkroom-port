@@ -17,7 +17,7 @@ import Shared.Game
 import Shared.GameEvent (GameEvent(..))
 import Shared.Constants
 
-import GameUtil (notifyRoom, updateEvents)
+import Util (notifyRoom, updateEvents)
 
 showState :: BuilderState -> String
 showState Approaching =

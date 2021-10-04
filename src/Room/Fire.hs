@@ -10,7 +10,7 @@ import Control.Lens (over, set, view, (&))
 import Shared.Game
 import Shared.GameEvent (GameEvent(FireShrinking, FireStoked))
 import Shared.Constants (fireCoolDelay, stokeCooldown)
-import GameUtil (notifyRoom, updateEvents)
+import Util (notifyRoom, updateEvents)
 
 import qualified Room.Builder as Builder
 

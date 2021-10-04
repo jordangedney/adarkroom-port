@@ -16,8 +16,7 @@ import Shared.GameEvent (GameEvent(GatherWood, CheckTraps))
 import Shared.Game
 import Shared.Constants
 
-import GameUtil (addEvent, updateEvents)
-import Util (randomChoices)
+import Util (addEvent, updateEvents, randomChoices)
 
 unlock :: Game -> Game
 unlock game =

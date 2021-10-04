@@ -1,10 +1,16 @@
+{-# LANGUAGE TupleSections #-}
+
 module Util where
--- For data manipulation utilities; things without game-related imports
+
+import Shared.Game
+import Shared.GameEvent
 
 import Data.List (transpose, sortBy)
 import Data.Function (on)
 import Safe (headDef)
 import System.Random (StdGen, randomR)
+
+import Control.Lens (over, set, view, (&))
 
 count :: Eq a => a -> [a] -> Int
 count x = length . filter (x ==)
@@ -47,3 +53,23 @@ listOfRandomPercentages :: StdGen -> [Int]
 listOfRandomPercentages randomGen =
   let (percentage, gen) = randomR (1, 100) randomGen
   in percentage : listOfRandomPercentages gen
+
+-- Game Utils ------------------------------------------------------------------
+
+addEvent :: String -> Game -> Game
+addEvent message game =
+  game & over events ((message, 0):)
+
+notifyRoom :: String -> Game -> Game
+notifyRoom message game =
+  if view location game == Room
+  then game & addEvent message
+  else game & over roomEventBacklog ((:) message)
+
+clearRoomBacklog :: Game -> Game
+clearRoomBacklog game =
+  game & over events (\es ->  map (, 0) (view roomEventBacklog game) ++ es)
+       & set roomEventBacklog []
+
+updateEvents :: GameEvent -> Int -> Game -> Game
+updateEvents event time = over upcomingEvents (set (eventGetter event) (event, time))

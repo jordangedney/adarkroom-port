@@ -8,7 +8,7 @@ import Shared.Game (Game, Location(Path), location)
 import Shared.GameEvent (GameEvent(RoomChanged))
 import Shared.Constants (roomWarmDelay)
 
-import GameUtil (notifyRoom, clearRoomBacklog, updateEvents)
+import Util (notifyRoom, clearRoomBacklog, updateEvents)
 
 arrival :: Game -> Game
 arrival game =

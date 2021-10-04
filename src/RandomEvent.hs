@@ -6,20 +6,14 @@ import Data.Maybe (isJust)
 import System.Random (StdGen, randomR)
 import Control.Lens (view, over, set, (&))
 
-import Shared.Game (Game, stored, tickCount, nextRandomAt,
-                   inEvent, hyperspeedAmt, compass)
-
-import Shared.Event (SceneChoice(..), currentScene,
-                          Scene,
-                          StayOrGo(..),
-                          SceneEvent(..), Reward(..))
+import Shared.Game
+import Shared.Event
 import Shared.Item
 import Shared.Util
 
 import Room.Event
 
-import Util (randomChoice, choice)
-import GameUtil (notifyRoom)
+import Util (randomChoice, choice, notifyRoom)
 
 availableEvents :: Game -> [Scene]
 availableEvents g = [e | (e, p) <- evs, p]
