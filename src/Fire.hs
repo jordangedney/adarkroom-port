@@ -7,11 +7,9 @@ where
 
 import Control.Lens (over, set, view, (&))
 
-import Shared.Game (FireState(..), Game,
-                  fireValue, fireLit, milestones, stored, wood,
-                  builderState, BuilderState(Helping))
+import Shared.Game
 import Shared.GameEvent (GameEvent(FireShrinking, FireStoked))
-import Constants (fireCoolDelay, stokeCooldown)
+import Shared.Constants (fireCoolDelay, stokeCooldown)
 import GameUtil (notifyRoom, updateEvents)
 
 import qualified Builder
@@ -37,7 +35,8 @@ fireChanged game =
       showDeadFire = showFire game
 
       fireIsBurning = view fireValue game /= Dead
-      builderCanStoke = view builderState game == Helping && view (stored . wood) game > 0
+      builderCanStoke = view builderState game ==
+        Helping && view (stored . wood) game > 0
       builderShouldStoke = builderCanStoke && view fireValue game == Smouldering
 
       theFire =

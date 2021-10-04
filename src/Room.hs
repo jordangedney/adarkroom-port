@@ -5,10 +5,9 @@ module Room
 
 import Control.Lens (set, view, (&))
 
-import Shared.Game (FireState, RoomTemperature(..), Game, Location(Room),
-                  fireValue, roomTemperature, location)
+import Shared.Game
 import Shared.GameEvent (GameEvent(RoomChanged))
-import Constants (roomWarmDelay)
+import Shared.Constants (roomWarmDelay)
 
 import GameUtil (notifyRoom, clearRoomBacklog, updateEvents)
 

@@ -10,12 +10,12 @@ import Data.List (sortBy, intersperse)
 import qualified Data.Function as Function
 
 import Util
+import Shared.Constants
 import Shared.Game
 import Shared.GameEvent (_fireStoked, _gatherWood, _checkTraps)
 import Shared.UI
 import UI.RandomEvent
 import UI.Components
-import Constants
 
 import qualified Outside
 

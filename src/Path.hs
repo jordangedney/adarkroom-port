@@ -1,14 +1,12 @@
 module Path
-  (
-  arrival
+  ( arrival
   ) where
 
 import Control.Lens (set, view, (&))
 
-import Shared.Game (FireState, RoomTemperature(..), Game, Location(Path),
-                  fireValue, roomTemperature, location)
+import Shared.Game (Game, Location(Path), location)
 import Shared.GameEvent (GameEvent(RoomChanged))
-import Constants (roomWarmDelay)
+import Shared.Constants (roomWarmDelay)
 
 import GameUtil (notifyRoom, clearRoomBacklog, updateEvents)
 

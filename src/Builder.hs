@@ -13,12 +13,9 @@ where
 import Control.Lens (over, set, view, (&))
 
 import Shared.UI (showForestBuildings)
-import Shared.Game (Game, BuilderState(..), RoomTemperature(Freezing, Cold),
-                  milestones, builderIsHelping, builderState, stored, wood, traps, carts,
-                  trapsUnlocked, cartsUnlocked, preCartsUnlocked, roomTemperature, uiState)
-import Shared.GameEvent (GameEvent(BuilderUpdate, UnlockForest, BuilderGathersWood, UnlockTraps))
-import Constants (builderStateDelay, needWoodDelay, builderGatherDelay,
-                  unlockTrapsDelay, maximumNumberOfTraps)
+import Shared.Game
+import Shared.GameEvent (GameEvent(..))
+import Shared.Constants
 
 import GameUtil (notifyRoom, updateEvents)
 

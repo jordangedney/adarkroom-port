@@ -1,4 +1,4 @@
-module Constants
+module Shared.Constants
   ( fireCoolDelay
   , roomWarmDelay
   , builderStateDelay
