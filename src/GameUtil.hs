@@ -7,10 +7,10 @@ module GameUtil where
 
 import Control.Lens (over, set, view, (&))
 
-import GameTypes (Game, Location(Room),
-                  upcomingEvents, events, location, roomEventBacklog)
+import Shared.Game (Game, Location(Room),
+                    upcomingEvents, events, location, roomEventBacklog)
 
-import GameEvent (GameEvent, eventGetter)
+import Shared.GameEvent (GameEvent, eventGetter)
 
 addEvent :: String -> Game -> Game
 addEvent message game =

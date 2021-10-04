@@ -12,23 +12,15 @@ where
 
 import Control.Lens (over, set, view, (&))
 
-import UI.State (showForestBuildings)
-import GameTypes (Game, BuilderState(..), RoomTemperature(Freezing, Cold),
+import Shared.UI (showForestBuildings)
+import Shared.Game (Game, BuilderState(..), RoomTemperature(Freezing, Cold),
                   milestones, builderIsHelping, builderState, stored, wood, traps, carts,
                   trapsUnlocked, cartsUnlocked, preCartsUnlocked, roomTemperature, uiState)
-import GameEvent (GameEvent(BuilderUpdate, UnlockForest, BuilderGathersWood, UnlockTraps))
+import Shared.GameEvent (GameEvent(BuilderUpdate, UnlockForest, BuilderGathersWood, UnlockTraps))
 import Constants (builderStateDelay, needWoodDelay, builderGatherDelay,
                   unlockTrapsDelay, maximumNumberOfTraps)
 
 import GameUtil (notifyRoom, updateEvents)
-
--- Defined in GameTypes to avoid an import cycle:
--- data BuilderState
---   = Approaching
---   | Collapsed
---   | Shivering
---   | Sleeping
---   | Helping
 
 showState :: BuilderState -> String
 showState Approaching =

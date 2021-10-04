@@ -5,9 +5,9 @@ module Path
 
 import Control.Lens (set, view, (&))
 
-import GameTypes (FireState, RoomTemperature(..), Game, Location(Path),
+import Shared.Game (FireState, RoomTemperature(..), Game, Location(Path),
                   fireValue, roomTemperature, location)
-import GameEvent (GameEvent(RoomChanged))
+import Shared.GameEvent (GameEvent(RoomChanged))
 import Constants (roomWarmDelay)
 
 import GameUtil (notifyRoom, clearRoomBacklog, updateEvents)

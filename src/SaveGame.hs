@@ -2,7 +2,7 @@ module SaveGame (save, load) where
 
 import Data.Yaml (decodeFileEither, encodeFile)
 
-import GameTypes (Game, initGame, previousStates)
+import Shared.Game (Game, initGame, previousStates)
 import Control.Lens (set, (&))
 
 load :: IO Game

@@ -5,13 +5,12 @@ import Brick.Widgets.Border (borderWithLabel)
 import Brick.Widgets.Center (centerLayer)
 import Control.Lens (view, (&))
 
-import UI.State
-import GameTypes
 import UI.Components
 
-import RandomEvent.Event (Scene(..), SceneEvent(..), SceneChoice(..))
-import RandomEvent.Handler (canAfford)
-
+import Shared.UI
+import Shared.Game
+import Shared.Event (Scene(..), SceneEvent(..), SceneChoice(..))
+import Shared.Util (canAfford)
 
 drawDialogWindow :: Game -> Widget Name
 drawDialogWindow game =

@@ -1,14 +1,12 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 
-module RandomEvent.Event where
+module Shared.Event where
+
+import Shared.Item
 
 import GHC.Generics
 import Data.Yaml
-
--- This should be in GameTypes, but dependency cycles are a bitch
-data Item = Fur | Cloth | Scale | Teeth | Bait | Compass | Wood
-  deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 data Scene = Scene
   { title :: String

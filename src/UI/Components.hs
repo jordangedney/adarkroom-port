@@ -6,9 +6,10 @@ import qualified Brick.Widgets.ProgressBar as P
 import qualified Graphics.Vty as V
 import Control.Lens (view, (&))
 
-import GameTypes
-import UI.State
-import GameEvent
+import Shared.Game
+import Shared.UI
+import Shared.GameEvent
+
 import Data.Maybe (isJust)
 
 blank :: Widget Name

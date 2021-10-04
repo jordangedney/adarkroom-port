@@ -5,22 +5,14 @@ module Room
 
 import Control.Lens (set, view, (&))
 
-import GameTypes (FireState, RoomTemperature(..), Game, Location(Room),
+import Shared.Game (FireState, RoomTemperature(..), Game, Location(Room),
                   fireValue, roomTemperature, location)
-import GameEvent (GameEvent(RoomChanged))
+import Shared.GameEvent (GameEvent(RoomChanged))
 import Constants (roomWarmDelay)
 
 import GameUtil (notifyRoom, clearRoomBacklog, updateEvents)
 
 import qualified Builder
-
--- Defined in GameTypes to avoid an import cycle:
--- data RoomTemperature
---   = Freezing
---   | Cold
---   | Mild
---   | Warm
---   | Hot
 
 roomState :: RoomTemperature -> String
 roomState Freezing = "the room is freezing."

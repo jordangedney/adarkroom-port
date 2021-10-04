@@ -11,10 +11,11 @@ import System.Random (StdGen)
 import Control.Lens (over, set, view, (&))
 import Data.List (nub, intercalate)
 
-import UI.State (showStores, showOutside, showItems,
-                showBait, showFur, showMeat, showScales, showTeeth, showCloth, showCharm)
-import GameEvent (GameEvent(GatherWood, CheckTraps))
-import GameTypes (Game, Location(Outside),
+import Shared.UI (showStores, showOutside, showItems,
+                  showBait, showFur, showMeat, showScales, showTeeth, showCloth,
+                  showCharm)
+import Shared.GameEvent (GameEvent(GatherWood, CheckTraps))
+import Shared.Game (Game, Location(Outside),
                   stored, wood, uiState, seenForest, milestones, location, builderIsHelping,
                   preCartsUnlocked, carts, huts, traps,
                   bait, fur, meat, scales, teeth, cloth, charm)

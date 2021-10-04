@@ -3,7 +3,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE StandaloneDeriving #-}
 
-module UI.State where
+module Shared.UI where
 
 import GHC.Generics
 import Data.Yaml
@@ -11,7 +11,7 @@ import Data.Yaml
 import Control.Lens (makeLenses)
 import Brick.Types (Location)
 
-import RandomEvent.Event (SceneChoice)
+import Shared.Event (SceneChoice)
 
 deriving instance ToJSON Location
 deriving instance FromJSON Location

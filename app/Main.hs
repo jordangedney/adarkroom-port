@@ -9,8 +9,8 @@ import Graphics.Vty (mkVty, standardIOConfig, setMode, outputIface, Mode(Mouse))
 import           SaveGame (load)
 import           UI.Display (drawUI)
 import           UI.Components (theMap)
-import           UI.State (Name)
-import           GameTypes (Tick(..), initGame, Game)
+import           Shared.UI (Name)
+import           Shared.Game (Tick(..), initGame, Game)
 import           Event (handleEventWrapper)
 
 

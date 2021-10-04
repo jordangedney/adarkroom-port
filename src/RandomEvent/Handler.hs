@@ -6,14 +6,15 @@ import Data.Maybe (isJust)
 import System.Random (StdGen, randomR)
 import Control.Lens (view, over, set, (&))
 
-import GameTypes (Game, stored, fur, tickCount, nextRandomAt, cloth, scales,
-                  teeth, inEvent, hyperspeedAmt, bait,
-                  compass, Stored, wood)
+import Shared.Game (Game, stored, tickCount, nextRandomAt,
+                   inEvent, hyperspeedAmt, compass)
 
-import RandomEvent.Event (SceneChoice(..), Item(..), currentScene,
+import Shared.Event (SceneChoice(..), currentScene,
                           Scene,
                           StayOrGo(..),
                           SceneEvent(..), Reward(..))
+import Shared.Item
+import Shared.Util
 
 import RandomEvent.Room
 
@@ -44,29 +45,6 @@ doRandomEvent game randomGen =
             [] -> updated
             es -> let ev = choice randomGen es
                  in updated & set inEvent (Just ev) & addReward (currentScene ev)
-
-item :: Functor f => Item -> (Int -> f Int) -> Stored -> f Stored
-item Fur   = fur
-item Cloth = cloth
-item Scale = scales
-item Teeth = teeth
-item Bait = bait
-item Compass = compass
-item Wood = wood
-
-itemToStr :: Item -> String
-itemToStr Fur     = "fur"
-itemToStr Cloth   = "cloth"
-itemToStr Scale   = "scales"
-itemToStr Teeth   = "teeth"
-itemToStr Bait    = "bait"
-itemToStr Compass = "compass"
-itemToStr Wood = "wood"
-
-canAfford :: [(Item, Int)] -> Game -> Bool
-canAfford items game = all afford items
-  where afford (Compass, 0) = view (stored . compass) game == 0
-        afford (i, amnt) = view (stored . item i) game >= amnt
 
 getItem :: Functor f => Item -> (Int -> f Int) -> Game -> f Game
 getItem i = stored . item i

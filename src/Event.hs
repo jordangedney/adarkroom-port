@@ -6,12 +6,13 @@ import Brick (BrickEvent(..), EventM, Next, Location, continue)
 import Control.Lens (over, set, view, _2, (&))
 
 import Game (getGameEvent)
-import GameTypes (Game, Tick(..), Location(..), tickCount, upcomingEvents, events, uiState, inEvent,
+import Shared.Game (Game, Tick(..), Location(..),
+                  tickCount, upcomingEvents, events, uiState, inEvent,
                   debug, hyper, initGame, previousStates, paused, location, inEvent,
                   stored, bait, fur, meat, scales, teeth, cloth, charm,
                   hyperspeedAmt)
-import GameEvent (tickEvents, toList)
-import UI.State (Name(..), lastReportedClick)
+import Shared.GameEvent (tickEvents, toList)
+import Shared.UI (Name(..), lastReportedClick)
 import SaveGame (save)
 import qualified Fire
 import qualified Outside

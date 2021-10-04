@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 
-module GameEvent where
+module Shared.GameEvent where
 
 import GHC.Generics
 import Data.Yaml

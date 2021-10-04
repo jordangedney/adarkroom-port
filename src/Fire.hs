@@ -7,23 +7,14 @@ where
 
 import Control.Lens (over, set, view, (&))
 
-import GameTypes (FireState(..), Game,
+import Shared.Game (FireState(..), Game,
                   fireValue, fireLit, milestones, stored, wood,
                   builderState, BuilderState(Helping))
-import GameEvent (GameEvent(FireShrinking, FireStoked))
+import Shared.GameEvent (GameEvent(FireShrinking, FireStoked))
 import Constants (fireCoolDelay, stokeCooldown)
 import GameUtil (notifyRoom, updateEvents)
 
 import qualified Builder
-
-
--- Defined in GameTypes to avoid an import cycle:
--- data FireState
---   = Dead
---   | Smouldering
---   | Flickering
---   | Burning
---   | Roaring
 
 fireState :: FireState -> String
 fireState Dead        = "the fire is dead."

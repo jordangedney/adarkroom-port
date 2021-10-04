@@ -2,16 +2,16 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 
-module GameTypes where
+module Shared.Game where
 
 import GHC.Generics
 import Data.Yaml
 
 import Control.Lens (makeLenses)
 
-import UI.State (UIState, uiStateInit)
-import GameEvent (GameEvents, gameEventsInit)
-import RandomEvent.Event (Scene)
+import Shared.UI (UIState, uiStateInit)
+import Shared.GameEvent (GameEvents, gameEventsInit)
+import Shared.Event (Scene)
 
 data Tick = Tick deriving (Eq, Show, Generic, ToJSON, FromJSON)
 

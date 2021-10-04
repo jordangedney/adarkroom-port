@@ -1,10 +1,12 @@
 module RandomEvent.Room where
 
-import Control.Lens (view, over, set, (&))
+import Control.Lens (view)
 
-import GameTypes (Game, stored, location, Location(Room), wood, fur)
-import RandomEvent.Event
+import Shared.Game (Game, stored, location, Location(Room), wood, fur)
+import Shared.Event
+import Shared.Item
 
+events :: Game -> [(Scene, Bool)]
 events g =
   [ (theBeggar,     view location g == Room && view (stored . fur) g > 0)
   , (theNomad,      view location g == Room && view (stored . fur) g > 0)

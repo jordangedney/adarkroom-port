@@ -1,7 +1,7 @@
 module Game where
 
-import GameTypes (Game)
-import GameEvent (GameEvent(..))
+import Shared.Game (Game)
+import Shared.GameEvent (GameEvent(..))
 
 import qualified Fire
 import qualified Outside
@@ -20,4 +20,3 @@ getGameEvent (RoomChanged,        _) = Room.update
 getGameEvent (GatherWood,         _) = id
 getGameEvent (FireStoked,         _) = id
 getGameEvent (CheckTraps,         _) = id
-
