@@ -201,7 +201,6 @@ locationsWindow game =
 
   in  padBottom (Pad 1) (hBox [leftCol, leftMidCol, rightMidCol, rightCol])
 
-
 bottomMenu :: Game -> Widget Name
 bottomMenu g =
   let changingButton state button ifTrue ifFalse =

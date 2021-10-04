@@ -107,9 +107,10 @@ handleButtonEvent PauseButton = over paused not
 handleButtonEvent DialogButton =
   over inEvent (\ x -> case x of
                         Just _ -> Nothing
-                        Nothing -> Just RE.noisesInside)
+                        Nothing -> Just RE.theShadyBuilder)
 handleButtonEvent CheatButton =
-    over (stored . bait)   (+ 50)
+    over (stored . wood)   (+ 50)
+  . over (stored . bait)   (+ 50)
   . over (stored . fur)    (+ 50)
   . over (stored . meat)   (+ 50)
   . over (stored . scales) (+ 50)

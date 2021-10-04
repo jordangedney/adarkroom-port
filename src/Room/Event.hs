@@ -2,16 +2,18 @@ module Room.Event where
 
 import Control.Lens (view)
 
-import Shared.Game (Game, stored, location, Location(Room), wood, fur)
+import Shared.Game
 import Shared.RandomEvent
 import Shared.Item
 
 events :: Game -> [(Scene, Bool)]
 events g =
-  [ (theBeggar,     view location g == Room && view (stored . fur) g > 0)
-  , (theNomad,      view location g == Room && view (stored . fur) g > 0)
-  , (noisesOutside, view location g == Room && view (stored . wood) g > 15)
-  , (noisesInside,  view location g == Room && view (stored . wood) g > 15)
+  [ (theBeggar,        view location g == Room && view (stored . fur) g > 0)
+  , (theNomad,         view location g == Room && view (stored . fur) g > 0)
+  , (noisesOutside,    view location g == Room && view (stored . wood) g > 15)
+  , (noisesInside,     view location g == Room && view (stored . wood) g > 15)
+  , (theShadyBuilder,  view location g == Room && view (stored . huts) g > 4
+                                              && view (stored . huts) g < 20)
   ]
 
 theBeggar :: Scene
@@ -253,6 +255,57 @@ noisesInside = Scene
           , notification = Nothing
           , reward = GiveSome [(Wood, 10, Cloth, 20)]
           , choices = [ SceneChoice { choiceTxt = "go back inside"
+                                    , cost = []
+                                    , nextScene = Nothing
+                                    }
+                      ]
+          }
+
+theShadyBuilder :: Scene
+theShadyBuilder = Scene
+  { title = "The Shady Builder"
+  , windowSize = 52
+  , currentScene = start
+  }
+  where start = SceneEvent
+          { text = [ "a shady builder passes through."
+                   , "\n"
+                   , "says he can build you a hut for less wood."
+                   ]
+          , notification = Just "a shady builder passes through"
+          -- , blink = True
+          , reward = None
+          , choices =
+            [ SceneChoice { choiceTxt = "300 wood"
+                          , cost = [(Wood, 300)]
+                          , nextScene = Just $ Go ([
+                              (60, steal)], build)
+                          }
+            , SceneChoice { choiceTxt = "say goodbye"
+                          , cost = []
+                          , nextScene = Nothing
+                          }
+            ]
+          }
+        steal = SceneEvent
+          { text = ["the shady builder has made off with your wood."
+                   , "\n"
+                   ]
+          , notification = Just "the shady builder has made off with your wood"
+          , reward = None
+          , choices = [ SceneChoice { choiceTxt = "go home"
+                                    , cost = []
+                                    , nextScene = Nothing
+                                    }
+                      ]
+          }
+        build = SceneEvent
+          { text = [ "the shady builder builds a hut."
+                   , "\n"
+                   ]
+          , notification = Nothing
+          , reward = Give [(Hut, 1)]
+          , choices = [ SceneChoice { choiceTxt = "go home"
                                     , cost = []
                                     , nextScene = Nothing
                                     }
