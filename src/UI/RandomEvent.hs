@@ -13,17 +13,13 @@ import Shared.RandomEvent (Scene(..), SceneEvent(..), SceneChoice(..))
 import Shared.Util (canAfford)
 
 drawDialogWindow :: Game -> Widget Name
-drawDialogWindow game =
-  case view inEvent game of
-    Nothing -> str ""
-    Just e  -> genericEvent e game
+drawDialogWindow game = maybe (str "") (genericEvent game) (view inEvent game)
 
 optionalDialogButton :: Bool -> Name -> String -> Widget Name
-optionalDialogButton predicate buttonID label =
-  if predicate then dialogButton buttonID label else cantAffordButton buttonID label
+optionalDialogButton p = if p then dialogButton else cantAffordButton
 
-genericEvent :: Scene -> Game -> Widget Name
-genericEvent event game =
+genericEvent :: Game -> Scene -> Widget Name
+genericEvent game event =
   let width = windowSize event
 
       dialogText =

@@ -82,6 +82,7 @@ dialogButton = blueButton
 greyedButton :: String -> Widget Name
 greyedButton label = newButton label & withDefAttr progressBarToDo
 
+cantAffordButton :: Name -> String -> Widget Name
 cantAffordButton buttonId label =
   newButton label
   & withDefAttr progressBarToDo

@@ -6,10 +6,9 @@ import Brick.Widgets.Border
 import Brick.Widgets.Border.Style
 
 import Control.Lens
-import Data.List (sortBy, intersperse)
+import Data.List (sortBy, intersperse, transpose)
 import qualified Data.Function as Function
 
-import Util
 import Shared.Constants
 import Shared.Game
 import Shared.GameEvent (_fireStoked, _gatherWood, _checkTraps)
@@ -18,6 +17,9 @@ import UI.RandomEvent
 import UI.Components
 
 import qualified Outside
+
+interleave :: [[a]] -> [a]
+interleave = concat . transpose
 
 roomStores :: Game -> Int -> Widget Name
 roomStores = storesWindow

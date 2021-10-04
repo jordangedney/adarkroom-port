@@ -5,7 +5,7 @@ module Util where
 import Shared.Game
 import Shared.GameEvent
 
-import Data.List (transpose, sortBy)
+import Data.List (sortBy)
 import Data.Function (on)
 import Safe (headDef)
 import System.Random (StdGen, randomR)
@@ -14,9 +14,6 @@ import Control.Lens (over, set, view, (&))
 
 count :: Eq a => a -> [a] -> Int
 count x = length . filter (x ==)
-
-interleave :: [[a]] -> [a]
-interleave = concat . transpose
 
 -- The defaultValue should never trigger _if_ your probabilities add up to 100%.
 -- Otherwise its there to fill in the remainder.
