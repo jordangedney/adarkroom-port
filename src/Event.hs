@@ -5,16 +5,17 @@ import Control.Monad.IO.Class (liftIO)
 import Brick (BrickEvent(..), EventM, Next, Location, continue)
 import Control.Lens (over, set, view, _2, (&))
 
-import Game (getGameEvent)
 import Shared.Game
-import Shared.GameEvent (tickEvents, toList)
+import Shared.GameEvent
 import Shared.UI (Name(..), lastReportedClick)
 import SaveGame (save)
+
 import qualified Room.Fire as Fire
 import qualified Room.Room as Room
 import qualified Room.Builder as Builder
 import qualified Outside as Outside
 import qualified Room.Event as RE
+
 -- import qualified Room.Event as RandomEvent
 import qualified RandomEvent
 
@@ -59,6 +60,18 @@ handleEventWrapper game event =
     -- Normal events:
     _                            -> step (autosave game)
 
+getGameEvent :: GameEvent -> Game -> Game
+getGameEvent UnlockForest       = Outside.unlock
+getGameEvent FireShrinking      = Fire.shrinking
+getGameEvent BuilderUpdate      = Builder.update
+getGameEvent BuilderGathersWood = Builder.gatherWood
+getGameEvent UnlockTraps        = Builder.canBuildTraps
+getGameEvent RoomChanged        = Room.update
+
+-- Button Cooldowns
+getGameEvent GatherWood         = id
+getGameEvent FireStoked         = id
+getGameEvent CheckTraps         = id
 
 gameTick :: Game -> Game
 gameTick game =
@@ -67,8 +80,8 @@ gameTick game =
              & over upcomingEvents tickEvents
              & over events (take 15 . map (over _2 (+1)))
       doEventIfReady e = if snd e == 0 then getGameEvent (fst e) else id
-      allEvents = toList (view upcomingEvents updatedTickers)
-      stateAfterIngameEvents = foldr doEventIfReady updatedTickers allEvents
+      allEvs = toList (view upcomingEvents updatedTickers)
+      stateAfterIngameEvents = foldr doEventIfReady updatedTickers allEvs
   in if view paused game then game else stateAfterIngameEvents
 
 handleEvent :: Game -> BrickEvent Name Tick -> Game
