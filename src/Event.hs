@@ -6,11 +6,7 @@ import Brick (BrickEvent(..), EventM, Next, Location, continue)
 import Control.Lens (over, set, view, _2, (&))
 
 import Game (getGameEvent)
-import Shared.Game (Game, Tick(..), Location(..),
-                  tickCount, upcomingEvents, events, uiState, inEvent,
-                  debug, hyper, initGame, previousStates, paused, location, inEvent,
-                  stored, bait, fur, meat, scales, teeth, cloth, charm,
-                  hyperspeedAmt)
+import Shared.Game
 import Shared.GameEvent (tickEvents, toList)
 import Shared.UI (Name(..), lastReportedClick)
 import SaveGame (save)
