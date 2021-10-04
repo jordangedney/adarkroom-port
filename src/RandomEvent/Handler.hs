@@ -10,11 +10,18 @@ import GameTypes (Game, stored, fur, tickCount, nextRandomAt, cloth, scales,
                   teeth, inEvent, location, Location(..), hyperspeedAmt, bait,
                   compass, Stored, wood)
 import RandomEvent.Event (SceneChoice(..), Item(..), currentScene,
-                          Scene, theBeggar, theNomad, noisesOutside, noisesInside,
+                          Scene,
                           StayOrGo(..),
                           SceneEvent(..), Reward(..))
+
+import RandomEvent.Room
+
 import Util (randomChoice, choice)
 import GameUtil (notifyRoom)
+
+availableEvents :: Game -> [Scene]
+availableEvents g = [e | (e, p) <- evs, p]
+  where evs = RandomEvent.Room.events g
 
 shouldDoRandomEvent :: Game -> Bool
 shouldDoRandomEvent game = view tickCount game == view nextRandomAt game
@@ -33,10 +40,9 @@ doRandomEvent game randomGen =
   let updated = setNextRandomEvent game randomGen
   in if isJust (view inEvent game) then updated
      else case availableEvents game of
-            Just es ->
-              let ev = choice randomGen es
-              in updated & set inEvent (Just ev) & addReward (currentScene ev)
-            Nothing -> updated
+            [] -> updated
+            es -> let ev = choice randomGen es
+                 in updated & set inEvent (Just ev) & addReward (currentScene ev)
 
 item :: Functor f => Item -> (Int -> f Int) -> Stored -> f Stored
 item Fur   = fur
@@ -119,16 +125,3 @@ handleButton r (SceneChoice _ (Just cs) next) game =
     costMsg ((i, cost'):xs) g =
       notifyRoom ("not enough " <> itemToStr i <> " (" <> show cost' <> ").") g
       & costMsg xs
-
-availableEvents :: Game -> Maybe [Scene]
-availableEvents g =
-  let events =
-        [ (theBeggar,     playerIn Room && playerHasFound fur)
-        , (theNomad,      playerIn Room && playerHasFound fur)
-        , (noisesOutside, playerIn Room && view (stored . wood) g > 15)
-        , (noisesInside,  playerIn Room && view (stored . wood) g > 15)
-        ]
-      avail = [e | (e, p) <- events, p]
-      playerHasFound i = view (stored . i) g > 0
-      playerIn x = view location g == x
-  in if null avail then Nothing else Just avail
