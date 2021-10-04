@@ -7,8 +7,9 @@ import System.Random (StdGen, randomR)
 import Control.Lens (view, over, set, (&))
 
 import GameTypes (Game, stored, fur, tickCount, nextRandomAt, cloth, scales,
-                  teeth, inEvent, location, Location(..), hyperspeedAmt, bait,
+                  teeth, inEvent, hyperspeedAmt, bait,
                   compass, Stored, wood)
+
 import RandomEvent.Event (SceneChoice(..), Item(..), currentScene,
                           Scene,
                           StayOrGo(..),
@@ -106,8 +107,8 @@ addReward (SceneEvent _ _ (GiveSome xs) _) game =
   in foldl go game xs
 
 handleButton :: StdGen -> SceneChoice -> Game -> Game
-handleButton r (SceneChoice _ Nothing next) game = doSceneChoice r next game
-handleButton r (SceneChoice _ (Just cs) next) game =
+handleButton r (SceneChoice _ [] next) game = doSceneChoice r next game
+handleButton r (SceneChoice _ cs next) game =
   if canAfford cs game
   then foldl (\g (i, amt) -> g & over (getItem i) (subtract amt)) game cs
        & doSceneChoice r next

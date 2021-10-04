@@ -27,19 +27,19 @@ theBeggar = Scene
           , reward = None
           , choices =
             [ SceneChoice { choiceTxt = "give 50"
-                          , cost = Just [(Fur, 50)]
+                          , cost = [(Fur, 50)]
                           , nextScene = Just $ Go ([
                               (50, scales'), (30, teeth')], cloth')
                           }
 
             , SceneChoice { choiceTxt = "give 100"
-                          , cost = Just [(Fur, 100)]
+                          , cost = [(Fur, 100)]
                           , nextScene = Just $ Go ([
                               (50, teeth'), (30, scales')],  cloth')
                           }
 
             , SceneChoice { choiceTxt = "turn him away"
-                          , cost = Nothing
+                          , cost = []
                           , nextScene = Nothing
                           }
             ]
@@ -51,7 +51,7 @@ theBeggar = Scene
           , notification = Nothing
           , reward = Give [(Scale, 20)]
           , choices = [ SceneChoice { choiceTxt = "say goodbye"
-                                    , cost = Nothing
+                                    , cost = []
                                     , nextScene = Nothing
                                     }
                       ]
@@ -63,7 +63,7 @@ theBeggar = Scene
           , notification = Nothing
           , reward = Give [(Teeth, 20)]
           , choices = [ SceneChoice { choiceTxt = "say goodbye"
-                                    , cost = Nothing
+                                    , cost = []
                                     , nextScene = Nothing
                                     }
                       ]
@@ -75,7 +75,7 @@ theBeggar = Scene
           , notification = Nothing
           , reward = Give [(Cloth, 20)]
           , choices = [ SceneChoice { choiceTxt = "say goodbye"
-                                    , cost = Nothing
+                                    , cost = []
                                     , nextScene = Nothing
                                     }
                       ]
@@ -98,21 +98,21 @@ theNomad = Scene
           , reward = None
           , choices =
             [ SceneChoice { choiceTxt = "buy scales"
-                          , cost = Just [(Fur, 100)]
+                          , cost = [(Fur, 100)]
                           , nextScene = Just (Stay Nothing (Scale, 1))
                           }
             , SceneChoice { choiceTxt = "buy teeth"
-                          , cost = Just [(Fur, 200)]
+                          , cost = [(Fur, 200)]
                           , nextScene = Just (Stay Nothing (Teeth, 1))
                           }
             , SceneChoice { choiceTxt = "buy bait"
-                          , cost = Just [(Fur, 5)]
+                          , cost = [(Fur, 5)]
                           , nextScene = Just (Stay
                                         (Just "traps are more effective with bait.")
                                         (Bait, 1))
                           }
             , SceneChoice { choiceTxt = "buy compass"
-                          , cost = Just
+                          , cost =
                             [(Fur, 300), (Scale, 15), (Teeth, 5), (Compass, 0)]
                           , nextScene =
                               Just (Stay
@@ -121,7 +121,7 @@ theNomad = Scene
                               (Compass, 1))
                           }
             , SceneChoice { choiceTxt = "turn him away"
-                          , cost = Nothing
+                          , cost = []
                           , nextScene = Nothing
                           }
             ]
@@ -145,11 +145,11 @@ noisesOutside = Scene
           , reward = None
           , choices =
             [ SceneChoice { choiceTxt = "investigate"
-                          , cost = Nothing
+                          , cost = []
                           , nextScene = Just $ Go ([(30, stuff)], nothing)
                           }
             , SceneChoice { choiceTxt = "ignore them"
-                          , cost = Nothing
+                          , cost = []
                           , nextScene = Nothing
                           }
             ]
@@ -164,7 +164,7 @@ noisesOutside = Scene
           , notification = Nothing
           , reward = Give [(Wood, 100), (Fur, 10)]
           , choices = [ SceneChoice { choiceTxt = "go back inside"
-                                    , cost = Nothing
+                                    , cost = []
                                     , nextScene = Nothing
                                     }
                       ]
@@ -179,7 +179,7 @@ noisesOutside = Scene
           , notification = Nothing
           , reward = None
           , choices = [ SceneChoice { choiceTxt = "go back inside"
-                                    , cost = Nothing
+                                    , cost = []
                                     , nextScene = Nothing
                                     }
                       ]
@@ -204,12 +204,12 @@ noisesInside = Scene
           , reward = None
           , choices =
             [ SceneChoice { choiceTxt = "investigate"
-                          , cost = Nothing
+                          , cost = []
                           , nextScene = Just $ Go ([
                               (50, scales'), (30, teeth')], cloth')
                           }
             , SceneChoice { choiceTxt = "ignore them"
-                          , cost = Nothing
+                          , cost = []
                           , nextScene = Nothing
                           }
             ]
@@ -223,7 +223,7 @@ noisesInside = Scene
           , notification = Nothing
           , reward = GiveSome [(Wood, 10, Scale, 20)]
           , choices = [ SceneChoice { choiceTxt = "go back inside"
-                                    , cost = Nothing
+                                    , cost = []
                                     , nextScene = Nothing
                                     }
                       ]
@@ -237,7 +237,7 @@ noisesInside = Scene
           , notification = Nothing
           , reward = GiveSome [(Wood, 10, Teeth, 20)]
           , choices = [ SceneChoice { choiceTxt = "go back inside"
-                                    , cost = Nothing
+                                    , cost = []
                                     , nextScene = Nothing
                                     }
                       ]
@@ -251,7 +251,7 @@ noisesInside = Scene
           , notification = Nothing
           , reward = GiveSome [(Wood, 10, Cloth, 20)]
           , choices = [ SceneChoice { choiceTxt = "go back inside"
-                                    , cost = Nothing
+                                    , cost = []
                                     , nextScene = Nothing
                                     }
                       ]

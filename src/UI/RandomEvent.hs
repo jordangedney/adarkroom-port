@@ -35,8 +35,8 @@ genericEvent event game =
       buttonMaker choice =
         let btn y = y (RandomEventButton choice) (choiceTxt choice)
         in case cost choice of
-             Nothing -> btn dialogButton
-             Just c -> btn (optionalDialogButton (canAfford c game))
+             [] -> btn dialogButton
+             cs -> btn (optionalDialogButton (canAfford cs game))
 
       groupsOfTwo [] = error "events should at least have a leave button"
       groupsOfTwo [x] = x

@@ -39,6 +39,6 @@ data StayOrGo = Stay (Maybe String) (Item, Int) | Go ([(Int, SceneEvent)], Scene
 
 data SceneChoice = SceneChoice
   { choiceTxt :: String
-  , cost :: Maybe [(Item, Int)]
+  , cost :: [(Item, Int)]
   , nextScene :: Maybe StayOrGo
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
