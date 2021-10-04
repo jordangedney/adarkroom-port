@@ -3,20 +3,21 @@ module Game where
 import Shared.Game (Game)
 import Shared.GameEvent (GameEvent(..))
 
-import qualified Fire
-import qualified Outside
-import qualified Builder
-import qualified Room
+import qualified Room.Fire as Fire
+import qualified Room.Builder as Builder
+import qualified Room.Room as Room
 
-getGameEvent :: (GameEvent, Int) -> Game -> Game
-getGameEvent (UnlockForest,       _) = Outside.unlock
-getGameEvent (FireShrinking,      _) = Fire.shrinking
-getGameEvent (BuilderUpdate,      _) = Builder.update
-getGameEvent (BuilderGathersWood, _) = Builder.gatherWood
-getGameEvent (UnlockTraps,        _) = Builder.canBuildTraps
-getGameEvent (RoomChanged,        _) = Room.update
+import qualified Outside
+
+getGameEvent :: GameEvent -> Game -> Game
+getGameEvent UnlockForest       = Outside.unlock
+getGameEvent FireShrinking      = Fire.shrinking
+getGameEvent BuilderUpdate      = Builder.update
+getGameEvent BuilderGathersWood = Builder.gatherWood
+getGameEvent UnlockTraps        = Builder.canBuildTraps
+getGameEvent RoomChanged        = Room.update
 
 -- Button Cooldowns
-getGameEvent (GatherWood,         _) = id
-getGameEvent (FireStoked,         _) = id
-getGameEvent (CheckTraps,         _) = id
+getGameEvent GatherWood         = id
+getGameEvent FireStoked         = id
+getGameEvent CheckTraps         = id

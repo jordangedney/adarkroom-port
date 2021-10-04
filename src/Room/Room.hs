@@ -1,4 +1,4 @@
-module Room
+module Room.Room
   ( update
   , arrival
   ) where
@@ -11,7 +11,7 @@ import Shared.Constants (roomWarmDelay)
 
 import GameUtil (notifyRoom, clearRoomBacklog, updateEvents)
 
-import qualified Builder
+import qualified Room.Builder as Builder
 
 roomState :: RoomTemperature -> String
 roomState Freezing = "the room is freezing."

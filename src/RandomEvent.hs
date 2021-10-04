@@ -1,6 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module RandomEvent.Handler where
+module RandomEvent where
 
 import Data.Maybe (isJust)
 import System.Random (StdGen, randomR)
@@ -16,14 +16,14 @@ import Shared.Event (SceneChoice(..), currentScene,
 import Shared.Item
 import Shared.Util
 
-import RandomEvent.Room
+import Room.Event
 
 import Util (randomChoice, choice)
 import GameUtil (notifyRoom)
 
 availableEvents :: Game -> [Scene]
 availableEvents g = [e | (e, p) <- evs, p]
-  where evs = RandomEvent.Room.events g
+  where evs = Room.Event.events g
 
 shouldDoRandomEvent :: Game -> Bool
 shouldDoRandomEvent game = view tickCount game == view nextRandomAt game

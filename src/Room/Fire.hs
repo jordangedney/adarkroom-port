@@ -1,4 +1,4 @@
-module Fire
+module Room.Fire
   ( light
   , stoke
   , shrinking
@@ -12,7 +12,7 @@ import Shared.GameEvent (GameEvent(FireShrinking, FireStoked))
 import Shared.Constants (fireCoolDelay, stokeCooldown)
 import GameUtil (notifyRoom, updateEvents)
 
-import qualified Builder
+import qualified Room.Builder as Builder
 
 fireState :: FireState -> String
 fireState Dead        = "the fire is dead."

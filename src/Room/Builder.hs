@@ -1,4 +1,4 @@
-module Builder
+module Room.Builder
   ( update
   , canHelp
   , approach

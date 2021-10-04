@@ -1,4 +1,4 @@
-module RandomEvent.Room where
+module Room.Event where
 
 import Control.Lens (view)
 

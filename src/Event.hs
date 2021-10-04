@@ -10,12 +10,13 @@ import Shared.Game
 import Shared.GameEvent (tickEvents, toList)
 import Shared.UI (Name(..), lastReportedClick)
 import SaveGame (save)
-import qualified Fire
-import qualified Outside
-import qualified Room
-import qualified Builder
-import qualified RandomEvent.Handler as RandomEvent
-import qualified RandomEvent.Room as RandomEvent
+import qualified Room.Fire as Fire
+import qualified Room.Room as Room
+import qualified Room.Builder as Builder
+import qualified Outside as Outside
+import qualified Room.Event as RE
+-- import qualified Room.Event as RandomEvent
+import qualified RandomEvent
 
 handleEventWrapper :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEventWrapper game event =
@@ -65,7 +66,7 @@ gameTick game =
         game & over tickCount (+1)
              & over upcomingEvents tickEvents
              & over events (take 15 . map (over _2 (+1)))
-      doEventIfReady e = if snd e == 0 then getGameEvent e else id
+      doEventIfReady e = if snd e == 0 then getGameEvent (fst e) else id
       allEvents = toList (view upcomingEvents updatedTickers)
       stateAfterIngameEvents = foldr doEventIfReady updatedTickers allEvents
   in if view paused game then game else stateAfterIngameEvents
@@ -118,7 +119,7 @@ handleButtonEvent PauseButton = over paused not
 handleButtonEvent DialogButton =
   over inEvent (\ x -> case x of
                         Just _ -> Nothing
-                        Nothing -> Just RandomEvent.noisesInside)
+                        Nothing -> Just RE.noisesInside)
 handleButtonEvent CheatButton =
     over (stored . bait)   (+ 50)
   . over (stored . fur)    (+ 50)
