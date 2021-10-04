@@ -9,7 +9,7 @@ import UI.Components
 
 import Shared.UI
 import Shared.Game
-import Shared.Event (Scene(..), SceneEvent(..), SceneChoice(..))
+import Shared.RandomEvent (Scene(..), SceneEvent(..), SceneChoice(..))
 import Shared.Util (canAfford)
 
 drawDialogWindow :: Game -> Widget Name

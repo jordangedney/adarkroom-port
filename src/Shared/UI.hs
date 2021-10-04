@@ -11,7 +11,7 @@ import Data.Yaml
 import Control.Lens (makeLenses)
 import Brick.Types (Location)
 
-import Shared.Event (SceneChoice)
+import Shared.RandomEvent (SceneChoice)
 
 deriving instance ToJSON Location
 deriving instance FromJSON Location

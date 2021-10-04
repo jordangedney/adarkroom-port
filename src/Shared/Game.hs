@@ -11,7 +11,7 @@ import Control.Lens (makeLenses)
 
 import Shared.UI (UIState, uiStateInit)
 import Shared.GameEvent (GameEvents, gameEventsInit)
-import Shared.Event (Scene)
+import Shared.RandomEvent (Scene)
 
 data Tick = Tick deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
@@ -102,7 +102,6 @@ storedInit = Stored
 
 data Location = Room | Outside | Path | Ship
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
-
 
 data Game = Game
   { _location           :: Location

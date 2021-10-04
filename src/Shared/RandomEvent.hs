@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 
-module Shared.Event where
+module Shared.RandomEvent where
 
 import Shared.Item
 

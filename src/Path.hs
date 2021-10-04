@@ -2,13 +2,11 @@ module Path
   ( arrival
   ) where
 
-import Control.Lens (set, view, (&))
+import Control.Lens (set, (&))
 
 import Shared.Game (Game, Location(Path), location)
-import Shared.GameEvent (GameEvent(RoomChanged))
-import Shared.Constants (roomWarmDelay)
 
-import Util (notifyRoom, clearRoomBacklog, updateEvents)
+import Util (clearRoomBacklog)
 
 arrival :: Game -> Game
 arrival game =

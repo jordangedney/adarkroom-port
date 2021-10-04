@@ -7,7 +7,7 @@ import System.Random (StdGen, randomR)
 import Control.Lens (view, over, set, (&))
 
 import Shared.Game
-import Shared.Event
+import Shared.RandomEvent
 import Shared.Item
 import Shared.Util
 

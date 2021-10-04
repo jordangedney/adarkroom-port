@@ -3,7 +3,7 @@ module Room.Event where
 import Control.Lens (view)
 
 import Shared.Game (Game, stored, location, Location(Room), wood, fur)
-import Shared.Event
+import Shared.RandomEvent
 import Shared.Item
 
 events :: Game -> [(Scene, Bool)]
