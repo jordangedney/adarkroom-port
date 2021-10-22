@@ -112,31 +112,6 @@ data Craftable
   , cost :: CraftableCost
   }
 
--- data Craftable'
---   -- Traps and Carts are handled elsewhere
---   = Hut
---   | Lodge
---   | TradingPost
---   | Tannery
---   | Smokehouse
---   | Workshop
---   | Steelworks
---   | Armoury
---   | Torch
---   | Waterskin
---   | Cask
---   | WaterTank
---   | BoneSpear
---   | Rucksack
---   | Wagon
---   | Convoy
---   | LeatherArmour
---   | IronArmour
---   | SteelArmour
---   | IronSword
---   | SteelSword
---   | Rifle
-
 getCraftable Hut = Building
   { name         = "hut"
   , availableMsg = "builder says there are more wanderers. says they'll work, too."
@@ -275,7 +250,6 @@ getCraftable Rifle = Weapon
   , buildMsg     = "black powder and bullets, like the old days."
   , cost         = Static [(Wood, 200), (Steel, 50), (Sulphur, 50)]
   }
-
 --unlockCraftables :: Game -> Game
 --unlockCraftables = do
 --  where
@@ -288,8 +262,6 @@ getCraftable Rifle = Weapon
 --        needsWorkshop Steelworks = False
 --        needsWorkshop Armoury = False
 --        needsWorkshop _ = True
-
-
 
 canBuildTraps :: Game -> Game
 canBuildTraps game =
