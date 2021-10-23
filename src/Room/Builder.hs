@@ -69,7 +69,7 @@ update game =
       getBetter = doBetter & notifyRoom (showState (view builderState doBetter))
   in if builderIsFine then doNothing else getBetter
 
-gatherWood :: State Game ()
+gatherWood :: DarkRoom
 gatherWood = do
   -- gather more wood later
   updateEvents' BuilderGathersWood builderGatherDelay
@@ -78,7 +78,7 @@ gatherWood = do
   temp <- use roomTemperature
   unless (temp == Freezing || temp == Cold) (stored.wood += 2)
 
-updateEvents' :: GameEvent -> Int -> State Game ()
+updateEvents' :: GameEvent -> Int -> DarkRoom
 updateEvents' event time = do
   upcomingEvents.eventGetter event .= (event, time)
 

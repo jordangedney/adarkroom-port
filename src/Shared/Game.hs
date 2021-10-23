@@ -8,6 +8,7 @@ import GHC.Generics
 import Data.Yaml
 
 import Control.Lens (makeLenses)
+import Control.Monad.State (State)
 
 import Shared.UI (UIState, uiStateInit)
 import Shared.GameEvent (GameEvents, gameEventsInit)
@@ -127,6 +128,8 @@ data Game = Game
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''Game
+
+type DarkRoom = State Game ()
 
 hyperspeedAmt' :: Int
 hyperspeedAmt' = 4
