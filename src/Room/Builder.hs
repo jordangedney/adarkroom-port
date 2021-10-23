@@ -51,11 +51,11 @@ canHelp game =
       builderIsNowHelping = doHelping & notifyRoom (showState (view builderState doHelping))
   in if builderIsSleeping then builderIsNowHelping else doNothing
 
-approach :: Game -> Game
-approach game =
-  game & notifyRoom (showState (view builderState game))
-       & updateEvents BuilderUpdate builderStateDelay
-       & updateEvents UnlockForest needWoodDelay
+approach :: DarkRoom
+approach = do
+  notifyRoom (showState (view builderState game))
+  updateEvents' BuilderUpdate builderStateDelay
+  updateEvents' UnlockForest needWoodDelay
 
 update :: Game -> Game
 update game =
@@ -84,6 +84,8 @@ updateEvents' event time = do
 
 data CraftableCost = Static [(Item, Int)] | Dynamic (Game -> [(Item, Int)])
 
+-- XXX Need to change this not to be records because record problem or w/e;
+-- (Don't use records with sum types)
 data Craftable
   = Building
   { name :: String
