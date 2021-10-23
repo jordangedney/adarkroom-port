@@ -12,11 +12,13 @@ module Room.Builder
   )
 where
 
-import Control.Lens (over, set, view, (&))
+import Control.Monad.State (State, execState, get, state)
+import Control.Lens
+import Control.Monad (unless)
 
 import Shared.UI (showForestBuildings)
 import Shared.Game
-import Shared.GameEvent (GameEvent(..))
+import Shared.GameEvent (GameEvent(..), eventGetter)
 import Shared.Constants
 import Shared.Item
 
@@ -67,20 +69,18 @@ update game =
       getBetter = doBetter & notifyRoom (showState (view builderState doBetter))
   in if builderIsFine then doNothing else getBetter
 
+gatherWood :: State Game ()
+gatherWood = do
+  -- gather more wood later
+  updateEvents' BuilderGathersWood builderGatherDelay
 
-gatherWood :: Game -> Game
-gatherWood game =
-  let gatherMoreInAwhile = game & updateEvents BuilderGathersWood builderGatherDelay
-      tooColdToWork = view roomTemperature game == Freezing
-                    || view roomTemperature game == Cold
-  in if tooColdToWork then gatherMoreInAwhile
-     else gatherMoreInAwhile & over (stored . wood) (+ 2)
+  -- only gather if the room is warm
+  temp <- use roomTemperature
+  unless (temp == Freezing || temp == Cold) (stored.wood += 2)
 
--- gatherWood :: Game -> Game
--- gatherWood = do
---   tooColdToWork <- (\t -> (t == Freezing) || (t == Cold)) . view roomTemperature
---   let gather = if tooColdToWork then id else over (stored . wood) (+ 2)
---   gather . updateEvents BuilderGathersWood builderGatherDelay
+updateEvents' :: GameEvent -> Int -> State Game ()
+updateEvents' event time = do
+  upcomingEvents.eventGetter event .= (event, time)
 
 data CraftableCost = Static [(Item, Int)] | Dynamic (Game -> [(Item, Int)])
 

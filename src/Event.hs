@@ -4,6 +4,7 @@ import System.Random (newStdGen)
 import Control.Monad.IO.Class (liftIO)
 import Brick (BrickEvent(..), EventM, Next, Location, continue)
 import Control.Lens (over, set, view, _2, (&))
+import Control.Monad.State (execState)
 
 import Shared.Game
 import Shared.GameEvent
@@ -124,7 +125,7 @@ getGameEvent :: GameEvent -> Game -> Game
 getGameEvent UnlockForest       = Outside.unlock
 getGameEvent FireShrinking      = Fire.shrinking
 getGameEvent BuilderUpdate      = Builder.update
-getGameEvent BuilderGathersWood = Builder.gatherWood
+getGameEvent BuilderGathersWood = execState Builder.gatherWood
 getGameEvent UnlockTraps        = Builder.canBuildTraps
 getGameEvent RoomChanged        = Room.update
 
