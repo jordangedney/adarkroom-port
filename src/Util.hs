@@ -10,7 +10,7 @@ import Data.Function (on)
 import Safe (headDef)
 import System.Random (StdGen, randomR)
 
-import Control.Lens (over, set, view, (&))
+import Control.Lens (over, set, view, (&), (%=), use, (.=))
 
 count :: Eq a => a -> [a] -> Int
 count x = length . filter (x ==)
@@ -57,11 +57,21 @@ addEvent :: String -> Game -> Game
 addEvent message game =
   game & over events ((message, 0):)
 
+addEvent' :: String -> DarkRoom
+addEvent' message = do
+  events %= ((message, 0):)
+
 notifyRoom :: String -> Game -> Game
 notifyRoom message game =
   if view location game == Room
   then game & addEvent message
   else game & over roomEventBacklog ((:) message)
+
+notifyRoom' :: String -> DarkRoom
+notifyRoom' message = do
+  inRoom <- (== Room) <$> use location
+  if inRoom then addEvent' message
+  else roomEventBacklog  %= (:) message
 
 clearRoomBacklog :: Game -> Game
 clearRoomBacklog game =
@@ -70,3 +80,7 @@ clearRoomBacklog game =
 
 updateEvents :: GameEvent -> Int -> Game -> Game
 updateEvents event time = over upcomingEvents (set (eventGetter event) (event, time))
+
+updateEvent :: GameEvent -> Int -> DarkRoom
+updateEvent event time = do
+  upcomingEvents.eventGetter event .= (event, time)

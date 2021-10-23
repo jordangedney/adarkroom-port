@@ -22,7 +22,7 @@ import Shared.GameEvent (GameEvent(..), eventGetter)
 import Shared.Constants
 import Shared.Item
 
-import Util (notifyRoom, updateEvents)
+import Util (notifyRoom, updateEvents, notifyRoom', updateEvent)
 
 showState :: BuilderState -> String
 showState Approaching =
@@ -35,14 +35,6 @@ showState Sleeping    =
   "the stranger in the corner stops shivering. her breathing calms."
 showState Helping     =
   "the stranger is standing by the fire. she says she can help. says she builds things."
-
-notifyRoom' :: String -> DarkRoom
-notifyRoom' s = do
-  modify $ notifyRoom s
-
-updateEvent :: GameEvent -> Int -> DarkRoom
-updateEvent event time = do
-  upcomingEvents.eventGetter event .= (event, time)
 
 builderSucc :: BuilderState -> BuilderState
 builderSucc Helping =  Helping
