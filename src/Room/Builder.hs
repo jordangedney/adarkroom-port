@@ -12,7 +12,7 @@ module Room.Builder
   )
 where
 
-import Control.Monad.State (State, execState, get, state)
+import Control.Monad.State (State, execState, get, state, modify)
 import Control.Lens
 import Control.Monad (unless)
 
@@ -36,6 +36,14 @@ showState Sleeping    =
 showState Helping     =
   "the stranger is standing by the fire. she says she can help. says she builds things."
 
+notifyRoom' :: String -> DarkRoom
+notifyRoom' s = do
+  modify $ notifyRoom s
+
+updateEvent :: GameEvent -> Int -> DarkRoom
+updateEvent event time = do
+  upcomingEvents.eventGetter event .= (event, time)
+
 builderSucc :: BuilderState -> BuilderState
 builderSucc Helping =  Helping
 builderSucc x = succ x
@@ -51,11 +59,14 @@ canHelp game =
       builderIsNowHelping = doHelping & notifyRoom (showState (view builderState doHelping))
   in if builderIsSleeping then builderIsNowHelping else doNothing
 
-approach :: DarkRoom
-approach = do
-  notifyRoom (showState (view builderState game))
-  updateEvents' BuilderUpdate builderStateDelay
-  updateEvents' UnlockForest needWoodDelay
+-- approach :: DarkRoom
+approach :: Game -> Game
+approach = execState $ do
+  bs <- showState <$> use builderState
+  notifyRoom' bs
+
+  updateEvent BuilderUpdate builderStateDelay
+  updateEvent UnlockForest needWoodDelay
 
 update :: Game -> Game
 update game =
@@ -72,15 +83,11 @@ update game =
 gatherWood :: DarkRoom
 gatherWood = do
   -- gather more wood later
-  updateEvents' BuilderGathersWood builderGatherDelay
+  updateEvent BuilderGathersWood builderGatherDelay
 
   -- only gather if the room is warm
   temp <- use roomTemperature
   unless (temp == Freezing || temp == Cold) (stored.wood += 2)
-
-updateEvents' :: GameEvent -> Int -> DarkRoom
-updateEvents' event time = do
-  upcomingEvents.eventGetter event .= (event, time)
 
 data CraftableCost = Static [(Item, Int)] | Dynamic (Game -> [(Item, Int)])
 
