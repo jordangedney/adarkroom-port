@@ -14,7 +14,7 @@ where
 
 import Control.Monad.State (State, execState, get, state, modify)
 import Control.Lens
-import Control.Monad (unless)
+import Control.Monad (unless, when)
 
 import Shared.UI (showForestBuildings)
 import Shared.Game
@@ -41,36 +41,43 @@ builderSucc Helping =  Helping
 builderSucc x = succ x
 
 canHelp :: Game -> Game
-canHelp game =
-  let doNothing = game
-      doHelping = game & over builderState builderSucc
-                       & set (milestones . builderIsHelping) True
-                       & updateEvents BuilderGathersWood builderGatherDelay
-                       & updateEvents UnlockTraps unlockTrapsDelay
-      builderIsSleeping = view builderState game == Sleeping
-      builderIsNowHelping = doHelping & notifyRoom (showState (view builderState doHelping))
-  in if builderIsSleeping then builderIsNowHelping else doNothing
+canHelp = execState $ do
+  bs <- use builderState
+  when (bs == Sleeping) $ do
+    -- builder gets up to help
+    builderState %= builderSucc
+    (milestones . builderIsHelping) .= True
+    -- she finds a way to pass the time
+    updateEvent BuilderGathersWood builderGatherDelay
+    updateEvent UnlockTraps unlockTrapsDelay
+    displayBuilderState
+
+displayBuilderState :: DarkRoom
+displayBuilderState = do
+  builderIs <- showState <$> use builderState
+  notifyRoom' builderIs
 
 -- approach :: DarkRoom
 approach :: Game -> Game
 approach = execState $ do
-  bs <- showState <$> use builderState
-  notifyRoom' bs
+  -- let the player know Builder is coming
+  displayBuilderState
 
+  -- builder is on the way; going to need wood soon
   updateEvent BuilderUpdate builderStateDelay
   updateEvent UnlockForest needWoodDelay
 
+-- update :: DarkRoom
 update :: Game -> Game
-update game =
-  let doNothing = game
-      builderIsFine = view builderState game == Sleeping
-                    -- A bit of a hack to deal with a race condition with canHelp
-                    -- (a hack because a cleaner solution would be to reshuffle this logic)
-                    || view builderState game == Helping
-      doBetter = game & updateEvents BuilderUpdate builderStateDelay
-                      & over builderState builderSucc
-      getBetter = doBetter & notifyRoom (showState (view builderState doBetter))
-  in if builderIsFine then doNothing else getBetter
+update = execState $ do
+  builderIs <- use builderState
+
+  -- XXX Hack with canHelp? Sucky comments suck
+  unless (builderIs == Sleeping || builderIs == Helping) $ do
+    -- Builder is getting better all the time
+    updateEvent BuilderUpdate builderStateDelay
+    builderState %= builderSucc
+    displayBuilderState
 
 gatherWood :: DarkRoom
 gatherWood = do
@@ -265,10 +272,10 @@ getCraftable Rifle = Weapon
 --        needsWorkshop _ = True
 
 canBuildTraps :: Game -> Game
-canBuildTraps game =
-  game & set (milestones . trapsUnlocked) True
-       & notifyRoom ("builder says she can make traps to catch any creatures "
-                     <> "might still be alive out there.")
+canBuildTraps = execState $ do
+  (milestones . trapsUnlocked) .= True
+  notifyRoom' ("builder says she can make traps to catch any creatures "
+              <> "might still be alive out there.")
 
 canBuildCarts :: Game -> Game
 canBuildCarts game =
