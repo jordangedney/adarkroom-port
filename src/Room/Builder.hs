@@ -13,7 +13,7 @@ module Room.Builder
 where
 
 import Control.Monad.State (State, execState, get, state, modify)
-import Control.Lens
+import Control.Lens hiding (pre)
 import Control.Monad (unless, when)
 
 import Shared.UI (showForestBuildings)
@@ -278,14 +278,13 @@ canBuildTraps = execState $ do
               <> "might still be alive out there.")
 
 canBuildCarts :: Game -> Game
-canBuildCarts game =
-  let doNothing = game
-      cartsNeedToBeUnlocked = view (milestones . preCartsUnlocked) game
-                            && not (view (milestones . cartsUnlocked) game)
-      unlockCarts =
-        game & set (milestones . cartsUnlocked) True
-             & notifyRoom "builder says she can make a cart for carrying wood"
-  in if cartsNeedToBeUnlocked then unlockCarts else doNothing
+canBuildCarts = execState $ do
+  pre <- use (milestones . preCartsUnlocked)
+  post <- use (milestones . cartsUnlocked)
+  -- unlocking a cart is a 3 stage progress- this takes you from stage 2 -> 3
+  when (pre && not post) $ do
+    (milestones . cartsUnlocked) .= True
+    notifyRoom' "builder says she can make a cart for carrying wood"
 
 buildIfWarm :: Game -> Game -> Game
 buildIfWarm buildTheItem game =
