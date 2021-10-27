@@ -93,8 +93,8 @@ handleButtonEvent GatherButton     = Outside.gather
 handleButtonEvent CheckTrapsButton =
   error "This should be handled in handleEventWrapper"
 
-handleButtonEvent TrapButton = Builder.buildTrap
-handleButtonEvent CartButton = Builder.buildCart
+handleButtonEvent TrapButton = Builder.build Trap
+handleButtonEvent CartButton = Builder.build Cart
 
 handleButtonEvent PathButton = set location Path
 handleButtonEvent ShipButton = set location Ship

@@ -9,6 +9,7 @@ module Room.Builder
   , canBuildCarts
   , buildTrap
   , buildCart
+  , build
   )
 where
 
@@ -37,7 +38,7 @@ showState Helping     =
   "the stranger is standing by the fire. she says she can help. says she builds things."
 
 builderSucc :: BuilderState -> BuilderState
-builderSucc Helping =  Helping
+builderSucc Helping = Helping
 builderSucc x = succ x
 
 canHelp :: Game -> Game
@@ -90,174 +91,143 @@ gatherWood = do
 
 data CraftableCost = Static [(Item, Int)] | Dynamic (Game -> [(Item, Int)])
 
--- XXX Need to change this not to be records because record problem or w/e;
--- (Don't use records with sum types)
 data Craftable
   = Building
-  { name :: String
-  , availableMsg :: String
-  , buildMsg :: String
-  , maxNum  :: Maybe Int
-  , maxMsg  :: Maybe String
-  , cost :: CraftableCost
-  }
+     String -- name
+     String -- available message
+     String -- build message
+     (Maybe (Int, String)) -- max number of buildings (otherwise one)
+     CraftableCost -- cost
   | Tool
-  { name :: String
-  , buildMsg :: String
-  -- , cost :: [(Item, Int)]
-  , cost :: CraftableCost
-  }
+     String -- name
+     String -- build message
+     [(Item, Int)] -- cost
   | Upgrade
-  { name :: String
-  , buildMsg :: String
-  -- , cost :: [(Item, Int)]
-  , cost :: CraftableCost
-  }
+      String -- name
+      String -- build message
+      [(Item, Int)] -- cost
   | Weapon
-  { name :: String
-  , buildMsg :: String
-  -- , cost :: [(Item, Int)]
-  , cost :: CraftableCost
-  }
+      String -- name
+      String -- build message
+      [(Item, Int)] -- cost
 
+getCraftable Trap = Building
+  "trap"
+  "builder says she can make traps to catch any creatures might still be alive out there."
+  "more traps to catch more creatures."
+  (Just (10, "more traps won't help now."))
+  Dynamic (\g -> [(Wood, (view (stored . traps) g * 10) + 10)])
+getCraftable Cart = Building
+  "cart"
+  "builder says she can make a cart for carrying wood."
+  "the rickety cart will carry more wood from the forest."
+  Nothing
+  Static [(Wood, 30)]
 getCraftable Hut = Building
-  { name         = "hut"
-  , availableMsg = "builder says there are more wanderers. says they'll work, too."
-  , buildMsg     =
-      "builder puts up a hut, out in the forest. says word will get around."
-  , maxNum       = Just 20
-  , maxMsg       = Just "no more room for huts."
-  , cost         = Dynamic (\g -> [(Wood, (view (stored . huts) g * 50) + 100)])
-  }
+  "hut"
+  "builder says there are more wanderers. says they'll work, too."
+  "builder puts up a hut, out in the forest. says word will get around."
+  (Just (20, "no more room for huts."))
+  Dynamic (\g -> [(Wood, (view (stored . huts) g * 50) + 100)])
 getCraftable Lodge = Building
-  { name         = "lodge"
-  , availableMsg = "villagers could help hunt, given the means."
-  , buildMsg     = "the hunting lodge stands in the forest, a ways out of town."
-  , maxNum       = Just 1
-  , maxMsg       = Nothing
-  , cost         = Static [(Wood, 200), (Fur, 10), (Meat, 5)]
-  }
+  "lodge"
+  "villagers could help hunt, given the means."
+  "the hunting lodge stands in the forest, a ways out of town."
+  Nothing
+  Static [(Wood, 200), (Fur, 10), (Meat, 5)]
 getCraftable TradingPost = Building
-  { name         = "trading post"
-  , availableMsg = "a trading post would make commerce easier."
-  , buildMsg     =
-      "now the nomads have a place to set up shop, they might stick around a while."
-  , maxNum       = Just 1
-  , maxMsg       = Nothing
-  , cost         = Static [(Wood, 400), (Fur, 100)]
-  }
+  "trading post"
+  "a trading post would make commerce easier."
+  "now the nomads have a place to set up shop, they might stick around a while"
+  Nothing
+  Static [(Wood, 400), (Fur, 100)]
 getCraftable Tannery = Building
-  { name         = "tannery"
-  , availableMsg =
-      "builder says leather could be useful. says the villagers could make it."
-  , buildMsg     = "tannery goes up quick, on the edge of the village. "
-  , maxNum       = Just 1
-  , maxMsg       = Nothing
-  , cost         = Static [(Wood, 500), (Fur, 50)]
-  }
+  "tannery"
+  "leather could be useful. says the villagers could make it."
+  "tannery goes up quick, on the edge of the village. "
+  Nothing
+  Static [(Wood, 500), (Fur, 50)]
 getCraftable Smokehouse = Building
-  { name         = "smokehouse"
-  , availableMsg =
-      "should cure the meat, or it'll spoil. builder says she can fix something up."
-  , buildMsg     = "builder finishes the smokehouse. she looks hungry."
-  , maxNum       = Just 1
-  , maxMsg       = Nothing
-  , cost         = Static [(Wood, 600), (Meat, 50)]
-  }
+  "smokehouse"
+  "should cure the meat, or it'll spoil. builder says she can fix something up."
+  "builder finishes the smokehouse. she looks hungry."
+  Nothing
+  Static [(Wood, 600), (Meat, 50)]
 getCraftable Workshop = Building
-  { name         = "workshop"
-  , availableMsg = "builder says she could make finer things, if she had the tools."
-  , buildMsg     = "workshop's finally ready. builder's excited to get to it."
-  , maxNum       = Just 1
-  , maxMsg       = Nothing
-  , cost         = Static [(Wood, 800), (Leather, 100), (Scale, 10)]
-  }
+   "workshop"
+   "builder says she could make finer things, if she had the tools."
+   "workshop's finally ready. builder's excited to get to it."
+   Nothing
+   Static [(Wood, 800), (Leather, 100), (Scale, 10)]
 getCraftable Steelworks = Building
-  { name         = "steelworks"
-  , availableMsg = "builder says the villagers could make steel, given the tools."
-  , buildMsg     = "a haze falls over the village as the steelworks fires up."
-  , maxNum       = Just 1
-  , maxMsg       = Nothing
-  , cost         = Static [(Wood, 1500), (Iron, 100), (Coal, 100)]
-  }
+   "steelworks"
+   "builder says the villagers could make steel, given the tools."
+   "a haze falls over the village as the steelworks fires up."
+   Nothing
+   Static [(Wood, 1500), (Iron, 100), (Coal, 100)]
 getCraftable Armoury = Building
-  { name         = "armoury"
-  , availableMsg = "builder says it'd be useful to have a steady source of bullets."
-  , buildMsg     = "armoury's done, welcoming back the weapons of the past."
-  , maxNum       = Just 1
-  , maxMsg       = Nothing
-  , cost         = Static [(Wood, 3000), (Steel, 100), (Sulphur, 50)]
-  }
+   "armoury"
+   "builder says it'd be useful to have a steady source of bullets."
+   "armoury's done, welcoming back the weapons of the past."
+   Nothing
+   Static [(Wood, 3000), (Steel, 100), (Sulphur, 50)]
 getCraftable Torch = Tool
-  { name         = "torch"
-  , buildMsg     = "a torch to keep the dark away."
-  , cost         = Static [(Wood, 1), (Cloth, 1)]
-  }
+  "torch"
+  "a torch to keep the dark away."
+  [(Wood, 1), (Cloth, 1)]
 getCraftable Waterskin = Upgrade
-  { name         = "waterskin"
-  , buildMsg     = "this waterskin'll hold a bit of water, at least."
-  , cost         = Static [(Leather, 50)]
-  }
+  "waterskin"
+  "this waterskin'll hold a bit of water, at least."
+  [(Leather, 50)]
 getCraftable Cask = Upgrade
-  { name         = "cask"
-  , buildMsg     = "the cask holds enough water for longer expeditions."
-  , cost         = Static [(Leather, 100), (Iron, 20)]
-  }
+  "cask"
+  "the cask holds enough water for longer expeditions."
+  [(Leather, 100), (Iron, 20)]
 getCraftable WaterTank = Upgrade
-  { name         = "water tank"
-  , buildMsg     = "never go thirsty again."
-  , cost         = Static [(Iron, 100), (Steel, 50)]
-  }
+  "water tank"
+  "never go thirsty again."
+  [(Iron, 100), (Steel, 50)]
 getCraftable BoneSpear = Weapon
-  { name         = "bone spear"
-  , buildMsg     = "this spear's not elegant, but it's pretty good at stabbing."
-  , cost         = Static [(Wood, 100), (Teeth, 5)]
-  }
+  "bone spear"
+  "this spear's not elegant, but it's pretty good at stabbing."
+  [(Wood, 100), (Teeth, 5)]
 getCraftable Rucksack = Upgrade
-  { name         = "rucksack"
-  , buildMsg     = "carrying more means longer expeditions to the wilds."
-  , cost         = Static [(Leather, 200)]
-  }
+  "rucksack"
+  "carrying more means longer expeditions to the wilds."
+  [(Leather, 200)]
 getCraftable Wagon = Upgrade
-  { name         = "wagon"
-  , buildMsg     = "the wagon can carry a lot of supplies."
-  , cost         = Static [(Wood, 500), (Iron, 100)]
-  }
+  "wagon"
+  "the wagon can carry a lot of supplies."
+  [(Wood, 500), (Iron, 100)]
 getCraftable Convoy = Upgrade
-  { name         = "convoy"
-  , buildMsg     = "the convoy can haul mostly everything."
-  , cost         = Static [(Wood, 1000), (Iron, 200), (Steel, 100)]
-  }
+  "convoy"
+  "the convoy can haul mostly everything."
+  [(Wood, 1000), (Iron, 200), (Steel, 100)]
 getCraftable LeatherArmour = Upgrade
-  { name         = "l armour"
-  , buildMsg     = "leather's not strong. better than rags, though."
-  , cost         = Static [(Leather, 200), (Scale, 20)]
-  }
+  "l armour"
+  "leather's not strong. better than rags, though."
+  [(Leather, 200), (Scale, 20)]
 getCraftable IronArmour = Upgrade
-  { name         = "i armour"
-  , buildMsg     = "iron's stronger than leather."
-  , cost         = Static [(Leather, 200), (Iron, 100)]
-  }
+  "i armour"
+  "iron's stronger than leather."
+  [(Leather, 200), (Iron, 100)]
 getCraftable SteelArmour = Upgrade
-  { name         = "s armour"
-  , buildMsg     = "steel's stronger than iron"
-  , cost         = Static [(Leather, 200), (Steel, 100)]
-  }
+  "s armour"
+  "steel's stronger than iron"
+  [(Leather, 200), (Steel, 100)]
 getCraftable IronSword = Weapon
-  { name         = "iron sword"
-  , buildMsg     = "sword is sharp. good protection out in the wilds."
-  , cost         = Static [(Wood, 200), (Leather, 50), (Iron, 20)]
-  }
+  "iron sword"
+  "sword is sharp. good protection out in the wilds."
+  [(Wood, 200), (Leather, 50), (Iron, 20)]
 getCraftable SteelSword = Weapon
-  { name         = "steel sword"
-  , buildMsg     = "the steel is strong, and the blade true."
-  , cost         = Static [(Wood, 500), (Leather, 100), (Steel, 20)]
-  }
+  "steel sword"
+  "the steel is strong, and the blade true."
+  [(Wood, 500), (Leather, 100), (Steel, 20)]
 getCraftable Rifle = Weapon
-  { name         = "rifle"
-  , buildMsg     = "black powder and bullets, like the old days."
-  , cost         = Static [(Wood, 200), (Steel, 50), (Sulphur, 50)]
-  }
+  "rifle"
+  "black powder and bullets, like the old days."
+  [(Wood, 200), (Steel, 50), (Sulphur, 50)]
+
 --unlockCraftables :: Game -> Game
 --unlockCraftables = do
 --  where
@@ -293,6 +263,13 @@ buildIfWarm buildTheItem game =
       shiver = game & notifyRoom "builder just shivers."
   in if tooColdToWork then shiver else buildTheItem
 
+buildIfWarm' :: Game -> Game -> Game
+buildIfWarm' buildTheItem game =
+  let tooColdToWork = view roomTemperature game == Freezing
+                      || view roomTemperature game == Cold
+      shiver = game & notifyRoom "builder just shivers."
+  in if tooColdToWork then shiver else buildTheItem
+
 buildIfEnoughWood :: Int -> Game -> Game -> Game
 buildIfEnoughWood cost buildTheItem game =
   let notEnoughWood = view (stored . wood) game < cost
@@ -308,7 +285,7 @@ unlockBuildingView game =
   game & set (uiState . showForestBuildings) True
 
 buildTrap :: Game -> Game
-buildTrap game =
+buildTrap =
   let cost = 10 * view (stored . traps) game
       buildTheTrap = game & notifyRoom "more traps to catch more creatures."
                           & over (stored . traps) (+ 1)
@@ -324,3 +301,9 @@ buildCart game =
         game & notifyRoom "the rickety cart will carry more wood from the forest"
              & over (stored . carts) (+ 1)
   in buildItem cost buildTheCart game
+
+build c = case getCraftable c of
+  (Building name availMsg buildmsg maxNum maxMsg cost) -> undefined
+  (Tool name buildMsg cost) -> undefined
+  (Upgrade name buildMsg cost) -> undefined
+  (Weapon name buildMsg cost) -> undefined

@@ -21,6 +21,8 @@ data Item
   | Steel
   | Sulphur
   -- Craftable:
+  | Trap
+  | Cart
   | Hut
   | Lodge
   | TradingPost
