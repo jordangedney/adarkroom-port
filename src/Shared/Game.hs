@@ -67,38 +67,91 @@ milestonesInit = Milestones
   }
 
 data Stored = Stored
-  { _wood    :: Int
-  , _traps   :: Int
-  , _carts   :: Int
-  , _huts    :: Int
-  , _people  :: Int
-  , _bait    :: Int
-  , _fur     :: Int
-  , _meat    :: Int
-  , _scales  :: Int
-  , _teeth   :: Int
-  , _cloth   :: Int
-  , _charm   :: Int
-  , _compass :: Int
+  { _wood         :: Int
+  , _people       :: Int
+  , _bait         :: Int
+  , _fur          :: Int
+  , _meat         :: Int
+  , _scales       :: Int
+  , _teeth        :: Int
+  , _cloth        :: Int
+  , _charm        :: Int
+  , _compass      :: Int
+  , _coal         :: Int
+  , _leather      :: Int
+  , _iron         :: Int
+  , _steel        :: Int
+  , _sulphur      :: Int
+  --  Craftables
+  , _trap         :: Int
+  , _cart         :: Int
+  , _hut          :: Int
+  , _lodge        :: Int
+  , _tradingPost  :: Int
+  , _tannery      :: Int
+  , _smokehouse   :: Int
+  , _workshop     :: Int
+  , _steelworks   :: Int
+  , _armory       :: Int
+  , _torch        :: Int
+  , _waterskin    :: Int
+  , _cask         :: Int
+  , _waterTank    :: Int
+  , _boneSpear    :: Int
+  , _rucksack     :: Int
+  , _wagon        :: Int
+  , _convoy       :: Int
+  , _leatherArmor :: Int
+  , _ironArmor    :: Int
+  , _steelArmor   :: Int
+  , _ironSword    :: Int
+  , _steelSword   :: Int
+  , _rifle        :: Int
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''Stored
 
 storedInit :: Stored
 storedInit = Stored
-  { _wood    = 15
-  , _traps   = 0
-  , _carts   = 0
-  , _huts    = 0
-  , _people  = 0
-  , _bait    = 0
-  , _fur     = 0
-  , _meat    = 0
-  , _scales  = 0
-  , _teeth   = 0
-  , _cloth   = 0
-  , _charm   = 0
-  , _compass = 0
+  { _wood         = 15
+  , _people       = 0
+  , _bait         = 0
+  , _fur          = 0
+  , _meat         = 0
+  , _scales       = 0
+  , _teeth        = 0
+  , _cloth        = 0
+  , _charm        = 0
+  , _compass      = 0
+  , _coal         = 0
+  , _leather      = 0
+  , _iron         = 0
+  , _steel        = 0
+  , _sulphur      = 0
+  , _trap         = 0
+  , _cart         = 0
+  , _hut          = 0
+  , _lodge        = 0
+  , _tradingPost  = 0
+  , _tannery      = 0
+  , _smokehouse   = 0
+  , _workshop     = 0
+  , _steelworks   = 0
+  , _armory       = 0
+  , _torch        = 0
+  , _waterskin    = 0
+  , _cask         = 0
+  , _waterTank    = 0
+  , _boneSpear    = 0
+  , _rucksack     = 0
+  , _wagon        = 0
+  , _convoy       = 0
+  , _leatherArmor = 0
+  , _ironArmor    = 0
+  , _steelArmor   = 0
+  , _ironSword    = 0
+  , _steelSword   = 0
+  , _rifle        = 0
   }
 
 data Location = Room | Outside | Path | Ship

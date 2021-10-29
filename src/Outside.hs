@@ -43,7 +43,7 @@ arrival game =
 
 gather :: Game -> Game
 gather game =
-  let amountToGather = if view (stored . carts) game > 0 then 50 else 10
+  let amountToGather = if view (stored . cart) game > 0 then 50 else 10
       woodGathered =
         game & over (stored . wood) (+ amountToGather)
              & updateEvents GatherWood gatherCooldown
@@ -78,7 +78,7 @@ checkTraps randomGen game =
         , (1,  (charm,  "a crudely made charm"))
         ]
 
-      numTraps = view (stored . traps) game
+      numTraps = view (stored . trap) game
       numBait = view (stored . bait) game
       additionalDrops = min numTraps numBait
       numDrops = numTraps + additionalDrops
@@ -101,4 +101,4 @@ checkTraps randomGen game =
      & over (stored . bait) (subtract additionalDrops)
 
 maxPopulation :: Game -> Int
-maxPopulation game = view (stored . huts) game * 4
+maxPopulation game = view (stored . hut) game * 4

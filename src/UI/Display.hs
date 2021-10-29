@@ -29,8 +29,8 @@ forestStores game width =
   let showBuildings = view (uiState . showForestBuildings) game
       getStored getter = view (stored . getter) game
       buildings = [(name, show amount)| (name, amount, itemShouldBeShown) <-
-        [ ("cart", getStored carts, getStored carts > 0)
-        , ("trap", getStored traps, getStored traps > 0)
+        [ ("cart", getStored cart, getStored cart > 0)
+        , ("trap", getStored trap, getStored trap > 0)
         ], itemShouldBeShown]
       currentPopulation = view (stored . people) game
       maxPopulation = Outside.maxPopulation game
@@ -107,11 +107,11 @@ buildButtons game =
   let buildMenuUnlocked  = view (milestones . trapsUnlocked) game
       buildCartsUnlocked = view (milestones . cartsUnlocked) game
 
-      fullOnTraps = view (stored . traps) game >= maximumNumberOfTraps
+      fullOnTraps = view (stored . trap) game >= maximumNumberOfTraps
       trapButton = if fullOnTraps
                    then greyedButton "trap"
                    else actionButton game TrapButton "trap"
-      cartIsBuilt = view (stored . carts) game > 0
+      cartIsBuilt = view (stored . cart) game > 0
       cartButton = if cartIsBuilt then greyedButton "cart"
                    else actionButton game CartButton "cart"
       buildables = if buildCartsUnlocked then trapButton <=> cartButton
@@ -152,7 +152,7 @@ drawForest game =
         _gatherWood "gather wood" GatherButton gatherCooldown
       checkTrapsButton = buttonWithCoolDown game
         _checkTraps "check traps" CheckTrapsButton checkTrapsCooldown
-      haveTraps = view (stored . traps) game > 0
+      haveTraps = view (stored . trap) game > 0
       buttons = if haveTraps then vBox [gatherWoodButton, checkTrapsButton]
                 else gatherWoodButton
 

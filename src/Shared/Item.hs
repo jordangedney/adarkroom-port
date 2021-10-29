@@ -30,7 +30,7 @@ data Item
   | Smokehouse
   | Workshop
   | Steelworks
-  | Armoury
+  | Armory
   | Torch
   | Waterskin
   | Cask
@@ -39,9 +39,9 @@ data Item
   | Rucksack
   | Wagon
   | Convoy
-  | LeatherArmour
-  | IronArmour
-  | SteelArmour
+  | LeatherArmor
+  | IronArmor
+  | SteelArmor
   | IronSword
   | SteelSword
   | Rifle

@@ -18,6 +18,7 @@ import qualified Room.Event as RE
 import qualified Outside as Outside
 
 import qualified RandomEvent
+import Shared.Item
 
 handleEventWrapper :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEventWrapper game event =

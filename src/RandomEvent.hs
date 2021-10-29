@@ -13,7 +13,7 @@ import Shared.Util
 
 import Room.Event
 
-import Util (randomChoice, choice, notifyRoom)
+import Util (randomChoice, choice, notifyRoom, costMsg)
 
 availableEvents :: Game -> [Scene]
 availableEvents g = [e | (e, p) <- evs, p]
@@ -39,9 +39,6 @@ doRandomEvent game randomGen =
             [] -> updated
             es -> let ev = choice randomGen es
                  in updated & set inEvent (Just ev) & addReward (currentScene ev)
-
-getItem :: Functor f => Item -> (Int -> f Int) -> Game -> f Game
-getItem i = stored . item i
 
 doSceneChoice :: StdGen -> Maybe StayOrGo -> Game -> Game
 doSceneChoice _ Nothing game = game & set inEvent Nothing
@@ -91,10 +88,3 @@ handleButton r (SceneChoice _ cs next) game =
     tryingToBuyCompassTwice costs g =
       (filter (\(c, amt) -> c == Compass && amt == 0) costs & null & not)
       && ((view (stored . compass) g) == 1)
-
-    costMsg [] g = g
-    -- Handle the hidden requirement allowing players to only buy one compass
-    costMsg ((Compass, 0):xs) g = costMsg xs g
-    costMsg ((i, cost'):xs) g =
-      notifyRoom ("not enough " <> itemToStr i <> " (" <> show cost' <> ").") g
-      & costMsg xs

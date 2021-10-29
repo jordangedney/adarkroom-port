@@ -12,8 +12,8 @@ events g =
   , (theNomad,         view location g == Room && view (stored . fur) g > 0)
   , (noisesOutside,    view location g == Room && view (stored . wood) g > 15)
   , (noisesInside,     view location g == Room && view (stored . wood) g > 15)
-  , (theShadyBuilder,  view location g == Room && view (stored . huts) g > 4
-                                              && view (stored . huts) g < 20)
+  , (theShadyBuilder,  view location g == Room && view (stored . hut) g > 4
+                                              && view (stored . hut) g < 20)
   ]
 
 theBeggar :: Scene

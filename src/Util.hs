@@ -11,6 +11,7 @@ import Safe (headDef)
 import System.Random (StdGen, randomR)
 
 import Control.Lens (over, set, view, (&), (%=), use, (.=))
+import Shared.Item (Item(..))
 
 count :: Eq a => a -> [a] -> Int
 count x = length . filter (x ==)
@@ -84,3 +85,21 @@ updateEvents event time = over upcomingEvents (set (eventGetter event) (event, t
 updateEvent :: GameEvent -> Int -> DarkRoom
 updateEvent event time = do
   upcomingEvents.eventGetter event .= (event, time)
+
+itemToStr :: Item -> String
+itemToStr Fur     = "fur"
+itemToStr Cloth   = "cloth"
+itemToStr Scale   = "scales"
+itemToStr Teeth   = "teeth"
+itemToStr Bait    = "bait"
+itemToStr Compass = "compass"
+itemToStr Wood = "wood"
+itemToStr Hut = "hut"
+
+costMsg :: (Eq a, Num a, Show a) => [(Item, a)] -> Game -> Game
+costMsg [] g = g
+-- Handle the hidden requirement allowing players to only buy one compass
+costMsg ((Compass, 0):xs) g = costMsg xs g
+costMsg ((i, cost'):xs) g =
+  notifyRoom ("not enough " <> itemToStr i <> " (" <> show cost' <> ").") g
+  & costMsg xs
