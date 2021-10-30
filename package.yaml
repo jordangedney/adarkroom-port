@@ -38,6 +38,7 @@ library:
   - yaml
   - safe
   - random
+  - mtl
 
 executables:
   a-dark-room-exe:
