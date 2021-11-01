@@ -13,18 +13,19 @@ module Room.Builder
   )
 where
 
-import Control.Monad.State (State, execState, get, state, modify, gets, forM, forM_, put)
+-- import Control.Monad.State (State, execState, get, state, modify, gets, forM, forM_, put)
+import Control.Monad.State
 import Control.Lens hiding (pre)
-import Control.Monad (unless, when)
+-- import Control.Monad (unless, when)
 
 import Shared.UI (showForestBuildings)
 import Shared.Game
-import Shared.GameEvent (GameEvent(..), eventGetter)
+import Shared.GameEvent (GameEvent(..))
 import Shared.Constants
 import Shared.Item
 import Shared.Util
 
-import Util (notifyRoom, updateEvents, notifyRoom', updateEvent, costMsg)
+import Util (notifyRoom, notifyRoom', updateEvent, costMsg)
 
 showState :: BuilderState -> String
 showState Approaching =

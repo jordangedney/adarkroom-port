@@ -10,7 +10,7 @@ import           SaveGame (load)
 import           UI.Display (drawUI)
 import           UI.Components (theMap)
 import           Shared.UI (Name)
-import           Shared.Game (Tick(..), initGame, Game)
+import           Shared.Game (Tick(..), Game)
 import           Event (handleEventWrapper)
 
 
@@ -31,7 +31,7 @@ main = do
   initialVty <- buildVty
   g          <- load
   chan       <- newBChan 10
-  forkIO $ forever $ do
+  _ <- forkIO $ forever $ do
           writeBChan chan Tick
           threadDelay 100000 -- decides how fast your game moves; 1/10 second
 

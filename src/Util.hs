@@ -95,6 +95,7 @@ itemToStr Bait    = "bait"
 itemToStr Compass = "compass"
 itemToStr Wood = "wood"
 itemToStr Hut = "hut"
+itemToStr x = error "item " <> (show x) <> " shouldn't have a cost."
 
 costMsg :: (Eq a, Num a, Show a) => [(Item, a)] -> Game -> Game
 costMsg [] g = g
