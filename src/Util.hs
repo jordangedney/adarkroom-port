@@ -97,6 +97,9 @@ itemToStr Wood = "wood"
 itemToStr Hut = "hut"
 itemToStr x = error "item " <> (show x) <> " shouldn't have a cost."
 
+
+-- >>> print "hello"
+
 costMsg :: (Eq a, Num a, Show a) => [(Item, a)] -> Game -> Game
 costMsg [] g = g
 -- Handle the hidden requirement allowing players to only buy one compass
