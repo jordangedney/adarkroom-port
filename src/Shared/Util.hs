@@ -1,49 +1,55 @@
+{-# LANGUAGE LambdaCase #-}
 module Shared.Util where
 
-import Shared.Item (Item(..))
+import Shared.Item (Item(..), Craftable(..))
 import Shared.Game
 
 import Control.Lens (view)
 
 item :: Functor f => Item -> (Int -> f Int) -> Stored -> f Stored
-item Fur   = fur
-item Cloth = cloth
-item Scale = scales
-item Teeth = teeth
-item Bait = bait
-item Compass = compass
-item Wood = wood
-item Meat = meat
-item Coal = coal
-item Leather = leather
-item Iron = iron
-item Steel = steel
-item Sulphur = sulphur
--- Craftables
-item Trap = trap
-item Cart = cart
-item Hut = hut
-item Lodge = lodge
-item TradingPost = tradingPost
-item Tannery = tannery
-item Smokehouse = smokehouse
-item Workshop = workshop
-item Steelworks = steelworks
-item Armory = armory
-item Torch = torch
-item Waterskin = waterskin
-item Cask = cask
-item WaterTank = waterTank
-item BoneSpear = boneSpear
-item Rucksack = rucksack
-item Wagon = wagon
-item Convoy = convoy
-item LeatherArmor = leatherArmor
-item IronArmor = ironArmor
-item SteelArmor = steelArmor
-item IronSword = ironSword
-item SteelSword = steelSword
-item Rifle = rifle
+item = \case
+  Fur   -> fur
+  Cloth -> cloth
+  Scale -> scales
+  Teeth -> teeth
+  Bait -> bait
+  Compass -> compass
+  Wood -> wood
+  Meat -> meat
+  Coal -> coal
+  Leather -> leather
+  Iron -> iron
+  Steel -> steel
+  Sulphur -> sulphur
+  -- Also craftables
+  HutItem -> hut
+
+craftable :: Functor f => Craftable -> (Int -> f Int) -> Stored -> f Stored
+craftable = \case
+  Trap -> trap
+  Cart -> cart
+  Hut -> hut
+  Lodge -> lodge
+  TradingPost -> tradingPost
+  Tannery -> tannery
+  Smokehouse -> smokehouse
+  Workshop -> workshop
+  Steelworks -> steelworks
+  Armory -> armory
+  Torch -> torch
+  Waterskin -> waterskin
+  Cask -> cask
+  WaterTank -> waterTank
+  BoneSpear -> boneSpear
+  Rucksack -> rucksack
+  Wagon -> wagon
+  Convoy -> convoy
+  LeatherArmor -> leatherArmor
+  IronArmor -> ironArmor
+  SteelArmor -> steelArmor
+  IronSword -> ironSword
+  SteelSword -> steelSword
+  Rifle -> rifle
 
 canAfford :: [(Item, Int)] -> Game -> Bool
 canAfford items game = all afford items
@@ -52,3 +58,6 @@ canAfford items game = all afford items
 
 getItem :: Functor f => Item -> (Int -> f Int) -> Game -> f Game
 getItem i = stored . item i
+
+getCraftable :: Functor f => Craftable -> (Int -> f Int) -> Game -> f Game
+getCraftable i = stored . craftable i

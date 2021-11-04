@@ -94,8 +94,8 @@ itemToStr Teeth   = "teeth"
 itemToStr Bait    = "bait"
 itemToStr Compass = "compass"
 itemToStr Wood = "wood"
-itemToStr Hut = "hut"
-itemToStr x = error "item " <> (show x) <> " shouldn't have a cost."
+itemToStr HutItem = "hut"
+itemToStr x = error "item " <> show x <> " shouldn't have a cost."
 
 
 -- >>> print "hello"

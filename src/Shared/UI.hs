@@ -13,7 +13,7 @@ import Control.Lens (makeLenses)
 import Brick.Types (Location)
 
 import Shared.RandomEvent (SceneChoice)
-import Shared.Item (Item)
+import Shared.Item (Craftable)
 
 deriving instance ToJSON Location
 deriving instance FromJSON Location
@@ -54,32 +54,8 @@ data Name
   | PathButton
   | ShipButton
 
-  -- Craftables
-  | CraftButton Item
-  -- | TrapButton
-  -- | CartButton
-  -- | HutButton
-  -- | LodgeButton
-  -- | TradingPostButton
-  -- | TanneryButton
-  -- | SmokehouseButton
-  -- | WorkshopButton
-  -- | SteelworksButton
-  -- | ArmoryButton
-  -- | TorchButton
-  -- | WaterskinButton
-  -- | CaskButton
-  -- | WaterTankButton
-  -- | BoneSpearButton
-  -- | RucksackButton
-  -- | WagonButton
-  -- | ConvoyButton
-  -- | LeatherArmorButton
-  -- | IronArmorButton
-  -- | SteelArmorButton
-  -- | IronSwordButton
-  -- | SteelSwordButton
-  -- | RifleButton
+  -- Build and craft buttons
+  | CraftButton Craftable
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 data ShowItems = ShowItems

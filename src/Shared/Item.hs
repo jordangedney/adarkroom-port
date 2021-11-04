@@ -20,8 +20,12 @@ data Item
   | Iron
   | Steel
   | Sulphur
-  -- Craftable:
-  | Trap
+  -- XXX Special items to work with random events:
+  | HutItem
+  deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
+
+data Craftable
+  = Trap
   | Cart
   | Hut
   | Lodge

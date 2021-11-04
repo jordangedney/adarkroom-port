@@ -304,7 +304,7 @@ theShadyBuilder = Scene
                    , "\n"
                    ]
           , notification = Nothing
-          , reward = Give [(Hut, 1)]
+          , reward = Give [(HutItem, 1)]
           , choices = [ SceneChoice { choiceTxt = "go home"
                                     , cost = []
                                     , nextScene = Nothing

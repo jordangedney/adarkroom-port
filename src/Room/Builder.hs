@@ -38,8 +38,6 @@ showState = \case
     "the stranger is standing by the fire. "
     <> "she says she can help. says she builds things."
 
---------------------------------------------------------------------------------
-
 builderSucc :: BuilderState -> BuilderState
 builderSucc = \case
   Helping -> Helping
@@ -93,7 +91,7 @@ gatherWood = do
   temp <- use roomTemperature
   unless (temp == Freezing || temp == Cold) (stored.wood += 2)
 
-data Craftable
+data CraftableAttributes
   = Building
      String -- available message
      String -- build message
@@ -107,8 +105,8 @@ data Craftable
      (Int, String) -- max number of constructions
      (Game -> [(Item, Int)]) -- cost
 
-getCraftable :: Item -> Craftable
-getCraftable = \case
+getCraftableAttrs :: Craftable -> CraftableAttributes
+getCraftableAttrs = \case
   Trap -> Resource
     "builder says she can make traps to catch any creatures might still be alive out there."
     "more traps to catch more creatures."
@@ -193,7 +191,6 @@ getCraftable = \case
   Rifle -> Tool
     "black powder and bullets, like the old days."
     [(Wood, 200), (Steel, 50), (Sulphur, 50)]
-  _ -> error "tried to craft a material"
 
 canBuildTraps :: Game -> Game
 canBuildTraps = execState $ do
@@ -210,14 +207,14 @@ canBuildCarts = execState $ do
     (milestones . cartsUnlocked) .= True
     notifyRoom' "builder says she can make a cart for carrying wood"
 
-build :: Item -> Game -> Game
-build i = case getCraftable i of
+build :: Craftable -> Game -> Game
+build i = case getCraftableAttrs i of
   (Building _ b c) -> execState $ go b c
   (Tool b c) -> execState $ go b c
   (Resource _ b (maxNum, maxMsg) costFn) -> execState $ do
     -- traps and huts have variable cost depending on how many exist
     c <- gets costFn
-    numItem <- use (getItem i)
+    numItem <- use (getCraftable i)
 
     if numItem < maxNum then do
       go b c
@@ -235,7 +232,7 @@ build i = case getCraftable i of
       else do
         canBuild <- gets (canAfford cost)
         if canBuild then do
-          getItem i += 1
+          getCraftable i += 1
           forM_ cost $ \(item', amt) -> do
             getItem item' -= amt
           notifyRoom' buildMsg

@@ -107,39 +107,15 @@ buyButtons game =
         <=> hCenter (actionButton game LightButton "light fire")
   in if buyMenuUnlocked then padTop (Pad 4) buyDemo else blank
 
-craftableItems :: [Item]
+craftableItems :: [Craftable]
 craftableItems = [Trap, Cart, Hut, Lodge, TradingPost, Tannery, Smokehouse,
   Workshop, Steelworks, Armory, Torch, Waterskin, Cask, WaterTank, BoneSpear,
   Rucksack, Wagon, Convoy, LeatherArmor, IronArmor, SteelArmor, IronSword,
   SteelSword, Rifle]
 
--- getButton :: Item -> Name
--- getButton =
---   [ (Trap, TrapButton)
---   , (Cart, CartButton)
---   , (Hut, HutButton)
---   , (Lodge, LodgeButton)
---   , (TradingPost, TradingPostButton)
---   , (Tannery, TanneryButton)
---   , (Smokehouse, SmokehouseButton)
---   , (Workshop, WorkshopButton)
---   , (Steelworks, SteelworksButton)
---   , (Armory, ArmoryButton)
---   , (Torch, TorchButton)
---   , (Waterskin, WaterskinButton)
---   , (Cask, CaskButton)
---   , (WaterTank, WaterTankButton)
---   , (BoneSpear, BoneSpearButton)
---   , (Rucksack, RucksackButton)
---   , (Wagon, WagonButton)
---   , (Convoy, ConvoyButton)
---   , (LeatherArmor, LeatherArmorButton)
---   , (IronArmor, IronArmorButton)
---   , (SteelArmor, SteelArmorButton)
---   , (IronSword, IronSwordButton)
---   , (SteelSword, SteelSwordButton)
---   , (Rifle, RifleButton)
---   ]
+buildables :: [Craftable]
+buildables = [Trap, Cart, Hut, Lodge, TradingPost, Tannery, Smokehouse,
+              Workshop, Steelworks, Armory]
 
 buildButtons :: Game -> Widget Name
 buildButtons g@Game{_stored = Stored{..}, _milestones= Milestones{..}} =
@@ -148,9 +124,9 @@ buildButtons g@Game{_stored = Stored{..}, _milestones= Milestones{..}} =
                    else actionButton g (CraftButton Trap) "trap"
       cartButton = if _cart > 0 then greyedButton "cart"
                    else actionButton g (CraftButton Cart) "cart"
-      buildables = if _cartsUnlocked then trapButton <=> cartButton
+      buttons = if _cartsUnlocked then trapButton <=> cartButton
                    else trapButton
-      buildMenu = padTop (Pad 1) (str "build:") <=> buildables
+      buildMenu = padTop (Pad 1) (str "build:") <=> buttons
   in if _trapsUnlocked then buildMenu else blank
 
 drawRoom :: Game -> Widget Name
