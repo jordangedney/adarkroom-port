@@ -1,3 +1,7 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# OPTIONS_GHC -Wno-unused-matches #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE LambdaCase #-}
 module UI.Display where
 
 import Brick
@@ -17,6 +21,7 @@ import UI.RandomEvent
 import UI.Components
 
 import qualified Outside
+import Shared.Item
 
 interleave :: [[a]] -> [a]
 interleave = concat . transpose
@@ -102,24 +107,51 @@ buyButtons game =
         <=> hCenter (actionButton game LightButton "light fire")
   in if buyMenuUnlocked then padTop (Pad 4) buyDemo else blank
 
+craftableItems :: [Item]
+craftableItems = [Trap, Cart, Hut, Lodge, TradingPost, Tannery, Smokehouse,
+  Workshop, Steelworks, Armory, Torch, Waterskin, Cask, WaterTank, BoneSpear,
+  Rucksack, Wagon, Convoy, LeatherArmor, IronArmor, SteelArmor, IronSword,
+  SteelSword, Rifle]
+
+-- getButton :: Item -> Name
+-- getButton =
+--   [ (Trap, TrapButton)
+--   , (Cart, CartButton)
+--   , (Hut, HutButton)
+--   , (Lodge, LodgeButton)
+--   , (TradingPost, TradingPostButton)
+--   , (Tannery, TanneryButton)
+--   , (Smokehouse, SmokehouseButton)
+--   , (Workshop, WorkshopButton)
+--   , (Steelworks, SteelworksButton)
+--   , (Armory, ArmoryButton)
+--   , (Torch, TorchButton)
+--   , (Waterskin, WaterskinButton)
+--   , (Cask, CaskButton)
+--   , (WaterTank, WaterTankButton)
+--   , (BoneSpear, BoneSpearButton)
+--   , (Rucksack, RucksackButton)
+--   , (Wagon, WagonButton)
+--   , (Convoy, ConvoyButton)
+--   , (LeatherArmor, LeatherArmorButton)
+--   , (IronArmor, IronArmorButton)
+--   , (SteelArmor, SteelArmorButton)
+--   , (IronSword, IronSwordButton)
+--   , (SteelSword, SteelSwordButton)
+--   , (Rifle, RifleButton)
+--   ]
+
 buildButtons :: Game -> Widget Name
-buildButtons game =
-  let buildMenuUnlocked  = view (milestones . trapsUnlocked) game
-      buildCartsUnlocked = view (milestones . cartsUnlocked) game
-
-      fullOnTraps = view (stored . trap) game >= maximumNumberOfTraps
-      trapButton = if fullOnTraps
+buildButtons g@Game{_stored = Stored{..}, _milestones= Milestones{..}} =
+  let trapButton = if _trap >= maximumNumberOfTraps
                    then greyedButton "trap"
-                   else actionButton game TrapButton "trap"
-      cartIsBuilt = view (stored . cart) game > 0
-      cartButton = if cartIsBuilt then greyedButton "cart"
-                   else actionButton game CartButton "cart"
-      buildables = if buildCartsUnlocked then trapButton <=> cartButton
+                   else actionButton g (CraftButton Trap) "trap"
+      cartButton = if _cart > 0 then greyedButton "cart"
+                   else actionButton g (CraftButton Cart) "cart"
+      buildables = if _cartsUnlocked then trapButton <=> cartButton
                    else trapButton
-
       buildMenu = padTop (Pad 1) (str "build:") <=> buildables
-
-  in if buildMenuUnlocked then buildMenu else blank
+  in if _trapsUnlocked then buildMenu else blank
 
 drawRoom :: Game -> Widget Name
 drawRoom game =

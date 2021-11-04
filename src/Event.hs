@@ -18,7 +18,6 @@ import qualified Room.Event as RE
 import qualified Outside as Outside
 
 import qualified RandomEvent
-import Shared.Item
 
 handleEventWrapper :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEventWrapper game event =
@@ -94,8 +93,7 @@ handleButtonEvent GatherButton     = Outside.gather
 handleButtonEvent CheckTrapsButton =
   error "This should be handled in handleEventWrapper"
 
-handleButtonEvent TrapButton = Builder.build Trap
-handleButtonEvent CartButton = Builder.build Cart
+handleButtonEvent (CraftButton x) = Builder.build x
 
 handleButtonEvent PathButton = set location Path
 handleButtonEvent ShipButton = set location Ship

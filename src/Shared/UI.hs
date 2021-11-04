@@ -13,6 +13,7 @@ import Control.Lens (makeLenses)
 import Brick.Types (Location)
 
 import Shared.RandomEvent (SceneChoice)
+import Shared.Item (Item)
 
 deriving instance ToJSON Location
 deriving instance FromJSON Location
@@ -54,30 +55,31 @@ data Name
   | ShipButton
 
   -- Craftables
-  | TrapButton
-  | CartButton
-  | HutButton
-  | LodgeButton
-  | TradingPostButton
-  | TanneryButton
-  | SmokehouseButton
-  | WorkshopButton
-  | SteelworksButton
-  | ArmouryButton
-  | TorchButton
-  | WaterskinButton
-  | CaskButton
-  | WatertankButton
-  | BonespearButton
-  | RucksackButton
-  | WagonButton
-  | ConvoyButton
-  | LarmourButton
-  | IarmourButton
-  | SarmourButton
-  | IronswordButton
-  | SteelswordButton
-  | RifleButton
+  | CraftButton Item
+  -- | TrapButton
+  -- | CartButton
+  -- | HutButton
+  -- | LodgeButton
+  -- | TradingPostButton
+  -- | TanneryButton
+  -- | SmokehouseButton
+  -- | WorkshopButton
+  -- | SteelworksButton
+  -- | ArmoryButton
+  -- | TorchButton
+  -- | WaterskinButton
+  -- | CaskButton
+  -- | WaterTankButton
+  -- | BoneSpearButton
+  -- | RucksackButton
+  -- | WagonButton
+  -- | ConvoyButton
+  -- | LeatherArmorButton
+  -- | IronArmorButton
+  -- | SteelArmorButton
+  -- | IronSwordButton
+  -- | SteelSwordButton
+  -- | RifleButton
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 data ShowItems = ShowItems
