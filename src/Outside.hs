@@ -63,8 +63,8 @@ unlockTrapItemView game =
         , (cloth,  showCloth)
         , (charm,  showCharm)
         ]
-      unlockItems = [set (uiState . showItems . shower) True | (getter, shower) <- items,
-                     view (stored . getter) game > 0] ++ [set (uiState . showItems . showBait) True]
+      unlockItems = [set (uiState . shower) True | (getter, shower) <- items,
+                     view (stored . getter) game > 0] ++ [set (uiState . showBait) True]
   in foldr (\update g -> update g) game unlockItems
 
 checkTraps :: StdGen -> Game -> Game

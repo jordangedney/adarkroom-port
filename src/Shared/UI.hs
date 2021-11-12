@@ -58,61 +58,86 @@ data Name
   | CraftButton Craftable
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
-data ShowItems = ShowItems
-  { _showWood       :: Bool
-  , _showIron       :: Bool
-  , _showCoal       :: Bool
-  , _showSteel      :: Bool
-  , _showMedicine   :: Bool
-  , _showBullets    :: Bool
-  , _showEnergyCell :: Bool
-  , _showBolas      :: Bool
-  , _showGrenade    :: Bool
-  , _showBayonet    :: Bool
-  , _showAlienAlloy :: Bool
-  , _showCompass    :: Bool
-  , _showBait       :: Bool
-  , _showFur        :: Bool
-  , _showMeat       :: Bool
-  , _showScales     :: Bool
-  , _showTeeth      :: Bool
-  , _showCloth      :: Bool
-  , _showCharm      :: Bool
-  } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
-
-makeLenses ''ShowItems
-
-showItemsInit :: ShowItems
-showItemsInit = ShowItems
-  { _showWood       = True
-  , _showIron       = False
-  , _showCoal       = False
-  , _showSteel      = False
-  , _showMedicine   = False
-  , _showBullets    = False
-  , _showEnergyCell = False
-  , _showBolas      = False
-  , _showGrenade    = False
-  , _showBayonet    = False
-  , _showAlienAlloy = False
-  , _showCompass    = False
-  , _showBait       = False
-  , _showFur        = False
-  , _showMeat       = False
-  , _showScales     = False
-  , _showTeeth      = False
-  , _showCloth      = False
-  , _showCharm      = False
-  }
-
 data UIState = UIState
-  { _lastReportedClick            :: Maybe (Name, Location)
-  , _showItems                    :: ShowItems
-  , _showStores                   :: Bool
-  , _showOutside                  :: Bool
-  , _showPath                     :: Bool
-  , _showShip                     :: Bool
-  , _showForestBuildings          :: Bool
+  { _lastReportedClick   :: Maybe (Name, Location)
+  , _showStores          :: Bool
+  , _showOutside         :: Bool
+  , _showPath            :: Bool
+  , _showShip            :: Bool
+  , _showForestBuildings :: Bool
+
+  -- Items
+  ,  _showAlienAlloy     :: Bool
+  ,  _showBait           :: Bool
+  ,  _showBayonet        :: Bool
+  ,  _showBolas          :: Bool
+  ,  _showBullets        :: Bool
+  ,  _showCharm          :: Bool
+  ,  _showCloth          :: Bool
+  ,  _showCoal           :: Bool
+  ,  _showCompass        :: Bool
+  ,  _showEnergyCell     :: Bool
+  ,  _showFur            :: Bool
+  ,  _showGrenade        :: Bool
+  ,  _showIron           :: Bool
+  ,  _showMeat           :: Bool
+  ,  _showMedicine       :: Bool
+  ,  _showScales         :: Bool
+  ,  _showSteel          :: Bool
+  ,  _showTeeth          :: Bool
+  ,  _showWood           :: Bool
+
+  -- Craftables
+  , _showTrap            :: Bool
+  , _showCart            :: Bool
+  , _showHut             :: Bool
+  , _showLodge           :: Bool
+  , _showTradingPost     :: Bool
+  , _showTannery         :: Bool
+  , _showSmokehouse      :: Bool
+  , _showWorkshop        :: Bool
+  , _showSteelworks      :: Bool
+  , _showArmory          :: Bool
+  , _showTorch           :: Bool
+  , _showWaterskin       :: Bool
+  , _showCask            :: Bool
+  , _showWaterTank       :: Bool
+  , _showBoneSpear       :: Bool
+  , _showRucksack        :: Bool
+  , _showWagon           :: Bool
+  , _showConvoy          :: Bool
+  , _showLeatherArmor    :: Bool
+  , _showIronArmor       :: Bool
+  , _showSteelArmor      :: Bool
+  , _showIronSword       :: Bool
+  , _showSteelSword      :: Bool
+  , _showRifle           :: Bool
+
+  -- Buttons
+  , _showTrapBtn         :: Bool
+  , _showCartBtn         :: Bool
+  , _showHutBtn          :: Bool
+  , _showLodgeBtn        :: Bool
+  , _showTradingPostBtn  :: Bool
+  , _showTanneryBtn      :: Bool
+  , _showSmokehouseBtn   :: Bool
+  , _showWorkshopBtn     :: Bool
+  , _showSteelworksBtn   :: Bool
+  , _showArmoryBtn       :: Bool
+  , _showTorchBtn        :: Bool
+  , _showWaterskinBtn    :: Bool
+  , _showCaskBtn         :: Bool
+  , _showWaterTankBtn    :: Bool
+  , _showBoneSpearBtn    :: Bool
+  , _showRucksackBtn     :: Bool
+  , _showWagonBtn        :: Bool
+  , _showConvoyBtn       :: Bool
+  , _showLeatherArmorBtn :: Bool
+  , _showIronArmorBtn    :: Bool
+  , _showSteelArmorBtn   :: Bool
+  , _showIronSwordBtn    :: Bool
+  , _showSteelSwordBtn   :: Bool
+  , _showRifleBtn        :: Bool
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''UIState
@@ -120,10 +145,83 @@ makeLenses ''UIState
 uiStateInit :: UIState
 uiStateInit = UIState
   { _lastReportedClick   = Nothing
-  , _showItems           = showItemsInit
   , _showStores          = False
   , _showOutside         = False
   , _showPath            = False
   , _showShip            = False
   , _showForestBuildings = False
+
+  -- Items
+  , _showAlienAlloy      = False
+  , _showBait            = False
+  , _showBayonet         = False
+  , _showBolas           = False
+  , _showBullets         = False
+  , _showCharm           = False
+  , _showCloth           = False
+  , _showCoal            = False
+  , _showCompass         = False
+  , _showEnergyCell      = False
+  , _showFur             = False
+  , _showGrenade         = False
+  , _showIron            = False
+  , _showMeat            = False
+  , _showMedicine        = False
+  , _showScales          = False
+  , _showSteel           = False
+  , _showTeeth           = False
+  , _showWood            = True
+
+  -- Craftables
+  , _showTrap            = False
+  , _showCart            = False
+  , _showHut             = False
+  , _showLodge           = False
+  , _showTradingPost     = False
+  , _showTannery         = False
+  , _showSmokehouse      = False
+  , _showWorkshop        = False
+  , _showSteelworks      = False
+  , _showArmory          = False
+  , _showTorch           = False
+  , _showWaterskin       = False
+  , _showCask            = False
+  , _showWaterTank       = False
+  , _showBoneSpear       = False
+  , _showRucksack        = False
+  , _showWagon           = False
+  , _showConvoy          = False
+  , _showLeatherArmor    = False
+  , _showIronArmor       = False
+  , _showSteelArmor      = False
+  , _showIronSword       = False
+  , _showSteelSword      = False
+  , _showRifle           = False
+
+  -- Buttons
+  , _showTrapBtn         = False
+  , _showCartBtn         = False
+  , _showHutBtn          = False
+  , _showLodgeBtn        = False
+  , _showTradingPostBtn  = False
+  , _showTanneryBtn      = False
+  , _showSmokehouseBtn   = False
+  , _showWorkshopBtn     = False
+  , _showSteelworksBtn   = False
+  , _showArmoryBtn       = False
+  , _showTorchBtn        = False
+  , _showWaterskinBtn    = False
+  , _showCaskBtn         = False
+  , _showWaterTankBtn    = False
+  , _showBoneSpearBtn    = False
+  , _showRucksackBtn     = False
+  , _showWagonBtn        = False
+  , _showConvoyBtn       = False
+  , _showLeatherArmorBtn = False
+  , _showIronArmorBtn    = False
+  , _showSteelArmorBtn   = False
+  , _showIronSwordBtn    = False
+  , _showSteelSwordBtn   = False
+  , _showRifleBtn        = False
+
   }

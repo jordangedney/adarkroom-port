@@ -2,6 +2,7 @@
 {-# OPTIONS_GHC -Wno-unused-matches #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE LambdaCase #-}
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
 module UI.Display where
 
 import Brick
@@ -35,7 +36,7 @@ forestStores game width =
       getStored getter = view (stored . getter) game
       buildings = [(name, show amount)| (name, amount, itemShouldBeShown) <-
         [ ("cart", getStored cart, getStored cart > 0)
-        , ("trap", getStored trap, getStored trap > 0)
+        , ("trap", getStored trap, game ^. uiState . showStoredCraftable Trap)
         ], itemShouldBeShown]
       currentPopulation = view (stored . people) game
       maxPopulation = Outside.maxPopulation game
@@ -74,7 +75,7 @@ storesWindow :: Game -> Int -> Widget Name
 storesWindow game width =
   let showStoreWindow = view (uiState . showStores) game
       getStored getter = view (stored . getter) game
-      should getter = view (uiState . showItems . getter) game
+      should getter = view (uiState . getter) game
       stockpileItems = [(name, show (getStored amount))|
                         (name, amount, itemShouldBeShown) <-
         [ ("wood",   wood,   showWood)
@@ -89,7 +90,6 @@ storesWindow game width =
       showNothing = str (replicate (width + 2) ' ')
       showWindow = storeWidget StoreVP "stores" stockpileItems width
   in if showStoreWindow then showWindow else showNothing
-
 
 craftButtons :: Game -> Widget Name
 craftButtons game =
@@ -113,21 +113,47 @@ craftableItems = [Trap, Cart, Hut, Lodge, TradingPost, Tannery, Smokehouse,
   Rucksack, Wagon, Convoy, LeatherArmor, IronArmor, SteelArmor, IronSword,
   SteelSword, Rifle]
 
-buildables :: [Craftable]
-buildables = [Trap, Cart, Hut, Lodge, TradingPost, Tannery, Smokehouse,
-              Workshop, Steelworks, Armory]
+displayCraftables = \case
+  Trap -> ("trap", showTrap, showTrapBtn)
+  Cart -> ("cart", showCart, showCartBtn)
+  Hut -> ("hut", showHut, showHutBtn)
+  Lodge -> ("lodge", showLodge, showLodgeBtn)
+  TradingPost -> ("trading post", showTradingPost, showTradingPostBtn)
+  Tannery -> ("tannery", showTannery, showTanneryBtn)
+  Smokehouse -> ("smokehouse", showSmokehouse, showSmokehouseBtn)
+  Workshop -> ("workshop", showWorkshop, showWorkshopBtn)
+  Steelworks -> ("steelworks", showSteelworks, showSteelworksBtn)
+  Armory -> ("armory", showArmory, showArmoryBtn)
+  Torch -> ("torch", showTorch, showTorchBtn)
+  Waterskin -> ("waterskin", showWaterskin, showWaterskinBtn)
+  Cask -> ("cask", showCask, showCaskBtn)
+  WaterTank -> ("watertank", showWaterTank, showWaterTankBtn)
+  BoneSpear -> ("bonespear", showBoneSpear, showBoneSpearBtn)
+  Rucksack -> ("rucksack", showRucksack, showRucksackBtn)
+  Wagon -> ("wagon", showWagon, showWagonBtn)
+  Convoy -> ("convoy", showConvoy, showConvoyBtn)
+  LeatherArmor -> ("leather armor", showLeatherArmor, showLeatherArmorBtn)
+  IronArmor -> ("iron armor", showIronArmor, showIronArmorBtn)
+  SteelArmor -> ("steel armor", showSteelArmor, showSteelArmorBtn)
+  IronSword -> ("iron sword", showIronSword, showIronSwordBtn)
+  SteelSword -> ("steel sword", showSteelSword, showSteelSwordBtn)
+  Rifle -> ("rifle", showRifle, showRifleBtn)
+
+craftableName = (\(x, _, _) -> x) . displayCraftables
+showStoredCraftable = (\(_, x, _) -> x) . displayCraftables
+showCraftable = (\(_, _, x) -> x) . displayCraftables
 
 buildButtons :: Game -> Widget Name
 buildButtons g@Game{_stored = Stored{..}, _milestones= Milestones{..}} =
   let trapButton = if _trap >= maximumNumberOfTraps
                    then greyedButton "trap"
-                   else actionButton g (CraftButton Trap) "trap"
+                   else actionButton g (CraftButton Trap) (craftableName Trap)
       cartButton = if _cart > 0 then greyedButton "cart"
                    else actionButton g (CraftButton Cart) "cart"
       buttons = if _cartsUnlocked then trapButton <=> cartButton
                    else trapButton
       buildMenu = padTop (Pad 1) (str "build:") <=> buttons
-  in if _trapsUnlocked then buildMenu else blank
+  in if g ^. (uiState . showCraftable Trap) then buildMenu else blank
 
 drawRoom :: Game -> Widget Name
 drawRoom game =
