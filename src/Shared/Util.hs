@@ -27,6 +27,14 @@ item = \case
   -- Also craftables
   HutItem -> hut
 
+canAfford :: [(Item, Int)] -> Game -> Bool
+canAfford items game = all afford items
+  where afford (Compass, 0) = view (stored . compass) game == 0
+        afford (i, amnt) = view (stored . item i) game >= amnt
+
+getItem :: Functor f => Item -> (Int -> f Int) -> Game -> f Game
+getItem i = stored . item i
+
 craftable :: Functor f => Craftable -> (Int -> f Int) -> Stored -> f Stored
 craftable = \case
   Trap -> trap
@@ -54,17 +62,8 @@ craftable = \case
   SteelSword -> steelSword
   Rifle -> rifle
 
-canAfford :: [(Item, Int)] -> Game -> Bool
-canAfford items game = all afford items
-  where afford (Compass, 0) = view (stored . compass) game == 0
-        afford (i, amnt) = view (stored . item i) game >= amnt
-
-getItem :: Functor f => Item -> (Int -> f Int) -> Game -> f Game
-getItem i = stored . item i
-
-getCraftable :: Functor f => Craftable -> (Int -> f Int) -> Game -> f Game
-getCraftable i = stored . craftable i
-
+-- I'm not sure why, but the types don't work out when I try to combine this
+-- with the craftable function above.
 displayCraftables = \case
   Trap -> ("trap", showTrap, showTrapBtn)
   Cart -> ("cart", showCart, showCartBtn)
@@ -90,13 +89,17 @@ displayCraftables = \case
   IronSword -> ("iron sword", showIronSword, showIronSwordBtn)
   SteelSword -> ("steel sword", showSteelSword, showSteelSwordBtn)
   Rifle -> ("rifle", showRifle, showRifleBtn)
+
+getCraftable :: Functor f => Craftable -> (Int -> f Int) -> Game -> f Game
+getCraftable i = stored . craftable i
+
 craftableName :: Craftable -> String
 craftableName = (\(x, _, _) -> x) . displayCraftables
 
-showStoredCraftable :: Game -> Craftable -> Bool
-showStoredCraftable g c = g ^. (uiState . go c)
+craftableShowStored :: Game -> Craftable -> Bool
+craftableShowStored g c = g ^. (uiState . go c)
   where go = (\(_, x, _) -> x) . displayCraftables
 
-displayBuildBtn :: Game -> Craftable -> Bool
-displayBuildBtn g c = g ^. (uiState . go c)
+craftableShowBtn :: Game -> Craftable -> Bool
+craftableShowBtn g c = g ^. (uiState . go c)
   where go = (\(_, _, x) -> x) . displayCraftables

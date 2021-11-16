@@ -36,7 +36,7 @@ forestStores game width =
       getStored getter = view (stored . getter) game
       buildings = [(name, show amount)| (name, amount, itemShouldBeShown) <-
         [ ("cart", getStored cart, getStored cart > 0)
-        , ("trap", getStored trap, showStoredCraftable game Trap)
+        , ("trap", getStored trap, craftableShowStored game Trap)
         ], itemShouldBeShown]
       currentPopulation = view (stored . people) game
       maxPopulation = Outside.maxPopulation game
@@ -115,7 +115,7 @@ buildButtons g =
 
       tooMany c = g ^. getCraftable c >= maxNumCraftable c
 
-      toBuild = filter (displayBuildBtn g) buildables
+      toBuild = filter (craftableShowBtn g) buildables
 
       mkButton c = if tooMany c
                    then greyedButton (craftableName c)
