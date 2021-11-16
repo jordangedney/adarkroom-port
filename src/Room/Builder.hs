@@ -207,6 +207,10 @@ canBuildCarts = execState $ do
     (uiState . showCartBtn) .= True
     notifyRoom' "builder says she can make a cart for carrying wood"
 
+-- updateBuildables :: Game -> Game
+-- updateBuildables = execState $ do
+
+
 build :: Craftable -> Game -> Game
 build i = case getCraftableAttrs i of
   (Building _ b c) -> execState $ go b c

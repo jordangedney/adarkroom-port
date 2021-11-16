@@ -3,11 +3,12 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Shared.UI where
 
-import GHC.Generics
-import Data.Yaml
+import GHC.Generics (Generic)
+import Data.Yaml (FromJSON, ToJSON)
 
 import Control.Lens (makeLenses)
 import Brick.Types (Location)

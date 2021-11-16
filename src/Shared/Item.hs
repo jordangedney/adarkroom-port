@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Shared.Item where
 
@@ -50,3 +51,13 @@ data Craftable
   | SteelSword
   | Rifle
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
+
+buildables :: [Craftable]
+buildables = [Trap, Cart, Hut, Lodge, TradingPost, Tannery, Smokehouse,
+  Workshop, Steelworks, Armory]
+
+craftableItems :: [Craftable]
+craftableItems = [Trap, Cart, Hut, Lodge, TradingPost, Tannery, Smokehouse,
+  Workshop, Steelworks, Armory, Torch, Waterskin, Cask, WaterTank, BoneSpear,
+  Rucksack, Wagon, Convoy, LeatherArmor, IronArmor, SteelArmor, IronSword,
+  SteelSword, Rifle]

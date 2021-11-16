@@ -22,7 +22,7 @@ import UI.Components
 
 import qualified Outside
 import Shared.Item
-import Shared.Util (getCraftable)
+import Shared.Util
 
 interleave :: [[a]] -> [a]
 interleave = concat . transpose
@@ -107,53 +107,6 @@ buyButtons game =
         <=> hCenter (actionButton game LightButton "light fire")
   in if buyMenuUnlocked then padTop (Pad 4) buyDemo else blank
 
-craftableItems :: [Craftable]
-craftableItems = [Trap, Cart, Hut, Lodge, TradingPost, Tannery, Smokehouse,
-  Workshop, Steelworks, Armory, Torch, Waterskin, Cask, WaterTank, BoneSpear,
-  Rucksack, Wagon, Convoy, LeatherArmor, IronArmor, SteelArmor, IronSword,
-  SteelSword, Rifle]
-
-displayCraftables :: Craftable
-  -> ([Char],
-      (Bool -> Const Bool Bool) -> UIState -> Const Bool UIState,
-      (Bool -> Const Bool Bool) -> UIState -> Const Bool UIState)
-displayCraftables = \case
-  Trap -> ("trap", showTrap, showTrapBtn)
-  Cart -> ("cart", showCart, showCartBtn)
-  Hut -> ("hut", showHut, showHutBtn)
-  Lodge -> ("lodge", showLodge, showLodgeBtn)
-  TradingPost -> ("trading post", showTradingPost, showTradingPostBtn)
-  Tannery -> ("tannery", showTannery, showTanneryBtn)
-  Smokehouse -> ("smokehouse", showSmokehouse, showSmokehouseBtn)
-  Workshop -> ("workshop", showWorkshop, showWorkshopBtn)
-  Steelworks -> ("steelworks", showSteelworks, showSteelworksBtn)
-  Armory -> ("armory", showArmory, showArmoryBtn)
-  Torch -> ("torch", showTorch, showTorchBtn)
-  Waterskin -> ("waterskin", showWaterskin, showWaterskinBtn)
-  Cask -> ("cask", showCask, showCaskBtn)
-  WaterTank -> ("watertank", showWaterTank, showWaterTankBtn)
-  BoneSpear -> ("bonespear", showBoneSpear, showBoneSpearBtn)
-  Rucksack -> ("rucksack", showRucksack, showRucksackBtn)
-  Wagon -> ("wagon", showWagon, showWagonBtn)
-  Convoy -> ("convoy", showConvoy, showConvoyBtn)
-  LeatherArmor -> ("leather armor", showLeatherArmor, showLeatherArmorBtn)
-  IronArmor -> ("iron armor", showIronArmor, showIronArmorBtn)
-  SteelArmor -> ("steel armor", showSteelArmor, showSteelArmorBtn)
-  IronSword -> ("iron sword", showIronSword, showIronSwordBtn)
-  SteelSword -> ("steel sword", showSteelSword, showSteelSwordBtn)
-  Rifle -> ("rifle", showRifle, showRifleBtn)
-
-craftableName :: Craftable -> String
-craftableName = (\(x, _, _) -> x) . displayCraftables
-
-showStoredCraftable :: Game -> Craftable -> Bool
-showStoredCraftable g c = g ^. (uiState . go c)
-  where go = (\(_, x, _) -> x) . displayCraftables
-
-displayBuildBtn :: Game -> Craftable -> Bool
-displayBuildBtn g c = g ^. (uiState . go c)
-  where go = (\(_, _, x) -> x) . displayCraftables
-
 buildButtons :: Game -> Widget Name
 buildButtons g =
   let maxNumCraftable Trap = maximumNumberOfTraps -- 10
@@ -162,8 +115,6 @@ buildButtons g =
 
       tooMany c = g ^. getCraftable c >= maxNumCraftable c
 
-      buildables = [Trap, Cart, Hut, Lodge, TradingPost, Tannery, Smokehouse,
-                    Workshop, Steelworks, Armory]
       toBuild = filter (displayBuildBtn g) buildables
 
       mkButton c = if tooMany c
