@@ -2,7 +2,6 @@
 {-# OPTIONS_GHC -Wno-unused-matches #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE LambdaCase #-}
-{-# OPTIONS_GHC -Wno-missing-signatures #-}
 module UI.Display where
 
 import Brick
@@ -23,6 +22,7 @@ import UI.Components
 
 import qualified Outside
 import Shared.Item
+import Shared.Util (getCraftable)
 
 interleave :: [[a]] -> [a]
 interleave = concat . transpose
@@ -36,7 +36,7 @@ forestStores game width =
       getStored getter = view (stored . getter) game
       buildings = [(name, show amount)| (name, amount, itemShouldBeShown) <-
         [ ("cart", getStored cart, getStored cart > 0)
-        , ("trap", getStored trap, game ^. uiState . showStoredCraftable Trap)
+        , ("trap", getStored trap, showStoredCraftable game Trap)
         ], itemShouldBeShown]
       currentPopulation = view (stored . people) game
       maxPopulation = Outside.maxPopulation game
@@ -113,6 +113,10 @@ craftableItems = [Trap, Cart, Hut, Lodge, TradingPost, Tannery, Smokehouse,
   Rucksack, Wagon, Convoy, LeatherArmor, IronArmor, SteelArmor, IronSword,
   SteelSword, Rifle]
 
+displayCraftables :: Craftable
+  -> ([Char],
+      (Bool -> Const Bool Bool) -> UIState -> Const Bool UIState,
+      (Bool -> Const Bool Bool) -> UIState -> Const Bool UIState)
 displayCraftables = \case
   Trap -> ("trap", showTrap, showTrapBtn)
   Cart -> ("cart", showCart, showCartBtn)
@@ -139,21 +143,35 @@ displayCraftables = \case
   SteelSword -> ("steel sword", showSteelSword, showSteelSwordBtn)
   Rifle -> ("rifle", showRifle, showRifleBtn)
 
+craftableName :: Craftable -> String
 craftableName = (\(x, _, _) -> x) . displayCraftables
-showStoredCraftable = (\(_, x, _) -> x) . displayCraftables
-showCraftable = (\(_, _, x) -> x) . displayCraftables
+
+showStoredCraftable :: Game -> Craftable -> Bool
+showStoredCraftable g c = g ^. (uiState . go c)
+  where go = (\(_, x, _) -> x) . displayCraftables
+
+displayBuildBtn :: Game -> Craftable -> Bool
+displayBuildBtn g c = g ^. (uiState . go c)
+  where go = (\(_, _, x) -> x) . displayCraftables
 
 buildButtons :: Game -> Widget Name
-buildButtons g@Game{_stored = Stored{..}, _milestones= Milestones{..}} =
-  let trapButton = if _trap >= maximumNumberOfTraps
-                   then greyedButton "trap"
-                   else actionButton g (CraftButton Trap) (craftableName Trap)
-      cartButton = if _cart > 0 then greyedButton "cart"
-                   else actionButton g (CraftButton Cart) "cart"
-      buttons = if _cartsUnlocked then trapButton <=> cartButton
-                   else trapButton
+buildButtons g =
+  let maxNumCraftable Trap = maximumNumberOfTraps -- 10
+      maxNumCraftable Hut = maximumNumberOfHuts   -- 20
+      maxNumCraftable _ = 1
+
+      tooMany c = g ^. getCraftable c >= maxNumCraftable c
+
+      buildables = [Trap, Cart, Hut, Lodge, TradingPost, Tannery, Smokehouse,
+                    Workshop, Steelworks, Armory]
+      toBuild = filter (displayBuildBtn g) buildables
+
+      mkButton c = if tooMany c
+                   then greyedButton (craftableName c)
+                   else actionButton g (CraftButton c) (craftableName c)
+      buttons = vBox (map mkButton toBuild)
       buildMenu = padTop (Pad 1) (str "build:") <=> buttons
-  in if g ^. (uiState . showCraftable Trap) then buildMenu else blank
+  in if null toBuild then blank else buildMenu
 
 drawRoom :: Game -> Widget Name
 drawRoom game =

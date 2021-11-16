@@ -15,7 +15,7 @@ where
 import Control.Monad.State
 import Control.Lens hiding (pre)
 
-import Shared.UI (showForestBuildings)
+import Shared.UI
 import Shared.Game
 import Shared.GameEvent (GameEvent(..))
 import Shared.Constants
@@ -110,7 +110,7 @@ getCraftableAttrs = \case
   Trap -> Resource
     "builder says she can make traps to catch any creatures might still be alive out there."
     "more traps to catch more creatures."
-    (10, "more traps won't help now.")
+    (maximumNumberOfTraps, "more traps won't help now.")
     (\g -> [(Wood, (view (stored . trap) g * 10) + 10)])
   Cart -> Building
     "builder says she can make a cart for carrying wood."
@@ -119,7 +119,7 @@ getCraftableAttrs = \case
   Hut -> Resource
     "builder says there are more wanderers. says they'll work, too."
     "builder puts up a hut, out in the forest. says word will get around."
-    (20, "no more room for huts.")
+    (maximumNumberOfHuts, "no more room for huts.")
     (\g -> [(Wood, (view (stored . hut) g * 50) + 100)])
   Lodge -> Building
     "villagers could help hunt, given the means."
@@ -194,17 +194,17 @@ getCraftableAttrs = \case
 
 canBuildTraps :: Game -> Game
 canBuildTraps = execState $ do
-  (milestones . trapsUnlocked) .= True
+  (uiState . showTrapBtn) .= True
   notifyRoom' ("builder says she can make traps to catch any creatures "
               <> "might still be alive out there.")
 
 canBuildCarts :: Game -> Game
 canBuildCarts = execState $ do
   pre <- use (milestones . preCartsUnlocked)
-  post <- use (milestones . cartsUnlocked)
+  post <- use (uiState . showCartBtn)
   -- unlocking a cart is a 3 stage progress- this takes you from stage 2 -> 3
   when (pre && not post) $ do
-    (milestones . cartsUnlocked) .= True
+    (uiState . showCartBtn) .= True
     notifyRoom' "builder says she can make a cart for carrying wood"
 
 build :: Craftable -> Game -> Game

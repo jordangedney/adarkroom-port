@@ -8,6 +8,7 @@ module Shared.Constants
   , builderGatherDelay
   , unlockTrapsDelay
   , maximumNumberOfTraps
+  , maximumNumberOfHuts
   , checkTrapsCooldown
   )
 where
@@ -18,6 +19,9 @@ checkTrapsCooldown = seconds 90
 
 maximumNumberOfTraps :: Int
 maximumNumberOfTraps = 10
+
+maximumNumberOfHuts :: Int
+maximumNumberOfHuts = 10
 
 -- builder starts helping -> traps can be build
 unlockTrapsDelay :: Int
