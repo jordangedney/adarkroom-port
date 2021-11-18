@@ -55,3 +55,4 @@ arrival game =
        & clearRoomBacklog
        & Builder.canHelp
        & Builder.canBuildCarts
+       & Builder.updateBuildables

@@ -9,6 +9,7 @@ module Room.Builder
   , canBuildTraps
   , canBuildCarts
   , build
+  , updateBuildables
   )
 where
 
@@ -207,9 +208,30 @@ canBuildCarts = execState $ do
     (uiState . showCartBtn) .= True
     notifyRoom' "builder says she can make a cart for carrying wood"
 
--- updateBuildables :: Game -> Game
--- updateBuildables = execState $ do
+updateBuildables :: Game -> Game
+updateBuildables = execState $ do
+  g <- get
+  let notBuildable = filter (not . craftableShowBtn g) buildables
 
+      nearlyAfford :: [(Item, Int)] -> Bool
+      nearlyAfford [] = True
+      nearlyAfford ((Wood, c):cs) =
+        g ^. (stored . wood) >= c `div` 2 && nearlyAfford cs
+      nearlyAfford ((i, _):cs) =
+        -- TODO: This needs to be changed to 'has ever been seen' but instead of
+        -- hardcoding the stored items marking flags I should just use a
+        -- dictionary to store the items in and then check their existence. As
+        -- it is now, just check if we have one.
+        g ^. getItem i >= 1 && nearlyAfford cs
+
+  forM_ notBuildable $ \c -> do
+    let (msg, cost) = case getCraftableAttrs c of
+                        (Building a _ cost') -> (a, cost')
+                        (Resource a _ _ costFn) -> (a, costFn g)
+                        _ -> error $ "Unexpected item "<> show c
+    when (nearlyAfford cost) $ do
+      (uiState . craftableReady c) .= True
+      notifyRoom' msg
 
 build :: Craftable -> Game -> Game
 build i = case getCraftableAttrs i of

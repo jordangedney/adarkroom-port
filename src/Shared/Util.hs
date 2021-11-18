@@ -101,5 +101,34 @@ craftableShowStored g c = g ^. (uiState . go c)
   where go = (\(_, x, _) -> x) . displayCraftables
 
 craftableShowBtn :: Game -> Craftable -> Bool
-craftableShowBtn g c = g ^. (uiState . go c)
-  where go = (\(_, _, x) -> x) . displayCraftables
+craftableShowBtn g c = g ^. (uiState . craftableShowBtn' c)
+
+craftableShowBtn' = (\(_, _, x) -> x) . displayCraftables
+
+craftableReady :: Functor f =>
+  Craftable -> (Bool -> f Bool) -> UIState  -> f UIState
+craftableReady = \case
+  Trap -> showTrapBtn
+  Cart -> showCartBtn
+  Hut -> showHutBtn
+  Lodge -> showLodgeBtn
+  TradingPost -> showTradingPostBtn
+  Tannery -> showTanneryBtn
+  Smokehouse -> showSmokehouseBtn
+  Workshop -> showWorkshopBtn
+  Steelworks -> showSteelworksBtn
+  Armory -> showArmoryBtn
+  Torch -> showTorchBtn
+  Waterskin -> showWaterskinBtn
+  Cask -> showCaskBtn
+  WaterTank -> showWaterTankBtn
+  BoneSpear -> showBoneSpearBtn
+  Rucksack -> showRucksackBtn
+  Wagon -> showWagonBtn
+  Convoy -> showConvoyBtn
+  LeatherArmor -> showLeatherArmorBtn
+  IronArmor -> showIronArmorBtn
+  SteelArmor -> showSteelArmorBtn
+  IronSword -> showIronSwordBtn
+  SteelSword -> showSteelSwordBtn
+  Rifle -> showRifleBtn
