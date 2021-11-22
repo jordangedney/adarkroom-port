@@ -1,10 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE StandaloneDeriving #-}
 
 module Shared.Game where
+
 
 import GHC.Generics
 import Data.Yaml
@@ -164,20 +163,6 @@ data Location = Room | Outside | Path | Ship
 
 data Storable = I Item | C Craftable
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON, ToJSONKey, FromJSONKey)
-
--- instance ToJSON Storable where
---   toJSON (I x) = object [pack "item" .= x]
---   toJSON (C x) = object [pack "craftable" .= x]
---
--- instance FromJSON Storable where
---   parseJSON = withObject "Storable" $ \obj -> do
---     item <- obj .:? pack "item"
---     craftable <- obj .:? pack "craftable"
---     case item of
---       Nothing -> case craftable of
---         Nothing -> fail "wtf"
---         Just c -> return $ C c
---       Just i -> return $ I i
 
 data Game = Game
   { _location           :: Location
