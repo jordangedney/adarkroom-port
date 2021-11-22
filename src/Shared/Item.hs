@@ -1,11 +1,14 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskellQuotes #-}
 
 module Shared.Item where
 
 import GHC.Generics
 import Data.Yaml
+import Data.Aeson.Types (ToJSONKey, FromJSONKey)
+import Data.Char (isUpper, toLower)
 
 data Item
   = Fur
@@ -21,12 +24,8 @@ data Item
   | Iron
   | Steel
   | Sulphur
-  -- XXX Special items to work with random events:
-  | HutItem
-  deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
-
-data Craftable
-  = Trap
+  -- Craftables:
+  | Trap
   | Cart
   | Hut
   | Lodge
@@ -50,13 +49,17 @@ data Craftable
   | IronSword
   | SteelSword
   | Rifle
-  deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
+  deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON, ToJSONKey, FromJSONKey)
 
-buildables :: [Craftable]
+itemToStr :: Item -> String
+itemToStr = tail . foldr go [] . show
+  where go l r = if isUpper l then ' ' : toLower l : r else l : r
+
+buildables :: [Item]
 buildables = [Trap, Cart, Hut, Lodge, TradingPost, Tannery, Smokehouse,
   Workshop, Steelworks, Armory]
 
-craftableItems :: [Craftable]
+craftableItems :: [Item]
 craftableItems = [Trap, Cart, Hut, Lodge, TradingPost, Tannery, Smokehouse,
   Workshop, Steelworks, Armory, Torch, Waterskin, Cask, WaterTank, BoneSpear,
   Rucksack, Wagon, Convoy, LeatherArmor, IronArmor, SteelArmor, IronSword,

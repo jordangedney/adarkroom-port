@@ -14,7 +14,7 @@ import Control.Lens (makeLenses)
 import Brick.Types (Location)
 
 import Shared.RandomEvent (SceneChoice)
-import Shared.Item (Craftable)
+import Shared.Item (Item)
 
 deriving instance ToJSON Location
 deriving instance FromJSON Location
@@ -56,7 +56,7 @@ data Name
   | ShipButton
 
   -- Build and craft buttons
-  | CraftButton Craftable
+  | CraftButton Item
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 data UIState = UIState

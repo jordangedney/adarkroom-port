@@ -7,7 +7,6 @@ module Shared.Game where
 
 import GHC.Generics
 import Data.Yaml
-import Data.Aeson.Types (ToJSONKey, FromJSONKey)
 
 import Control.Lens (makeLenses)
 import Control.Monad.State (State)
@@ -161,13 +160,10 @@ storedInit = Stored
 data Location = Room | Outside | Path | Ship
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
-data Storable = I Item | C Craftable
-  deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON, ToJSONKey, FromJSONKey)
-
 data Game = Game
   { _location           :: Location
   , _stored             :: Stored
-  , _storables          :: Map.Map Storable Int
+  , _storables          :: Map.Map Item Int
   , _upcomingEvents     :: GameEvents
   , _events             :: [(String, Int)]
   , _roomEventBacklog   :: [String]
@@ -199,7 +195,7 @@ initGame :: Game
 initGame                = Game
   { _location           = Room
   , _stored             = storedInit
-  , _storables          = Map.fromList [(I Wood, 15)]
+  , _storables          = Map.fromList [(Wood, 15)]
   , _upcomingEvents     = gameEventsInit
   , _events             = []
   , _roomEventBacklog   = []

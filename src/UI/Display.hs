@@ -36,7 +36,7 @@ forestStores game width =
       getStored getter = view (stored . getter) game
       buildings = [(name, show amount)| (name, amount, itemShouldBeShown) <-
         [ ("cart", getStored cart, getStored cart > 0)
-        , ("trap", getStored trap, craftableShowStored game Trap)
+        , ("trap", getStored trap, getStored trap > 0)
         ], itemShouldBeShown]
       currentPopulation = view (stored . people) game
       maxPopulation = Outside.maxPopulation game
@@ -113,13 +113,13 @@ buildButtons g =
       maxNumCraftable Hut = maximumNumberOfHuts   -- 20
       maxNumCraftable _ = 1
 
-      tooMany c = g ^. getCraftable c >= maxNumCraftable c
+      tooMany c = g ^. getItem c >= maxNumCraftable c
 
-      toBuild = filter (craftableShowBtn g) buildables
+      toBuild = filter (\i -> g ^. craftableReady i) buildables
 
       mkButton c = if tooMany c
-                   then greyedButton (craftableName c)
-                   else actionButton g (CraftButton c) (craftableName c)
+                   then greyedButton (itemToStr c)
+                   else actionButton g (CraftButton c) (itemToStr c)
       buttons = vBox (map mkButton toBuild)
       buildMenu = padTop (Pad 1) (str "build:") <=> buttons
   in if null toBuild then blank else buildMenu

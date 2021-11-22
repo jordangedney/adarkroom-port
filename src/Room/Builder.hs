@@ -106,7 +106,7 @@ data CraftableAttributes
      (Int, String) -- max number of constructions
      (Game -> [(Item, Int)]) -- cost
 
-getCraftableAttrs :: Craftable -> CraftableAttributes
+getCraftableAttrs :: Item -> CraftableAttributes
 getCraftableAttrs = \case
   Trap -> Resource
     "builder says she can make traps to catch any creatures might still be alive out there."
@@ -192,6 +192,7 @@ getCraftableAttrs = \case
   Rifle -> Tool
     "black powder and bullets, like the old days."
     [(Wood, 200), (Steel, 50), (Sulphur, 50)]
+  _ -> error "you done fucked"
 
 canBuildTraps :: Game -> Game
 canBuildTraps = execState $ do
@@ -211,7 +212,7 @@ canBuildCarts = execState $ do
 updateBuildables :: Game -> Game
 updateBuildables = execState $ do
   g <- get
-  let notBuildable = filter (not . craftableShowBtn g) buildables
+  let notBuildable = filter (not . (\i -> g ^. craftableReady i)) buildables
 
       nearlyAfford :: [(Item, Int)] -> Bool
       nearlyAfford [] = True
@@ -230,17 +231,17 @@ updateBuildables = execState $ do
                         (Resource a _ _ costFn) -> (a, costFn g)
                         _ -> error $ "Unexpected item "<> show c
     when (nearlyAfford cost) $ do
-      (uiState . craftableReady c) .= True
+      craftableReady c .= True
       notifyRoom' msg
 
-build :: Craftable -> Game -> Game
+build :: Item -> Game -> Game
 build i = case getCraftableAttrs i of
   (Building _ b c) -> execState $ go b c
   (Tool b c) -> execState $ go b c
   (Resource _ b (maxNum, maxMsg) costFn) -> execState $ do
     -- traps and huts have variable cost depending on how many exist
     c <- gets costFn
-    numItem <- use (getCraftable i)
+    numItem <- use (getItem i)
 
     if numItem < maxNum then do
       go b c
@@ -258,7 +259,7 @@ build i = case getCraftableAttrs i of
       else do
         canBuild <- gets (canAfford cost)
         if canBuild then do
-          getCraftable i += 1
+          getItem i += 1
           forM_ cost $ \(item', amt) -> do
             getItem item' -= amt
           notifyRoom' buildMsg

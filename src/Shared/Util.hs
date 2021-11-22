@@ -4,10 +4,10 @@
 module Shared.Util where
 
 import Shared.UI
-import Shared.Item (Item(..), Craftable(..))
+import Shared.Item (Item(..))
 import Shared.Game
 
-import Control.Lens (view, (^.))
+import Control.Lens
 
 item :: Functor f => Item -> (Int -> f Int) -> Stored -> f Stored
 item = \case
@@ -24,19 +24,7 @@ item = \case
   Iron -> iron
   Steel -> steel
   Sulphur -> sulphur
-  -- Also craftables
-  HutItem -> hut
-
-canAfford :: [(Item, Int)] -> Game -> Bool
-canAfford items game = all afford items
-  where afford (Compass, 0) = view (stored . compass) game == 0
-        afford (i, amnt) = view (stored . item i) game >= amnt
-
-getItem :: Functor f => Item -> (Int -> f Int) -> Game -> f Game
-getItem i = stored . item i
-
-craftable :: Functor f => Craftable -> (Int -> f Int) -> Stored -> f Stored
-craftable = \case
+  -- Craftables:
   Trap -> trap
   Cart -> cart
   Hut -> hut
@@ -62,52 +50,17 @@ craftable = \case
   SteelSword -> steelSword
   Rifle -> rifle
 
--- I'm not sure why, but the types don't work out when I try to combine this
--- with the craftable function above.
-displayCraftables = \case
-  Trap -> ("trap", showTrap, showTrapBtn)
-  Cart -> ("cart", showCart, showCartBtn)
-  Hut -> ("hut", showHut, showHutBtn)
-  Lodge -> ("lodge", showLodge, showLodgeBtn)
-  TradingPost -> ("trading post", showTradingPost, showTradingPostBtn)
-  Tannery -> ("tannery", showTannery, showTanneryBtn)
-  Smokehouse -> ("smokehouse", showSmokehouse, showSmokehouseBtn)
-  Workshop -> ("workshop", showWorkshop, showWorkshopBtn)
-  Steelworks -> ("steelworks", showSteelworks, showSteelworksBtn)
-  Armory -> ("armory", showArmory, showArmoryBtn)
-  Torch -> ("torch", showTorch, showTorchBtn)
-  Waterskin -> ("waterskin", showWaterskin, showWaterskinBtn)
-  Cask -> ("cask", showCask, showCaskBtn)
-  WaterTank -> ("watertank", showWaterTank, showWaterTankBtn)
-  BoneSpear -> ("bonespear", showBoneSpear, showBoneSpearBtn)
-  Rucksack -> ("rucksack", showRucksack, showRucksackBtn)
-  Wagon -> ("wagon", showWagon, showWagonBtn)
-  Convoy -> ("convoy", showConvoy, showConvoyBtn)
-  LeatherArmor -> ("leather armor", showLeatherArmor, showLeatherArmorBtn)
-  IronArmor -> ("iron armor", showIronArmor, showIronArmorBtn)
-  SteelArmor -> ("steel armor", showSteelArmor, showSteelArmorBtn)
-  IronSword -> ("iron sword", showIronSword, showIronSwordBtn)
-  SteelSword -> ("steel sword", showSteelSword, showSteelSwordBtn)
-  Rifle -> ("rifle", showRifle, showRifleBtn)
+canAfford :: [(Item, Int)] -> Game -> Bool
+canAfford items game = all afford items
+  where afford (Compass, 0) = view (stored . compass) game == 0
+        afford (i, amnt) = view (stored . item i) game >= amnt
 
-getCraftable :: Functor f => Craftable -> (Int -> f Int) -> Game -> f Game
-getCraftable i = stored . craftable i
+getItem :: Functor f => Item -> (Int -> f Int) -> Game -> f Game
+getItem i = stored . item i
 
-craftableName :: Craftable -> String
-craftableName = (\(x, _, _) -> x) . displayCraftables
-
-craftableShowStored :: Game -> Craftable -> Bool
-craftableShowStored g c = g ^. (uiState . go c)
-  where go = (\(_, x, _) -> x) . displayCraftables
-
-craftableShowBtn :: Game -> Craftable -> Bool
-craftableShowBtn g c = g ^. (uiState . craftableShowBtn' c)
-
-craftableShowBtn' = (\(_, _, x) -> x) . displayCraftables
-
-craftableReady :: Functor f =>
-  Craftable -> (Bool -> f Bool) -> UIState  -> f UIState
-craftableReady = \case
+itemShowBtn :: Functor f =>
+  Item -> (Bool -> f Bool) -> UIState  -> f UIState
+itemShowBtn = \case
   Trap -> showTrapBtn
   Cart -> showCartBtn
   Hut -> showHutBtn
@@ -132,3 +85,7 @@ craftableReady = \case
   IronSword -> showIronSwordBtn
   SteelSword -> showSteelSwordBtn
   Rifle -> showRifleBtn
+  _ -> error "you done fucked"
+
+-- craftableReady :: Functor f => Item -> (Int -> f Int) -> Game -> f Game
+craftableReady i = uiState . itemShowBtn i

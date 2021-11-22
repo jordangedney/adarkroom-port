@@ -11,7 +11,7 @@ import Safe (headDef)
 import System.Random (StdGen, randomR)
 
 import Control.Lens (over, set, view, (&), (%=), use, (.=))
-import Shared.Item (Item(..))
+import Shared.Item (Item(..), itemToStr)
 
 count :: Eq a => a -> [a] -> Int
 count x = length . filter (x ==)
@@ -85,19 +85,6 @@ updateEvents event time = over upcomingEvents (set (eventGetter event) (event, t
 updateEvent :: GameEvent -> Int -> DarkRoom
 updateEvent event time = do
   upcomingEvents.eventGetter event .= (event, time)
-
-itemToStr :: Item -> String
-itemToStr Fur     = "fur"
-itemToStr Cloth   = "cloth"
-itemToStr Scale   = "scales"
-itemToStr Teeth   = "teeth"
-itemToStr Bait    = "bait"
-itemToStr Compass = "compass"
-itemToStr Wood = "wood"
-itemToStr HutItem = "hut"
-itemToStr x = error "item " <> show x <> " shouldn't have a cost."
-
--- >>> print "hello"
 
 costMsg :: (Eq a, Num a, Show a) => [(Item, a)] -> Game -> Game
 costMsg [] g = g
