@@ -2,11 +2,13 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module Shared.Game where
 
 import GHC.Generics
 import Data.Yaml
+import Data.Aeson.Types (ToJSONKey, FromJSONKey)
 
 import Control.Lens (makeLenses)
 import Control.Monad.State (State)
@@ -14,6 +16,8 @@ import Control.Monad.State (State)
 import Shared.UI (UIState, uiStateInit)
 import Shared.GameEvent (GameEvents, gameEventsInit)
 import Shared.RandomEvent (Scene)
+import Shared.Item
+import qualified Data.Map as Map
 
 data Tick = Tick deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
@@ -158,9 +162,27 @@ storedInit = Stored
 data Location = Room | Outside | Path | Ship
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
+data Storable = I Item | C Craftable
+  deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON, ToJSONKey, FromJSONKey)
+
+-- instance ToJSON Storable where
+--   toJSON (I x) = object [pack "item" .= x]
+--   toJSON (C x) = object [pack "craftable" .= x]
+--
+-- instance FromJSON Storable where
+--   parseJSON = withObject "Storable" $ \obj -> do
+--     item <- obj .:? pack "item"
+--     craftable <- obj .:? pack "craftable"
+--     case item of
+--       Nothing -> case craftable of
+--         Nothing -> fail "wtf"
+--         Just c -> return $ C c
+--       Just i -> return $ I i
+
 data Game = Game
   { _location           :: Location
   , _stored             :: Stored
+  , _storables          :: Map.Map Storable Int
   , _upcomingEvents     :: GameEvents
   , _events             :: [(String, Int)]
   , _roomEventBacklog   :: [String]
@@ -192,6 +214,7 @@ initGame :: Game
 initGame                = Game
   { _location           = Room
   , _stored             = storedInit
+  , _storables          = Map.fromList [(I Wood, 15)]
   , _upcomingEvents     = gameEventsInit
   , _events             = []
   , _roomEventBacklog   = []

@@ -39,6 +39,9 @@ library:
   - safe
   - random
   - mtl
+  - containers
+  - unordered-containers
+  - aeson
 
 executables:
   a-dark-room-exe:

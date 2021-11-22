@@ -66,7 +66,7 @@ notifyRoom :: String -> Game -> Game
 notifyRoom message game =
   if view location game == Room
   then game & addEvent message
-  else game & over roomEventBacklog ((:) message)
+  else game & over roomEventBacklog (message :)
 
 notifyRoom' :: String -> DarkRoom
 notifyRoom' message = do
@@ -96,7 +96,6 @@ itemToStr Compass = "compass"
 itemToStr Wood = "wood"
 itemToStr HutItem = "hut"
 itemToStr x = error "item " <> show x <> " shouldn't have a cost."
-
 
 -- >>> print "hello"
 
