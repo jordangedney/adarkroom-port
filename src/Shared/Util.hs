@@ -8,55 +8,25 @@ import Shared.Item (Item(..))
 import Shared.Game
 
 import Control.Lens
-
-item :: Functor f => Item -> (Int -> f Int) -> Stored -> f Stored
-item = \case
-  Fur   -> fur
-  Cloth -> cloth
-  Scale -> scales
-  Teeth -> teeth
-  Bait -> bait
-  Compass -> compass
-  Wood -> wood
-  Meat -> meat
-  Coal -> coal
-  Leather -> leather
-  Iron -> iron
-  Steel -> steel
-  Sulphur -> sulphur
-  -- Craftables:
-  Trap -> trap
-  Cart -> cart
-  Hut -> hut
-  Lodge -> lodge
-  TradingPost -> tradingPost
-  Tannery -> tannery
-  Smokehouse -> smokehouse
-  Workshop -> workshop
-  Steelworks -> steelworks
-  Armory -> armory
-  Torch -> torch
-  Waterskin -> waterskin
-  Cask -> cask
-  WaterTank -> waterTank
-  BoneSpear -> boneSpear
-  Rucksack -> rucksack
-  Wagon -> wagon
-  Convoy -> convoy
-  LeatherArmor -> leatherArmor
-  IronArmor -> ironArmor
-  SteelArmor -> steelArmor
-  IronSword -> ironSword
-  SteelSword -> steelSword
-  Rifle -> rifle
+import qualified Data.Map as Map
 
 canAfford :: [(Item, Int)] -> Game -> Bool
 canAfford items game = all afford items
-  where afford (Compass, 0) = view (stored . compass) game == 0
-        afford (i, amnt) = view (stored . item i) game >= amnt
+  where afford (Compass, 0) = getItem Compass game == 0
+        afford (i, amnt) = getItem i game >= amnt
 
-getItem :: Functor f => Item -> (Int -> f Int) -> Game -> f Game
-getItem i = stored . item i
+getItem :: Item -> Game -> Int
+getItem i g = Map.findWithDefault 0 i $ g ^. stored
+
+overItem :: Item -> (Int -> Int) -> Game -> Game
+overItem i fn g =
+  g & over stored (Map.insertWith (+) i 0)
+    & over stored (Map.insertWith (\a b-> fn a + b) i 0)
+
+overStored :: Item -> (Int -> Int) -> DarkRoom
+overStored i fn = do
+  stored %= Map.insertWith (+) i 0
+  stored %= Map.insertWith (\a b-> fn a + b) i 0
 
 itemShowBtn :: Functor f =>
   Item -> (Bool -> f Bool) -> UIState  -> f UIState

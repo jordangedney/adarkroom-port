@@ -90,7 +90,7 @@ gatherWood = do
 
   -- only gather if the room is warm
   temp <- use roomTemperature
-  unless (temp == Freezing || temp == Cold) (stored.wood += 2)
+  unless (temp == Freezing || temp == Cold) (overStored Wood (+2))
 
 data CraftableAttributes
   = Building
@@ -112,7 +112,7 @@ getCraftableAttrs = \case
     "builder says she can make traps to catch any creatures might still be alive out there."
     "more traps to catch more creatures."
     (maximumNumberOfTraps, "more traps won't help now.")
-    (\g -> [(Wood, (view (stored . trap) g * 10) + 10)])
+    (\g -> [(Wood, (getItem Trap g * 10) + 10)])
   Cart -> Building
     "builder says she can make a cart for carrying wood."
     "the rickety cart will carry more wood from the forest."
@@ -121,7 +121,7 @@ getCraftableAttrs = \case
     "builder says there are more wanderers. says they'll work, too."
     "builder puts up a hut, out in the forest. says word will get around."
     (maximumNumberOfHuts, "no more room for huts.")
-    (\g -> [(Wood, (view (stored . hut) g * 50) + 100)])
+    (\g -> [(Wood, (getItem Hut g * 50) + 100)])
   Lodge -> Building
     "villagers could help hunt, given the means."
     "the hunting lodge stands in the forest, a ways out of town."
@@ -217,13 +217,13 @@ updateBuildables = execState $ do
       nearlyAfford :: [(Item, Int)] -> Bool
       nearlyAfford [] = True
       nearlyAfford ((Wood, c):cs) =
-        g ^. (stored . wood) >= c `div` 2 && nearlyAfford cs
+        getItem Wood g >= c `div` 2 && nearlyAfford cs
       nearlyAfford ((i, _):cs) =
         -- TODO: This needs to be changed to 'has ever been seen' but instead of
         -- hardcoding the stored items marking flags I should just use a
         -- dictionary to store the items in and then check their existence. As
         -- it is now, just check if we have one.
-        g ^. getItem i >= 1 && nearlyAfford cs
+        getItem i g >= 1 && nearlyAfford cs
 
   forM_ notBuildable $ \c -> do
     let (msg, cost) = case getCraftableAttrs c of
@@ -241,7 +241,7 @@ build i = case getCraftableAttrs i of
   (Resource _ b (maxNum, maxMsg) costFn) -> execState $ do
     -- traps and huts have variable cost depending on how many exist
     c <- gets costFn
-    numItem <- use (getItem i)
+    numItem <- gets (getItem i)
 
     if numItem < maxNum then do
       go b c
@@ -259,9 +259,9 @@ build i = case getCraftableAttrs i of
       else do
         canBuild <- gets (canAfford cost)
         if canBuild then do
-          getItem i += 1
+          overStored i (+1)
           forM_ cost $ \(item', amt) -> do
-            getItem item' -= amt
+            overStored item' (+ (-amt))
           notifyRoom' buildMsg
         else do
           modify (costMsg cost)

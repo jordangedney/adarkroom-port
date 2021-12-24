@@ -5,15 +5,16 @@ import Control.Lens (view)
 import Shared.Game
 import Shared.RandomEvent
 import Shared.Item
+import Shared.Util (getItem)
 
 events :: Game -> [(Scene, Bool)]
 events g =
-  [ (theBeggar,        view location g == Room && view (stored . fur) g > 0)
-  , (theNomad,         view location g == Room && view (stored . fur) g > 0)
-  , (noisesOutside,    view location g == Room && view (stored . wood) g > 15)
-  , (noisesInside,     view location g == Room && view (stored . wood) g > 15)
-  , (theShadyBuilder,  view location g == Room && view (stored . hut) g > 4
-                                              && view (stored . hut) g < 20)
+  [ (theBeggar,        view location g == Room && getItem Fur  g > 0)
+  , (theNomad,         view location g == Room && getItem Fur  g > 0)
+  , (noisesOutside,    view location g == Room && getItem Wood g > 15)
+  , (noisesInside,     view location g == Room && getItem Wood g > 15)
+  , (theShadyBuilder,  view location g == Room && getItem Hut  g > 4
+                                               && getItem Hut  g < 20)
   ]
 
 theBeggar :: Scene
@@ -23,7 +24,7 @@ theBeggar = Scene
   , currentScene = start
   }
   where start = SceneEvent
-          { text = [ "a beggar arrives."
+          {text = [ "a beggar arrives."
                    , "\n"
                    , "asks for any spare furs to keep him warm at night."]
           , notification = Just "a beggar arrives"

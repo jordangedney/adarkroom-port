@@ -33,12 +33,12 @@ roomStores = storesWindow
 forestStores :: Game -> Int -> Widget Name
 forestStores game width =
   let showBuildings = view (uiState . showForestBuildings) game
-      getStored getter = view (stored . getter) game
+      getStored getter = getItem getter game
       buildings = [(name, show amount)| (name, amount, itemShouldBeShown) <-
-        [ ("cart", getStored cart, getStored cart > 0)
-        , ("trap", getStored trap, getStored trap > 0)
+        [ ("cart", getStored Cart, getStored Cart > 0)
+        , ("trap", getStored Trap, getStored Trap > 0)
         ], itemShouldBeShown]
-      currentPopulation = view (stored . people) game
+      currentPopulation = view numPeople game
       maxPopulation = Outside.maxPopulation game
       popCount = show currentPopulation <> "/" <> show maxPopulation
       gapLen =  7 - length popCount
@@ -74,18 +74,17 @@ storeWidget name label stockpileItems' width =
 storesWindow :: Game -> Int -> Widget Name
 storesWindow game width =
   let showStoreWindow = view (uiState . showStores) game
-      getStored getter = view (stored . getter) game
       should getter = view (uiState . getter) game
-      stockpileItems = [(name, show (getStored amount))|
+      stockpileItems = [(name, show (getItem amount game))|
                         (name, amount, itemShouldBeShown) <-
-        [ ("wood",   wood,   showWood)
-        , ("bait",   bait,   showBait)
-        , ("fur",    fur,    showFur)
-        , ("meat",   meat,   showMeat)
-        , ("scales", scales, showScales)
-        , ("teeth",  teeth,  showTeeth)
-        , ("cloth",  cloth,  showCloth)
-        , ("charm",  charm,  showCharm)
+        [ ("wood",   Wood,   showWood)
+        , ("bait",   Bait,   showBait)
+        , ("fur",    Fur,    showFur)
+        , ("meat",   Meat,   showMeat)
+        , ("scales", Scale,  showScales)
+        , ("teeth",  Teeth,  showTeeth)
+        , ("cloth",  Cloth,  showCloth)
+        , ("charm",  Charm,  showCharm)
         ], should itemShouldBeShown]
       showNothing = str (replicate (width + 2) ' ')
       showWindow = storeWidget StoreVP "stores" stockpileItems width
@@ -113,7 +112,7 @@ buildButtons g =
       maxNumCraftable Hut = maximumNumberOfHuts   -- 20
       maxNumCraftable _ = 1
 
-      tooMany c = g ^. getItem c >= maxNumCraftable c
+      tooMany c = getItem c g >= maxNumCraftable c
 
       toBuild = filter (\i -> g ^. craftableReady i) buildables
 
@@ -155,7 +154,7 @@ drawForest game =
         _gatherWood "gather wood" GatherButton gatherCooldown
       checkTrapsButton = buttonWithCoolDown game
         _checkTraps "check traps" CheckTrapsButton checkTrapsCooldown
-      haveTraps = view (stored . trap) game > 0
+      haveTraps = getItem Trap game > 0
       buttons = if haveTraps then vBox [gatherWoodButton, checkTrapsButton]
                 else gatherWoodButton
 

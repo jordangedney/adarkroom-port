@@ -13,6 +13,7 @@ import Data.Char (isUpper, toLower)
 data Item
   = Fur
   | Cloth
+  | Charm
   | Scale
   | Teeth
   | Bait

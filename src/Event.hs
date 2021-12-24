@@ -9,6 +9,8 @@ import Control.Monad.State (execState)
 import Shared.Game
 import Shared.GameEvent
 import Shared.UI (Name(..), lastReportedClick)
+import Shared.Util (overItem)
+import Shared.Item
 import SaveGame (save)
 
 import qualified Room.Fire as Fire
@@ -109,14 +111,14 @@ handleButtonEvent DialogButton =
                         Just _ -> Nothing
                         Nothing -> Just RE.theShadyBuilder)
 handleButtonEvent CheatButton =
-    over (stored . wood)   (+ 50)
-  . over (stored . bait)   (+ 50)
-  . over (stored . fur)    (+ 50)
-  . over (stored . meat)   (+ 50)
-  . over (stored . scales) (+ 50)
-  . over (stored . teeth)  (+ 50)
-  . over (stored . cloth)  (+ 50)
-  . over (stored . charm)  (+ 50)
+    overItem Wood   (+ 50)
+  . overItem Bait   (+ 50)
+  . overItem Fur    (+ 50)
+  . overItem Meat   (+ 50)
+  . overItem Scale  (+ 50)
+  . overItem Teeth  (+ 50)
+  . overItem Cloth  (+ 50)
+  . overItem Charm  (+ 50)
 
 handleButtonEvent _ = id
 

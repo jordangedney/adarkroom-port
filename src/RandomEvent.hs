@@ -4,7 +4,7 @@ module RandomEvent where
 
 import Data.Maybe (isJust)
 import System.Random (StdGen, randomR)
-import Control.Lens (view, over, set, (&))
+import Control.Lens (view, set, (&))
 
 import Shared.Game
 import Shared.RandomEvent
@@ -43,7 +43,7 @@ doRandomEvent game randomGen =
 doSceneChoice :: StdGen -> Maybe StayOrGo -> Game -> Game
 doSceneChoice _ Nothing game = game & set inEvent Nothing
 doSceneChoice _ (Just (Stay alert (rItem, rAmt))) game =
-  let loot g = g & over (getItem rItem) (+ rAmt)
+  let loot g = g & overItem rItem (+ rAmt)
       notify g = case alert of
         Nothing -> g
         Just a -> notifyRoom a g
@@ -59,11 +59,11 @@ doSceneChoice random (Just (Go (possibleScenes, defaultNextScene))) game =
 addReward :: SceneEvent -> Game -> Game
 addReward (SceneEvent _ _ None _) game = game
 addReward (SceneEvent _ _ (Give xs) _) game =
-  foldl (\g (i, amt) -> g & over (getItem i) (+ amt)) game xs
+  foldl (\g (i, amt) -> g & overItem i (+ amt)) game xs
 addReward (SceneEvent _ _ (GiveSome xs) _) game =
   let go :: Game -> (Item, Int, Item, Int) -> Game
       go g (toRemove, removePercent, toAdd, addPercent) =
-        let numAvail' = fromIntegral (view (getItem toRemove) g)
+        let numAvail' = fromIntegral (getItem toRemove g)
                         & (* (fromIntegral removePercent * 0.01 :: Double))
                         & floor
             numAvail = if numAvail' == 0 then 1 else numAvail'
@@ -71,15 +71,15 @@ addReward (SceneEvent _ _ (GiveSome xs) _) game =
                       & (* (fromIntegral addPercent * 0.01 :: Double))
                       & floor
             numAdd = if numAdd' == 0 then 1 else numAdd'
-        in g & over (getItem toRemove) (subtract numAvail)
-             & over (getItem toAdd) (+ numAdd)
+        in g & overItem toRemove (subtract numAvail)
+             & overItem toAdd (+ numAdd)
   in foldl go game xs
 
 handleButton :: StdGen -> SceneChoice -> Game -> Game
 handleButton r (SceneChoice _ [] next) game = doSceneChoice r next game
 handleButton r (SceneChoice _ cs next) game =
   if canAfford cs game
-  then foldl (\g (i, amt) -> g & over (getItem i) (subtract amt)) game cs
+  then foldl (\g (i, amt) -> g & overItem i (subtract amt)) game cs
        & doSceneChoice r next
   else if tryingToBuyCompassTwice cs game
        then game
@@ -87,4 +87,4 @@ handleButton r (SceneChoice _ cs next) game =
   where
     tryingToBuyCompassTwice costs g =
       (filter (\(c, amt) -> c == Compass && amt == 0) costs & null & not)
-      && ((view (stored . compass) g) == 1)
+      && (getItem Compass g == 1)

@@ -13,6 +13,8 @@ import Shared.Constants (fireCoolDelay, stokeCooldown)
 import Util (notifyRoom, updateEvents)
 
 import qualified Room.Builder as Builder
+import Shared.Util (getItem, overItem)
+import Shared.Item (Item(Wood))
 
 fireState :: FireState -> String
 fireState Dead        = "the fire is dead."
@@ -36,12 +38,12 @@ fireChanged game =
 
       fireIsBurning = view fireValue game /= Dead
       builderCanStoke = view builderState game ==
-        Helping && view (stored . wood) game > 0
+        Helping && getItem Wood game > 0
       builderShouldStoke = builderCanStoke && view fireValue game == Smouldering
 
       theFire =
         if builderShouldStoke
-        then game & over (stored . wood) (subtract 1)
+        then game & overItem Wood (+ (-1))
                   & over fireValue fireSucc
                   & notifyRoom "builder stokes the fire."
         else game
@@ -66,25 +68,25 @@ light :: Game -> Game
 light game =
   let withLitFire =
         game & set fireValue Burning
-             & over (stored . wood) (subtract 5)
+             & overItem Wood (+ (-5))
              & updateEvents FireStoked stokeCooldown
              & fireChanged
              & firstLight
       withUnlitFire =
         game & notifyRoom "not enough wood to get the fire going."
-      enoughWood = view (stored . wood) game > 4
+      enoughWood = getItem Wood game > 4
   in if enoughWood then withLitFire else withUnlitFire
 
 stoke :: Game -> Game
 stoke game =
   let withStokedFire =
         game & over fireValue fireSucc
-             & over (stored . wood) (subtract 1)
+             & overItem Wood (+ (-1))
              & updateEvents FireStoked stokeCooldown
              & fireChanged
       withUnstokedFire =
         game & notifyRoom "the wood has run out."
-      enoughWood = view (stored . wood) game > 0
+      enoughWood = getItem Wood game > 0
   in if enoughWood then withStokedFire else withUnstokedFire
 
 shrinking :: Game -> Game
