@@ -33,11 +33,9 @@ roomStores = storesWindow
 forestStores :: Game -> Int -> Widget Name
 forestStores game width =
   let showBuildings = view (uiState . showForestBuildings) game
-      getStored getter = getItem getter game
-      buildings = [(name, show amount)| (name, amount, itemShouldBeShown) <-
-        [ ("cart", getStored Cart, getStored Cart > 0)
-        , ("trap", getStored Trap, getStored Trap > 0)
-        ], itemShouldBeShown]
+      forestItems = [Cart, Trap]
+      buildings = filter (`playerHas` game) forestItems
+                & map (\i -> (itemToStr i, show (getItem i game)))
       currentPopulation = view numPeople game
       maxPopulation = Outside.maxPopulation game
       popCount = show currentPopulation <> "/" <> show maxPopulation
