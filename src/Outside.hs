@@ -18,7 +18,7 @@ import Shared.Constants
 
 import Util (addEvent, updateEvents, randomChoices)
 import Shared.Item
-import Shared.Util (getItem, overItem)
+import Shared.Util (getItem, overItem, playerHas)
 
 unlock :: Game -> Game
 unlock game =
@@ -45,15 +45,10 @@ arrival game =
 
 gather :: Game -> Game
 gather game =
-  let amountToGather = if getItem Cart game > 0 then 50 else 10
-      woodGathered =
-        game & overItem Wood (+ amountToGather)
-             & updateEvents GatherWood gatherCooldown
-             & addEvent "dry brush and dead branches litter the forest floor."
-
-  in if view (milestones . builderIsHelping) game
-     then woodGathered & set (milestones . preCartsUnlocked) True
-     else woodGathered
+  let amountToGather = if playerHas Cart game then 50 else 10
+  in game & overItem Wood (+ amountToGather)
+          & updateEvents GatherWood gatherCooldown
+          & addEvent "dry brush and dead branches litter the forest floor."
 
 unlockTrapItemView :: Game -> Game
 unlockTrapItemView game =

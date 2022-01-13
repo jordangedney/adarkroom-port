@@ -46,13 +46,10 @@ data BuilderState
 
 data Milestones = Milestones
   { _fireLit             :: Bool
-  , _builderIsHelping    :: Bool
   , _seenForest          :: Bool
-  , _trapsUnlocked       :: Bool
+  , _buildUnlocked     :: Bool
   , _craftUnlocked       :: Bool
   , _buyUnlocked         :: Bool
-  , _preCartsUnlocked    :: Bool
-  , _cartsUnlocked       :: Bool
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''Milestones
@@ -60,13 +57,10 @@ makeLenses ''Milestones
 milestonesInit :: Milestones
 milestonesInit = Milestones
   { _fireLit          = False
-  , _builderIsHelping = False
   , _seenForest       = False
-  , _trapsUnlocked    = False
+  , _buildUnlocked  = False
   , _craftUnlocked    = False
   , _buyUnlocked      = False
-  , _preCartsUnlocked = False
-  , _cartsUnlocked    = False
   }
 
 data Location = Room | Outside | Path | Ship

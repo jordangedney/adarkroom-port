@@ -39,6 +39,7 @@ forestStores game width =
       currentPopulation = view numPeople game
       maxPopulation = Outside.maxPopulation game
       popCount = show currentPopulation <> "/" <> show maxPopulation
+
       gapLen =  7 - length popCount
       title = "forest" <> " " <> replicate gapLen '─' <> " pop " <> popCount
 

@@ -6,8 +6,6 @@ module Room.Builder
   , canHelp
   , approach
   , gatherWood
-  , canBuildTraps
-  , canBuildCarts
   , build
   , updateBuildables
   )
@@ -47,13 +45,16 @@ builderSucc = \case
 canHelp :: Game -> Game
 canHelp = execState $ do
   bs <- use builderState
+
+  -- she waits until the player returns from the forest before building
+  when (bs == Helping) $ do
+    (milestones . buildUnlocked) .= True
+
   when (bs == Sleeping) $ do
     -- builder gets up to help
     builderState %= builderSucc
-    (milestones . builderIsHelping) .= True
     -- she finds a way to pass the time
     updateEvent BuilderGathersWood builderGatherDelay
-    updateEvent UnlockTraps unlockTrapsDelay
     displayBuilderState
 
 displayBuilderState :: DarkRoom
@@ -75,8 +76,6 @@ approach = execState $ do
 update :: Game -> Game
 update = execState $ do
   builderIs <- use builderState
-
-  -- XXX Hack with canHelp? Sucky comments suck
   unless (builderIs == Sleeping || builderIs == Helping) $ do
     -- Builder is getting better all the time
     updateEvent BuilderUpdate builderStateDelay
@@ -194,24 +193,10 @@ getCraftableAttrs = \case
     [(Wood, 200), (Steel, 50), (Sulphur, 50)]
   _ -> error "you done fucked"
 
-canBuildTraps :: Game -> Game
-canBuildTraps = execState $ do
-  (uiState . showTrapBtn) .= True
-  notifyRoom' ("builder says she can make traps to catch any creatures "
-              <> "might still be alive out there.")
-
-canBuildCarts :: Game -> Game
-canBuildCarts = execState $ do
-  pre <- use (milestones . preCartsUnlocked)
-  post <- use (uiState . showCartBtn)
-  -- unlocking a cart is a 3 stage progress- this takes you from stage 2 -> 3
-  when (pre && not post) $ do
-    (uiState . showCartBtn) .= True
-    notifyRoom' "builder says she can make a cart for carrying wood"
-
 updateBuildables :: Game -> Game
 updateBuildables = execState $ do
   g <- get
+
   let notBuildable = filter (not . (\i -> g ^. craftableReady i)) buildables
 
       nearlyAfford :: [(Item, Int)] -> Bool
@@ -225,14 +210,15 @@ updateBuildables = execState $ do
         -- it is now, just check if we have one.
         getItem i g >= 1 && nearlyAfford cs
 
-  forM_ notBuildable $ \c -> do
-    let (msg, cost) = case getCraftableAttrs c of
-                        (Building a _ cost') -> (a, cost')
-                        (Resource a _ _ costFn) -> (a, costFn g)
-                        _ -> error $ "Unexpected item "<> show c
-    when (nearlyAfford cost) $ do
-      craftableReady c .= True
-      notifyRoom' msg
+  when (g ^. milestones . buildUnlocked) $ do
+    forM_ notBuildable $ \c -> do
+      let (msg, cost) = case getCraftableAttrs c of
+                          (Building a _ cost') -> (a, cost')
+                          (Resource a _ _ costFn) -> (a, costFn g)
+                          _ -> error $ "Unexpected item "<> show c
+      when (nearlyAfford cost) $ do
+        craftableReady c .= True
+        notifyRoom' msg
 
 build :: Item -> Game -> Game
 build i = case getCraftableAttrs i of

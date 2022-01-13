@@ -54,5 +54,4 @@ arrival game =
   game & set location Room
        & clearRoomBacklog
        & Builder.canHelp
-       & Builder.canBuildCarts
        & Builder.updateBuildables

@@ -127,7 +127,6 @@ getGameEvent UnlockForest       = Outside.unlock
 getGameEvent FireShrinking      = Fire.shrinking
 getGameEvent BuilderUpdate      = Builder.update
 getGameEvent BuilderGathersWood = execState Builder.gatherWood
-getGameEvent UnlockTraps        = Builder.canBuildTraps
 getGameEvent RoomChanged        = Room.update
 
 -- Button Cooldowns
