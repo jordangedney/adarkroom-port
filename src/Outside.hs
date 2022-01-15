@@ -18,7 +18,7 @@ import Shared.Constants
 
 import Util (addEvent, updateEvents, randomChoices)
 import Shared.Item
-import Shared.Util (getItem, overItem, playerHas)
+import Shared.Util (getItem, overItem, playerHasSeen)
 
 unlock :: Game -> Game
 unlock game =
@@ -45,7 +45,7 @@ arrival game =
 
 gather :: Game -> Game
 gather game =
-  let amountToGather = if playerHas Cart game then 50 else 10
+  let amountToGather = if playerHasSeen Cart game then 50 else 10
   in game & overItem Wood (+ amountToGather)
           & updateEvents GatherWood gatherCooldown
           & addEvent "dry brush and dead branches litter the forest floor."

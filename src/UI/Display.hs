@@ -34,7 +34,7 @@ forestStores :: Game -> Int -> Widget Name
 forestStores game width =
   let showBuildings = view (uiState . showForestBuildings) game
       forestItems = [Cart, Trap]
-      buildings = filter (`playerHas` game) forestItems
+      buildings = filter (`playerHasSeen` game) forestItems
                 & map (\i -> (itemToStr i, show (getItem i game)))
       currentPopulation = view numPeople game
       maxPopulation = Outside.maxPopulation game

@@ -203,12 +203,7 @@ updateBuildables = execState $ do
       nearlyAfford [] = True
       nearlyAfford ((Wood, c):cs) =
         getItem Wood g >= c `div` 2 && nearlyAfford cs
-      nearlyAfford ((i, _):cs) =
-        -- TODO: This needs to be changed to 'has ever been seen' but instead of
-        -- hardcoding the stored items marking flags I should just use a
-        -- dictionary to store the items in and then check their existence. As
-        -- it is now, just check if we have one.
-        getItem i g >= 1 && nearlyAfford cs
+      nearlyAfford ((i, _):cs) = playerHasSeen i g && nearlyAfford cs
 
   when (g ^. milestones . buildUnlocked) $ do
     forM_ notBuildable $ \c -> do

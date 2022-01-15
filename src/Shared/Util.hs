@@ -23,8 +23,8 @@ overItem i fn g =
   g & over stored (Map.insertWith (+) i 0)
     & over stored (Map.insertWith (\a b-> fn a + b) i 0)
 
-playerHas :: Item -> Game -> Bool
-playerHas i g = Map.member i (g ^. stored)
+playerHasSeen :: Item -> Game -> Bool
+playerHasSeen i g = Map.member i (g ^. stored)
 
 overStored :: Item -> (Int -> Int) -> DarkRoom
 overStored i fn = do
