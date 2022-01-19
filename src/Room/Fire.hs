@@ -35,27 +35,28 @@ fireSucc = \case { Roaring -> Roaring; x -> succ x }
 
 fireChanged :: DarkRoom
 fireChanged = do
-  fs <- use fireValue
+  fs <- use fireState
 
-  when (fs /= Dead) $ do
+  unless (fs == Dead) $ do
     haveWood <- (> 0) <$> getStored Wood
     bs <- use builderState
 
     when (fs == Smouldering && haveWood && bs == Helping) $ do
       overStored Wood (+ (-1))
-      fireValue %= fireSucc
+      fireState %= fireSucc
       notifyRoom "builder stokes the fire."
 
     updateEvent FireShrinking fireCoolDelay
 
-  notifyRoom (showState fs)
+  latest <- use fireState
+  notifyRoom (showState latest)
 
 light :: DarkRoom
 light = do
   canLight <- (> 4) <$> getStored Wood
 
   if canLight then do
-    fireValue .= Burning
+    fireState .= Burning
     overStored Wood (+ (-5))
     updateEvent FireStoked stokeCooldown
     fireChanged
@@ -68,30 +69,18 @@ light = do
   else do
     notifyRoom "not enough wood to get the fire going."
 
-
 stoke :: DarkRoom
 stoke = do
   haveWood <- (> 0) <$> getStored Wood
   if haveWood then do
-    fireValue %= fireSucc
+    fireState %= fireSucc
     overStored Wood (+ (-1))
     updateEvent FireStoked stokeCooldown
     fireChanged
   else do
     notifyRoom "the wood has run out."
 
--- stoke' =
---   let withStokedFire =
---         game & over fireValue fireSucc
---              & overStored Wood (+ (-1))
---              & updateEvent FireStoked stokeCooldown
---              & fireChanged
---       withUnstokedFire =
---         game & notifyRoom "the wood has run out."
---       enoughWood = getStored Wood game > 0
---   in if enoughWood then withStokedFire else withUnstokedFire
-
 shrinking :: DarkRoom
 shrinking = do
-  fireValue %= firePred
+  fireState %= firePred
   fireChanged

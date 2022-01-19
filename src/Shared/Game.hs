@@ -78,7 +78,7 @@ data Game = Game
   , _hyperspeedAmt      :: Int
   , _nextRandomAt       :: Int
   , _uiState            :: UIState
-  , _fireValue          :: FireState
+  , _fireState          :: FireState
   , _roomTemperature    :: RoomTemperature
   , _builderState       :: BuilderState
   , _progressAmount     :: Float
@@ -110,7 +110,7 @@ initGame                = Game
   , _hyperspeedAmt      = hyperspeedAmt'
   , _nextRandomAt       = hyperspeedAmt'
   , _uiState            = uiStateInit
-  , _fireValue          = Dead
+  , _fireState          = Dead
   , _roomTemperature    = Cold -- instead of Freezing so initial status is displayed
   , _builderState       = Approaching
   , _progressAmount     = 0.5

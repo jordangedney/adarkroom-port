@@ -32,7 +32,7 @@ roomSucc x = succ x
 update :: DarkRoom
 update = do
   rT <- use roomTemperature
-  newTemp <- newTemperature rT <$> use fireValue
+  newTemp <- newTemperature rT <$> use fireState
 
   unless (rT == newTemp) $ do
     roomTemperature .= newTemp

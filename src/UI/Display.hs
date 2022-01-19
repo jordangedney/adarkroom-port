@@ -131,7 +131,7 @@ drawRoom game =
 
       ensureWidth x = hLimit 21 (x <=> emptyLine)
 
-      fireIsOut = view fireValue game == Dead
+      fireIsOut = view fireState game == Dead
       lightFireButton = actionButton game LightButton "light fire"
       stokeFireButton =
         buttonWithCoolDown
@@ -179,7 +179,7 @@ eventsWindow g =
 
 locationsWindow :: Game -> Widget Name
 locationsWindow game =
-  let locationTxt Room    = if _fireValue game == Dead then "A Dark Room"
+  let locationTxt Room    = if _fireState game == Dead then "A Dark Room"
                             else "A Firelit Room"
       locationTxt Outside = "A Silent Forest"
       locationTxt Path    = "A Dusty Path"
