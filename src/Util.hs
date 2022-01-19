@@ -10,8 +10,10 @@ import Data.Function (on)
 import Safe (headDef)
 import System.Random (StdGen, randomR)
 
-import Control.Lens (over, set, view, (&), (%=), use, (.=))
+import Control.Lens
 import Shared.Item (Item(..), itemToStr)
+import Control.Monad.State (get)
+import Control.Monad (forM_)
 
 count :: Eq a => a -> [a] -> Int
 count x = length . filter (x ==)
@@ -54,42 +56,31 @@ listOfRandomPercentages randomGen =
 
 -- Game Utils ------------------------------------------------------------------
 
-addEvent :: String -> Game -> Game
-addEvent message game =
-  game & over events ((message, 0):)
-
-addEvent' :: String -> DarkRoom
-addEvent' message = do
+addEvent :: String -> DarkRoom
+addEvent message = do
   events %= ((message, 0):)
 
-notifyRoom :: String -> Game -> Game
-notifyRoom message game =
-  if view location game == Room
-  then game & addEvent message
-  else game & over roomEventBacklog (message :)
-
-notifyRoom' :: String -> DarkRoom
-notifyRoom' message = do
+notifyRoom :: String -> DarkRoom
+notifyRoom message = do
   inRoom <- (== Room) <$> use location
-  if inRoom then addEvent' message
+  if inRoom then addEvent message
   else roomEventBacklog  %= (:) message
 
-clearRoomBacklog :: Game -> Game
-clearRoomBacklog game =
-  game & over events (\es ->  map (, 0) (view roomEventBacklog game) ++ es)
-       & set roomEventBacklog []
-
-updateEvents :: GameEvent -> Int -> Game -> Game
-updateEvents event time = over upcomingEvents (set (eventGetter event) (event, time))
+clearRoomBacklog :: DarkRoom
+clearRoomBacklog = do
+  game <- get
+  events %= (\es ->  map (, 0) (view roomEventBacklog game) ++ es)
+  roomEventBacklog .= []
 
 updateEvent :: GameEvent -> Int -> DarkRoom
 updateEvent event time = do
   upcomingEvents.eventGetter event .= (event, time)
 
-costMsg :: (Eq a, Num a, Show a) => [(Item, a)] -> Game -> Game
-costMsg [] g = g
--- Handle the hidden requirement allowing players to only buy one compass
-costMsg ((Compass, 0):xs) g = costMsg xs g
-costMsg ((i, cost'):xs) g =
-  notifyRoom ("not enough " <> itemToStr i <> " (" <> show cost' <> ").") g
-  & costMsg xs
+displayCosts :: [(Item, Int)] -> DarkRoom
+displayCosts cs = do
+  let costMsg = ["not enough " <> itemToStr i <> " (" <> show c <> ")."
+                -- remove hackary preventing multiple compass purchases
+                | (i, c) <- cs, (i, c) /= (Compass, 0)]
+
+  forM_ costMsg $ \msg -> do
+    notifyRoom msg

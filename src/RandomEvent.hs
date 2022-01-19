@@ -1,10 +1,11 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE LambdaCase #-}
 
 module RandomEvent where
 
-import Data.Maybe (isJust)
+import Data.Maybe (isNothing)
 import System.Random (StdGen, randomR)
-import Control.Lens (view, set, (&))
+import Control.Lens
 
 import Shared.Game
 import Shared.RandomEvent
@@ -13,7 +14,9 @@ import Shared.Util
 
 import Room.Event
 
-import Util (randomChoice, choice, notifyRoom, costMsg)
+import Util (randomChoice, choice, notifyRoom, displayCosts)
+import Control.Monad.State (get, gets)
+import Control.Monad (unless, forM_, when)
 
 availableEvents :: Game -> [Scene]
 availableEvents g = [e | (e, p) <- evs, p]
@@ -22,69 +25,88 @@ availableEvents g = [e | (e, p) <- evs, p]
 shouldDoRandomEvent :: Game -> Bool
 shouldDoRandomEvent game = view tickCount game == view nextRandomAt game
 
-setNextRandomEvent :: Game -> StdGen -> Game
-setNextRandomEvent game randomGen =
+setNextRandomEvent :: StdGen -> DarkRoom
+setNextRandomEvent rnd = do
+  -- they keep on coming and coming
+  hs <- use hyperspeedAmt
   let ticksPerMinute = 10 * 60
       (nextRandom' :: Int, _) =
-        randomR (ticksPerMinute * 3, ticksPerMinute * 6) randomGen
-      hs = view hyperspeedAmt game
+        randomR (ticksPerMinute * 3, ticksPerMinute * 6) rnd
       nextRandom = nextRandom' + (hs - (nextRandom' `mod` hs))
-  in game & set nextRandomAt (view tickCount game + nextRandom)
+  tC <- use tickCount
+  nextRandomAt .= (tC + nextRandom)
 
-doRandomEvent :: Game -> StdGen -> Game
-doRandomEvent game randomGen =
-  let updated = setNextRandomEvent game randomGen
-  in if isJust (view inEvent game) then updated
-     else case availableEvents game of
-            [] -> updated
-            es -> let ev = choice randomGen es
-                 in updated & set inEvent (Just ev) & addReward (currentScene ev)
+doRandomEvent :: StdGen -> DarkRoom
+doRandomEvent rnd = do
+  setNextRandomEvent rnd
 
-doSceneChoice :: StdGen -> Maybe StayOrGo -> Game -> Game
-doSceneChoice _ Nothing game = game & set inEvent Nothing
-doSceneChoice _ (Just (Stay alert (rItem, rAmt))) game =
-  let loot g = g & overItem rItem (+ rAmt)
-      notify g = case alert of
-        Nothing -> g
-        Just a -> notifyRoom a g
-  in game & loot & notify
-doSceneChoice random (Just (Go (possibleScenes, defaultNextScene))) game =
-  case view inEvent game of
-    Nothing -> game
-    Just scene ->
-      let next = randomChoice random defaultNextScene possibleScenes
-      in game & set inEvent (Just (scene {currentScene = next}))
-              & addReward next
+  -- jump into an available event if not in one
+  needEvent <- isNothing <$> use inEvent
+  availEvs <- gets availableEvents
 
-addReward :: SceneEvent -> Game -> Game
-addReward (SceneEvent _ _ None _) game = game
-addReward (SceneEvent _ _ (Give xs) _) game =
-  foldl (\g (i, amt) -> g & overItem i (+ amt)) game xs
-addReward (SceneEvent _ _ (GiveSome xs) _) game =
-  let go :: Game -> (Item, Int, Item, Int) -> Game
-      go g (toRemove, removePercent, toAdd, addPercent) =
-        let numAvail' = fromIntegral (getItem toRemove g)
-                        & (* (fromIntegral removePercent * 0.01 :: Double))
-                        & floor
-            numAvail = if numAvail' == 0 then 1 else numAvail'
-            numAdd' = fromIntegral numAvail
-                      & (* (fromIntegral addPercent * 0.01 :: Double))
-                      & floor
-            numAdd = if numAdd' == 0 then 1 else numAdd'
-        in g & overItem toRemove (subtract numAvail)
-             & overItem toAdd (+ numAdd)
-  in foldl go game xs
+  when (needEvent && not (null availEvs)) $ do
+    let ev = choice rnd availEvs
+    inEvent .= Just ev
+    addReward (currentScene ev)
 
-handleButton :: StdGen -> SceneChoice -> Game -> Game
-handleButton r (SceneChoice _ [] next) game = doSceneChoice r next game
-handleButton r (SceneChoice _ cs next) game =
-  if canAfford cs game
-  then foldl (\g (i, amt) -> g & overItem i (subtract amt)) game cs
-       & doSceneChoice r next
-  else if tryingToBuyCompassTwice cs game
-       then game
-       else costMsg cs game
-  where
-    tryingToBuyCompassTwice costs g =
-      (filter (\(c, amt) -> c == Compass && amt == 0) costs & null & not)
-      && (getItem Compass g == 1)
+-- TODO SOME QA Round this func
+addReward :: SceneEvent -> DarkRoom
+addReward (SceneEvent _ _ r _) = case r of
+  -- pretty shity reward
+  None -> do pure () -- TODO this right?
+
+  -- straight shooter
+  (Give xs) -> do
+    forM_ xs $ \(i, amt) -> do
+      overStored i (+ amt)
+
+  -- I'll give you 5 fur for every 10 wood... or something
+  (GiveSome xs) -> do
+    forM_ xs $ \(toRemove, removePercent, toAdd, addPercent) -> do
+      let takePercent x n = fromIntegral n
+                          & (* (fromIntegral x * 0.01 :: Double))
+                          & floor
+                          & (\y -> if y == 0 then 1 else y)
+      numAvail <- takePercent removePercent <$> getStored toRemove
+      let numAdd = takePercent addPercent numAvail
+
+      overStored toRemove (subtract numAvail)
+      overStored toAdd (+ numAdd)
+
+doSceneChoice :: StdGen -> Maybe StayOrGo -> DarkRoom
+doSceneChoice rnd = \case
+  -- go home
+  Nothing -> do inEvent .= Nothing
+
+  -- stay and buy something!
+  Just (Stay alert (rItem, rAmt)) -> do
+    overStored rItem (+ rAmt)
+    forM_ alert $ \a -> do notifyRoom a
+
+  -- time marches ever forward
+  Just (Go (possibleScenes, defaultNextScene)) -> do
+    ev <- use inEvent
+    forM_ ev $ \scene -> do
+      let next = randomChoice rnd defaultNextScene possibleScenes
+      inEvent .= Just (scene {currentScene = next})
+      addReward next
+
+handleButton :: StdGen -> SceneChoice -> DarkRoom
+handleButton r (SceneChoice _ cs next) =
+  -- if there's no item to buy just continue on
+  if null cs then do
+    doSceneChoice r next
+
+  else do
+    -- buy the item, if you can
+    game <- get
+    if canAfford cs game then do
+      forM_ cs $ \(i, amt) -> do
+        overStored i (subtract amt)
+        doSceneChoice r next
+
+    -- else print the cost
+    else do
+      haveCompass <- (== 1) <$> getStored Compass
+      -- prevent players from buying 2 compasses
+      unless (haveCompass && (Compass, 0) `elem` cs) (displayCosts cs)

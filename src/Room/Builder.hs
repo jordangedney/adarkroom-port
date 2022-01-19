@@ -21,7 +21,7 @@ import Shared.Constants
 import Shared.Item
 import Shared.Util
 
-import Util (notifyRoom', updateEvent, costMsg)
+import Util (notifyRoom, updateEvent, displayCosts)
 
 showState :: BuilderState -> String
 showState = \case
@@ -42,8 +42,8 @@ builderSucc = \case
   Helping -> Helping
   x -> succ x
 
-canHelp :: Game -> Game
-canHelp = execState $ do
+canHelp :: DarkRoom
+canHelp = do
   bs <- use builderState
 
   -- she waits until the player returns from the forest before building
@@ -60,11 +60,10 @@ canHelp = execState $ do
 displayBuilderState :: DarkRoom
 displayBuilderState = do
   builderIs <- showState <$> use builderState
-  notifyRoom' builderIs
+  notifyRoom builderIs
 
--- approach :: DarkRoom
-approach :: Game -> Game
-approach = execState $ do
+approach :: DarkRoom
+approach = do
   -- let the player know Builder is coming
   displayBuilderState
 
@@ -72,9 +71,8 @@ approach = execState $ do
   updateEvent BuilderUpdate builderStateDelay
   updateEvent UnlockForest needWoodDelay
 
--- update :: DarkRoom
-update :: Game -> Game
-update = execState $ do
+update :: DarkRoom
+update = do
   builderIs <- use builderState
   unless (builderIs == Sleeping || builderIs == Helping) $ do
     -- Builder is getting better all the time
@@ -193,8 +191,8 @@ getCraftableAttrs = \case
     [(Wood, 200), (Steel, 50), (Sulphur, 50)]
   _ -> error "you done fucked"
 
-updateBuildables :: Game -> Game
-updateBuildables = execState $ do
+updateBuildables :: DarkRoom
+updateBuildables = do
   g <- get
 
   let notBuildable = filter (not . (\i -> g ^. craftableReady i)) buildables
@@ -213,36 +211,37 @@ updateBuildables = execState $ do
                           _ -> error $ "Unexpected item "<> show c
       when (nearlyAfford cost) $ do
         craftableReady c .= True
-        notifyRoom' msg
+        notifyRoom msg
 
-build :: Item -> Game -> Game
-build i = case getCraftableAttrs i of
-  (Building _ b c) -> execState $ go b c
-  (Tool b c) -> execState $ go b c
-  (Resource _ b (maxNum, maxMsg) costFn) -> execState $ do
-    -- traps and huts have variable cost depending on how many exist
-    c <- gets costFn
-    numItem <- gets (getItem i)
+build :: Item -> DarkRoom
+build i = do
+  case getCraftableAttrs i of
+   (Building _ b c) -> go b c
+   (Tool b c) -> go b c
+   (Resource _ b (maxNum, maxMsg) costFn) -> do
+     -- traps and huts have variable cost depending on how many exist
+     c <- gets costFn
+     numItem <- gets (getItem i)
 
-    if numItem < maxNum then do
-      go b c
-    else do
-      notifyRoom' maxMsg
-  where
-    go :: String -> [(Item, Int)] -> DarkRoom
-    go buildMsg cost = do
-      uiState . showForestBuildings .= True
-      -- only build if the room is warm
-      temp <- use roomTemperature
-      if temp == Freezing || temp == Cold then do
-        notifyRoom' "builder just shivers."
+     if numItem < maxNum then do
+       go b c
+     else do
+       notifyRoom maxMsg
+   where
+     go :: String -> [(Item, Int)] -> DarkRoom
+     go buildMsg cost = do
+       uiState . showForestBuildings .= True
+       -- only build if the room is warm
+       temp <- use roomTemperature
+       if temp == Freezing || temp == Cold then do
+         notifyRoom "builder just shivers."
 
-      else do
-        canBuild <- gets (canAfford cost)
-        if canBuild then do
-          overStored i (+1)
-          forM_ cost $ \(item', amt) -> do
-            overStored item' (+ (-amt))
-          notifyRoom' buildMsg
-        else do
-          modify (costMsg cost)
+       else do
+         canBuild <- gets (canAfford cost)
+         if canBuild then do
+           overStored i (+1)
+           forM_ cost $ \(item', amt) -> do
+             overStored item' (+ (-amt))
+           notifyRoom buildMsg
+         else do
+           displayCosts cost

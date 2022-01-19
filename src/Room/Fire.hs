@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+
 module Room.Fire
   ( light
   , stoke
@@ -5,91 +7,91 @@ module Room.Fire
   )
 where
 
-import Control.Lens (over, set, view, (&))
+import Control.Lens
 
 import Shared.Game
 import Shared.GameEvent (GameEvent(FireShrinking, FireStoked))
 import Shared.Constants (fireCoolDelay, stokeCooldown)
-import Util (notifyRoom, updateEvents)
+import Util (notifyRoom, updateEvent)
 
 import qualified Room.Builder as Builder
-import Shared.Util (getItem, overItem)
+import Shared.Util (getStored, overStored, overStored)
 import Shared.Item (Item(Wood))
+import Control.Monad (unless, when)
 
-fireState :: FireState -> String
-fireState Dead        = "the fire is dead."
-fireState Smouldering = "the fire is smouldering."
-fireState Flickering  = "the fire is flickering."
-fireState Burning     = "the fire is burning."
-fireState Roaring     = "the fire is roaring."
+showState :: FireState -> String
+showState = \case
+  Dead        -> "the fire is dead."
+  Smouldering -> "the fire is smouldering."
+  Flickering  -> "the fire is flickering."
+  Burning     -> "the fire is burning."
+  Roaring     -> "the fire is roaring."
 
 firePred :: FireState -> FireState
-firePred Dead = Dead
-firePred x = pred x
+firePred = \case { Dead -> Dead; x -> pred x }
 
 fireSucc :: FireState -> FireState
-fireSucc Roaring = Roaring
-fireSucc x = succ x
+fireSucc = \case { Roaring -> Roaring; x -> succ x }
 
-fireChanged :: Game -> Game
-fireChanged game =
-  let showFire g = g & notifyRoom (fireState (view fireValue g))
-      showDeadFire = showFire game
+fireChanged :: DarkRoom
+fireChanged = do
+  fs <- use fireValue
 
-      fireIsBurning = view fireValue game /= Dead
-      builderCanStoke = view builderState game ==
-        Helping && getItem Wood game > 0
-      builderShouldStoke = builderCanStoke && view fireValue game == Smouldering
+  when (fs /= Dead) $ do
+    haveWood <- (> 0) <$> getStored Wood
+    bs <- use builderState
 
-      theFire =
-        if builderShouldStoke
-        then game & overItem Wood (+ (-1))
-                  & over fireValue fireSucc
-                  & notifyRoom "builder stokes the fire."
-        else game
+    when (fs == Smouldering && haveWood && bs == Helping) $ do
+      overStored Wood (+ (-1))
+      fireValue %= fireSucc
+      notifyRoom "builder stokes the fire."
 
-      burnOn =
-        theFire
-        & updateEvents FireShrinking fireCoolDelay
-        & showFire
+    updateEvent FireShrinking fireCoolDelay
 
-  in if fireIsBurning then burnOn else showDeadFire
+  notifyRoom (showState fs)
 
-firstLight :: Game -> Game
-firstLight game =
-  let doNothing = game
-      fireHasBeenLitBefore = view (milestones . fireLit) game
-      builderIsOnTheWay =
-        game & set (milestones . fireLit) True
-             & Builder.approach
-  in if fireHasBeenLitBefore then doNothing else builderIsOnTheWay
+light :: DarkRoom
+light = do
+  canLight <- (> 4) <$> getStored Wood
 
-light :: Game -> Game
-light game =
-  let withLitFire =
-        game & set fireValue Burning
-             & overItem Wood (+ (-5))
-             & updateEvents FireStoked stokeCooldown
-             & fireChanged
-             & firstLight
-      withUnlitFire =
-        game & notifyRoom "not enough wood to get the fire going."
-      enoughWood = getItem Wood game > 4
-  in if enoughWood then withLitFire else withUnlitFire
+  if canLight then do
+    fireValue .= Burning
+    overStored Wood (+ (-5))
+    updateEvent FireStoked stokeCooldown
+    fireChanged
 
-stoke :: Game -> Game
-stoke game =
-  let withStokedFire =
-        game & over fireValue fireSucc
-             & overItem Wood (+ (-1))
-             & updateEvents FireStoked stokeCooldown
-             & fireChanged
-      withUnstokedFire =
-        game & notifyRoom "the wood has run out."
-      enoughWood = getItem Wood game > 0
-  in if enoughWood then withStokedFire else withUnstokedFire
+    fireHasBeenLitBefore <- use (milestones . fireLit)
+    unless fireHasBeenLitBefore $ do
+      (milestones . fireLit) .= True
+      Builder.approach
 
-shrinking :: Game -> Game
-shrinking game =
-  game & over fireValue firePred
-       & fireChanged
+  else do
+    notifyRoom "not enough wood to get the fire going."
+
+
+stoke :: DarkRoom
+stoke = do
+  haveWood <- (> 0) <$> getStored Wood
+  if haveWood then do
+    fireValue %= fireSucc
+    overStored Wood (+ (-1))
+    updateEvent FireStoked stokeCooldown
+    fireChanged
+  else do
+    notifyRoom "the wood has run out."
+
+-- stoke' =
+--   let withStokedFire =
+--         game & over fireValue fireSucc
+--              & overStored Wood (+ (-1))
+--              & updateEvent FireStoked stokeCooldown
+--              & fireChanged
+--       withUnstokedFire =
+--         game & notifyRoom "the wood has run out."
+--       enoughWood = getStored Wood game > 0
+--   in if enoughWood then withStokedFire else withUnstokedFire
+
+shrinking :: DarkRoom
+shrinking = do
+  fireValue %= firePred
+  fireChanged

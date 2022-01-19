@@ -9,11 +9,17 @@ import Shared.Game
 
 import Control.Lens
 import qualified Data.Map as Map
+import Control.Monad.State (State, get)
 
 canAfford :: [(Item, Int)] -> Game -> Bool
 canAfford items game = all afford items
   where afford (Compass, 0) = getItem Compass game == 0
         afford (i, amnt) = getItem i game >= amnt
+
+getStored :: Item -> State Game Int
+getStored i = do
+  g <- get
+  return $ Map.findWithDefault 0 i $ g ^. stored
 
 getItem :: Item -> Game -> Int
 getItem i g = Map.findWithDefault 0 i $ g ^. stored

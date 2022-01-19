@@ -8,7 +8,7 @@ module Outside
 where
 
 import System.Random (StdGen)
-import Control.Lens (set, view, (&))
+import Control.Lens
 import Data.List (nub, intercalate)
 
 import Shared.UI
@@ -16,56 +16,63 @@ import Shared.GameEvent (GameEvent(GatherWood, CheckTraps))
 import Shared.Game
 import Shared.Constants
 
-import Util (addEvent, updateEvents, randomChoices)
+import Util (addEvent, updateEvent, randomChoices)
 import Shared.Item
-import Shared.Util (getItem, overItem, playerHasSeen)
+import Shared.Util (getItem, playerHasSeen, overStored, getStored)
+import Control.Monad (forM_, unless)
+import Control.Monad.State (gets)
 
-unlock :: Game -> Game
-unlock game =
-  game & set (uiState . showStores) True
-       & set (uiState . showOutside) True
-       & overItem Wood (const 4)
-       & addEvent "the wind howls outside."
-       & addEvent "the wood is running out."
+unlock :: DarkRoom
+unlock = do
+  -- the world is bigger than just this cabin
+  (uiState . showStores) .= True
+  (uiState . showOutside) .= True
+  overStored Wood (const 4)
+  addEvent "the wind howls outside."
+  addEvent "the wood is running out."
 
-firstArrival :: Game -> Game
-firstArrival game =
-  let doNothing = game
-      haveGoneOutsideBefore = view (milestones . seenForest) game
-      firstTimeOutsideMessage = "the sky is grey and the wind blows relentlessly."
-      firstTimeOutside =
-        game & set (milestones . seenForest) True
-             & addEvent firstTimeOutsideMessage
-  in if haveGoneOutsideBefore then doNothing else firstTimeOutside
+firstArrival :: DarkRoom
+firstArrival = do
+  goneOutside <- use (milestones . seenForest)
+  -- the sunlight hurts my eyes
+  unless goneOutside $ do
+    (milestones . seenForest) .= True
+    addEvent "the sky is grey and the wind blows relentlessly."
 
-arrival :: Game -> Game
-arrival game =
-  game & firstArrival
-       & set location Outside
+arrival :: DarkRoom
+arrival = do
+  firstArrival
+  location .= Outside
 
-gather :: Game -> Game
-gather game =
-  let amountToGather = if playerHasSeen Cart game then 50 else 10
-  in game & overItem Wood (+ amountToGather)
-          & updateEvents GatherWood gatherCooldown
-          & addEvent "dry brush and dead branches litter the forest floor."
+gather :: DarkRoom
+gather = do
+  -- more logs for more fire
+  amountToGather <- gets ((\p -> if p then 50 else 10) . playerHasSeen Cart)
+  overStored Wood (+ amountToGather)
+  updateEvent GatherWood gatherCooldown
+  addEvent "dry brush and dead branches litter the forest floor."
 
-unlockTrapItemView :: Game -> Game
-unlockTrapItemView game =
-  let items =
-        [ (Fur,    showFur)
-        , (Meat,   showMeat)
-        , (Scale,  showScales)
-        , (Teeth,  showTeeth)
-        , (Cloth,  showCloth)
-        , (Charm,  showCharm)
-        ]
-      unlockItems = [set (uiState . shower) True | (i, shower) <- items,
-                     getItem i game > 0] ++ [set (uiState . showBait) True]
-  in foldr (\update g -> update g) game unlockItems
+-- TODO MAYBE A BUG TO REMOVE AS-IS?
+-- unlockTrapItemView :: DarkRoom
+-- unlockTrapItemView = do
+--   -- TODO: kill me
+--   let items =
+--         [ (Fur,    showFur)
+--         , (Meat,   showMeat)
+--         , (Scale,  showScales)
+--         , (Teeth,  showTeeth)
+--         , (Cloth,  showCloth)
+--         , (Charm,  showCharm)
+--         ]
+--       unlockItems = [set (uiState . shower) True | (i, shower) <- items,
+--                      getItem i game > 0] ++ [set (uiState . showBait) True]
+--   in foldr (\update g -> update g) game unlockItems
 
-checkTraps :: StdGen -> Game -> Game
-checkTraps randomGen game =
+checkTraps :: StdGen -> DarkRoom
+checkTraps rndGen = do
+  numTraps <- getStored Trap
+  numBait <- getStored Bait
+
   let trapItems =
         [ (50, (Fur,   "scraps of fur"))
         , (25, (Meat,  "bits of meat"))
@@ -75,27 +82,26 @@ checkTraps randomGen game =
         , (1,  (Charm, "a crudely made charm"))
         ]
 
-      numTraps = getItem Trap game
-      numBait = getItem Bait game
       additionalDrops = min numTraps numBait
-      numDrops = numTraps + additionalDrops
+      nDrops = numTraps + additionalDrops
 
-      -- Wood doesn't drop, its a safeguard in case I can't add to 100
-      drops = take numDrops (randomChoices randomGen (Wood, "a broken stick") trapItems)
-      gatherDrops = map ((\found -> overItem found (+ 1)) . fst) drops
+      -- XXX Wood doesn't drop, its a safeguard in case I can't add to 100
+      drops = take nDrops (randomChoices rndGen (Wood, "a broken stick") trapItems)
 
-      eventMsgs = nub (map snd drops)
-      eventItems = if length eventMsgs == 1 then last eventMsgs
-                   else intercalate ", " (init eventMsgs) ++ " and " ++  last eventMsgs
+  overStored Bait (subtract additionalDrops)
+  forM_ drops $ \(i, _) -> do
+    overStored i (+1)
+
+  let dropMsgs = nub (map snd drops)
+      eventItems = if length dropMsgs == 1 then last dropMsgs
+                   else intercalate ", " (init dropMsgs) ++ " and " ++ last dropMsgs
       eventMsg = "the traps contain " ++ eventItems ++ "."
 
-      thingsGathered = foldr (\a b -> a b) game gatherDrops
+  addEvent eventMsg
+  updateEvent CheckTraps checkTrapsCooldown
 
-  in thingsGathered
-     & unlockTrapItemView
-     & updateEvents CheckTraps checkTrapsCooldown
-     & addEvent eventMsg
-     & overItem Bait (subtract additionalDrops)
+  -- TODO: KILL ME:
+  -- unlockTrapItemView
 
 maxPopulation :: Game -> Int
 maxPopulation game = getItem Hut game * 4

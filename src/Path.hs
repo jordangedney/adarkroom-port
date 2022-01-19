@@ -2,13 +2,13 @@ module Path
   ( arrival
   ) where
 
-import Control.Lens (set, (&))
+import Control.Lens
 
-import Shared.Game (Game, Location(Path), location)
+import Shared.Game (DarkRoom, Location(Path), location)
 
 import Util (clearRoomBacklog)
 
-arrival :: Game -> Game
-arrival game =
-  game & set location Path
-       & clearRoomBacklog
+arrival :: DarkRoom
+arrival = do
+  location .= Path
+  clearRoomBacklog

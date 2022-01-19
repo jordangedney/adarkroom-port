@@ -1,15 +1,15 @@
+{-# LANGUAGE LambdaCase #-}
 module Event (handleEventWrapper) where
 
 import System.Random (newStdGen)
 import Control.Monad.IO.Class (liftIO)
 import Brick (BrickEvent(..), EventM, Next, Location, continue)
-import Control.Lens (over, set, view, _2, (&))
-import Control.Monad.State (execState)
+import Control.Monad.State (execState, modify)
 
 import Shared.Game
 import Shared.GameEvent
 import Shared.UI (Name(..), lastReportedClick)
-import Shared.Util (overItem)
+import Shared.Util (overStored)
 import Shared.Item
 import SaveGame (save)
 
@@ -17,13 +17,15 @@ import qualified Room.Fire as Fire
 import qualified Room.Room as Room
 import qualified Room.Builder as Builder
 import qualified Room.Event as RE
-import qualified Outside as Outside
+import qualified Outside
 
 import qualified RandomEvent
+import Control.Lens
+import Control.Monad (forM_, unless)
 
 handleEventWrapper :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEventWrapper game event =
-  let step g = continue $ handleEvent g event
+  let step g = continue ((execState $ handleEvent event) g)
       autosave g = g & over previousStates (g:)
   in case event of
     -- Don't autosave:
@@ -35,7 +37,7 @@ handleEventWrapper game event =
       if RandomEvent.shouldDoRandomEvent game
       then do
         random <- liftIO newStdGen
-        step (RandomEvent.doRandomEvent game random)
+        step ((execState $ RandomEvent.doRandomEvent random) game)
       else step game
 
     (MouseDown SaveButton _ _ _) -> do
@@ -44,103 +46,117 @@ handleEventWrapper game event =
 
     (MouseDown (RandomEventButton x) _ _ _) -> do
       random <- liftIO newStdGen
-      step (RandomEvent.handleButton random x game)
+      step ((execState $ RandomEvent.handleButton random x) game)
 
     (MouseDown e@CheckTrapsButton  _ _ m) -> do
       random <- liftIO newStdGen
-      game & setMouseDown e m & Outside.checkTraps random & continue
+      game & execState (setMouseDown e m)
+           & execState (Outside.checkTraps random)
+           & continue
 
     (MouseDown e@HyperButton   _ _ m) -> do
       -- Change the tick at which the next random event occurs to avoid
       -- accidentally skipping over it.
       random <- liftIO newStdGen
-      game & setMouseDown e m
+      game & execState (setMouseDown e m)
            & over hyper not
-           & flip RandomEvent.setNextRandomEvent random
+           & execState (RandomEvent.setNextRandomEvent random)
            & continue
 
     -- Normal events:
     _                            -> step (autosave game)
 
-handleEvent :: Game -> BrickEvent Name Tick -> Game
-handleEvent game (AppEvent Tick) =
-  -- XXX the gui ticks how ever many times a hyper step is
-  let (hyperEnabled, hsAmt) = (view hyper game, view hyperspeedAmt game)
-      fasterFaster 0 = game
-      fasterFaster n = gameTick (fasterFaster (n - 1))
-  in if hyperEnabled then fasterFaster hsAmt else gameTick game
+handleEvent :: BrickEvent Name Tick -> DarkRoom
+handleEvent = \case
+  (AppEvent Tick) -> do
+    -- XXX the gui ticks how ever many times a hyper step is
+    hyperEnabled <- use hyper
+    -- TODO BUG IS THIS TICKING THE CORRECT AMOUNT, OR DID I JUST OFF BY ONE?
+    hsAmt <- (\x -> if hyperEnabled then x - 1 else 0) <$> use hyperspeedAmt
 
-handleEvent g (MouseDown e _ _ m) = handleMouseDown g e m
-handleEvent g MouseUp {} = set (uiState . lastReportedClick) Nothing g
-handleEvent g _ = g
+    let fasterFaster 0 = do gameTick
+        fasterFaster n = do
+          gameTick
+          fasterFaster (n - 1)
 
-setMouseDown :: Name -> Brick.Location -> Game -> Game
-setMouseDown buttonPressed mouseLocation game =
-  game & set (uiState . lastReportedClick) (Just (buttonPressed, mouseLocation))
+    fasterFaster hsAmt
 
-handleMouseDown :: Game -> Name -> Brick.Location -> Game
-handleMouseDown game pressed mouseLocation =
-  game & setMouseDown pressed mouseLocation & handleButtonEvent pressed
 
-handleButtonEvent :: Name -> Game -> Game
-handleButtonEvent NoOpButton = id
+  (MouseDown e _ _ m) -> handleMouseDown e m
+  MouseUp {} -> (uiState . lastReportedClick) .= Nothing
+  _ -> pure ()
 
-handleButtonEvent RoomButton = Room.arrival
+setMouseDown :: Name -> Brick.Location -> DarkRoom
+setMouseDown buttonPressed mouseLocation = do
+  (uiState . lastReportedClick) .= Just (buttonPressed, mouseLocation)
 
-handleButtonEvent LightButton = Fire.light
-handleButtonEvent StokeButton = Fire.stoke
+handleMouseDown :: Name -> Brick.Location -> DarkRoom
+handleMouseDown pressed mouseLocation = do
+  setMouseDown pressed mouseLocation
+  handleButtonEvent pressed
 
-handleButtonEvent OutsideButton    = Outside.arrival
-handleButtonEvent GatherButton     = Outside.gather
-handleButtonEvent CheckTrapsButton =
-  error "This should be handled in handleEventWrapper"
+handleButtonEvent :: Name -> DarkRoom
+handleButtonEvent = \case
+  NoOpButton -> pure ()
 
-handleButtonEvent (CraftButton x) = Builder.build x
+  RoomButton -> Room.arrival
 
-handleButtonEvent PathButton = set location Path
-handleButtonEvent ShipButton = set location Ship
+  LightButton -> Fire.light
+  StokeButton -> Fire.stoke
 
-handleButtonEvent RestartButton = const initGame
-handleButtonEvent HyperButton =
-  error "This should be handled in handleEventWrapper"
-handleButtonEvent DebugButton = over debug not
-handleButtonEvent PrevButton = set paused True . head . view previousStates
-handleButtonEvent PauseButton = over paused not
-handleButtonEvent DialogButton =
-  over inEvent (\ x -> case x of
-                        Just _ -> Nothing
-                        Nothing -> Just RE.theShadyBuilder)
-handleButtonEvent CheatButton =
-    overItem Wood   (+ 50)
-  . overItem Bait   (+ 50)
-  . overItem Fur    (+ 50)
-  . overItem Meat   (+ 50)
-  . overItem Scale  (+ 50)
-  . overItem Teeth  (+ 50)
-  . overItem Cloth  (+ 50)
-  . overItem Charm  (+ 50)
+  OutsideButton    -> Outside.arrival
+  GatherButton     -> Outside.gather
+  CheckTrapsButton -> error "This should be handled in handleEventWrapper"
 
-handleButtonEvent _ = id
+  (CraftButton x) -> Builder.build x
 
-getGameEvent :: GameEvent -> Game -> Game
-getGameEvent UnlockForest       = Outside.unlock
-getGameEvent FireShrinking      = Fire.shrinking
-getGameEvent BuilderUpdate      = Builder.update
-getGameEvent BuilderGathersWood = execState Builder.gatherWood
-getGameEvent RoomChanged        = Room.update
+  PathButton -> do location .= Path
+  ShipButton -> do location .= Ship
 
--- Button Cooldowns
-getGameEvent GatherWood         = id
-getGameEvent FireStoked         = id
-getGameEvent CheckTraps         = id
+  RestartButton -> do modify (const initGame)
+  HyperButton -> error "This should be handled in handleEventWrapper"
+  DebugButton -> do debug %= not
+  PrevButton -> do
+    prev <- head <$> use previousStates
+    modify (const prev)
+    paused .= True
+  PauseButton -> do paused %= not
+  DialogButton -> do
+    inEvent %= (\case { Just _ -> Nothing ; _ -> Just RE.theShadyBuilder })
+  CheatButton -> do
+    overStored Wood  (+ 50)
+    overStored Bait  (+ 50)
+    overStored Fur   (+ 50)
+    overStored Meat  (+ 50)
+    overStored Scale (+ 50)
+    overStored Teeth (+ 50)
+    overStored Cloth (+ 50)
+    overStored Charm (+ 50)
 
-gameTick :: Game -> Game
-gameTick game =
-  let updatedTickers =
-        game & over tickCount (+1)
-             & over upcomingEvents tickEvents
-             & over events (take 15 . map (over _2 (+1)))
-      doEventIfReady e = if snd e == 0 then getGameEvent (fst e) else id
-      allEvs = toList (view upcomingEvents updatedTickers)
-      stateAfterIngameEvents = foldr doEventIfReady updatedTickers allEvs
-  in if view paused game then game else stateAfterIngameEvents
+  _ -> pure ()
+
+getGameEvent :: GameEvent -> DarkRoom
+getGameEvent = \case
+  UnlockForest       -> Outside.unlock
+  FireShrinking      -> Fire.shrinking
+  BuilderUpdate      -> Builder.update
+  BuilderGathersWood -> Builder.gatherWood
+  RoomChanged        -> Room.update
+
+  -- Button Cooldowns
+  GatherWood         -> pure ()
+  FireStoked         -> pure ()
+  CheckTraps         -> pure ()
+
+gameTick :: DarkRoom
+gameTick = do
+  doNothing <- use paused
+  unless doNothing $ do
+    tickCount %= (+ 1)
+    upcomingEvents %= tickEvents
+    -- TODO wtf?
+    events %= (take 15 . map (over _2 (+1)))
+
+    allEvs <- filter (\x -> snd x == 0) . toList <$> use upcomingEvents
+    forM_ allEvs $ \(e, _) -> do
+      getGameEvent e
