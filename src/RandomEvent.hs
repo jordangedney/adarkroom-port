@@ -94,8 +94,7 @@ doSceneChoice rnd = \case
 handleButton :: StdGen -> SceneChoice -> DarkRoom
 handleButton r (SceneChoice _ cs next) =
   -- if there's no item to buy just continue on
-  if null cs then do
-    doSceneChoice r next
+  if null cs then doSceneChoice r next
 
   else do
     -- buy the item, if you can

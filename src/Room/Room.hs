@@ -1,39 +1,40 @@
+{-# LANGUAGE LambdaCase #-}
 module Room.Room
   ( update
   , arrival
   ) where
 
 import Control.Lens
+import Control.Monad (unless)
 
 import Shared.Game
 import Shared.GameEvent (GameEvent(RoomChanged))
 import Shared.Constants (roomWarmDelay)
-
 import Util (notifyRoom, clearRoomBacklog, updateEvent)
 
 import qualified Room.Builder as Builder
-import Control.Monad (unless)
 
 roomState :: RoomTemperature -> String
-roomState Freezing = "the room is freezing."
-roomState Cold     = "the room is cold."
-roomState Mild     = "the room is mild."
-roomState Warm     = "the room is warm."
-roomState Hot      = "the room is hot."
+roomState = \case
+  Freezing -> "the room is freezing."
+  Cold     -> "the room is cold."
+  Mild     -> "the room is mild."
+  Warm     -> "the room is warm."
+  Hot      -> "the room is hot."
 
 roomPred :: RoomTemperature -> RoomTemperature
-roomPred Freezing = Freezing
-roomPred x = pred x
+roomPred = \case { Freezing -> Freezing; x -> pred x }
 
 roomSucc :: RoomTemperature -> RoomTemperature
-roomSucc Hot = Hot
-roomSucc x = succ x
+roomSucc = \case { Hot -> Hot; x -> succ x }
 
 update :: DarkRoom
 update = do
+  -- compare the room's temp with the fire's
   rT <- use roomTemperature
   newTemp <- newTemperature rT <$> use fireState
 
+  -- and bring the room's closer to the fire's
   unless (rT == newTemp) $ do
     roomTemperature .= newTemp
     notifyRoom (roomState newTemp)
@@ -48,6 +49,7 @@ update = do
 
 arrival :: DarkRoom
 arrival = do
+  -- home sweet home
   location .= Room
   clearRoomBacklog
   Builder.canHelp

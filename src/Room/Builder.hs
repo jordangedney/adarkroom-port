@@ -11,8 +11,8 @@ module Room.Builder
   )
 where
 
-import Control.Monad.State
-import Control.Lens hiding (pre)
+import Control.Lens
+import Control.Monad.State (get, gets, forM_, when, unless)
 
 import Shared.UI
 import Shared.Game
@@ -20,7 +20,6 @@ import Shared.GameEvent (GameEvent(..))
 import Shared.Constants
 import Shared.Item
 import Shared.Util
-
 import Util (notifyRoom, updateEvent, displayCosts)
 
 showState :: BuilderState -> String
@@ -38,9 +37,7 @@ showState = \case
     <> "she says she can help. says she builds things."
 
 builderSucc :: BuilderState -> BuilderState
-builderSucc = \case
-  Helping -> Helping
-  x -> succ x
+builderSucc = \case { Helping -> Helping; x -> succ x }
 
 canHelp :: DarkRoom
 canHelp = do
@@ -75,7 +72,7 @@ update :: DarkRoom
 update = do
   builderIs <- use builderState
   unless (builderIs == Sleeping || builderIs == Helping) $ do
-    -- Builder is getting better all the time
+    -- builder is getting better all the time
     updateEvent BuilderUpdate builderStateDelay
     builderState %= builderSucc
     displayBuilderState
@@ -195,21 +192,25 @@ updateBuildables :: DarkRoom
 updateBuildables = do
   g <- get
 
+      -- those buttons not yet displayed
   let notBuildable = filter (not . (\i -> g ^. craftableReady i)) buildables
 
-      nearlyAfford :: [(Item, Int)] -> Bool
-      nearlyAfford [] = True
-      nearlyAfford ((Wood, c):cs) =
-        getItem Wood g >= c `div` 2 && nearlyAfford cs
-      nearlyAfford ((i, _):cs) = playerHasSeen i g && nearlyAfford cs
+      -- so close, yet so far
+      nearlyAfford (Wood, c) = getItem Wood g >= c `div` 2
+      nearlyAfford (i   , _) = playerHasSeen i g
 
+      -- same data, just takes some shuffling
+      unpackCost c = case getCraftableAttrs c of
+        (Building m _ cost')    -> (m, cost')
+        (Resource m _ _ costFn) -> (m, costFn g)
+        _                       -> error $ "Unexpected item "<> show c
+
+  -- once builder is well
   when (g ^. milestones . buildUnlocked) $ do
     forM_ notBuildable $ \c -> do
-      let (msg, cost) = case getCraftableAttrs c of
-                          (Building a _ cost') -> (a, cost')
-                          (Resource a _ _ costFn) -> (a, costFn g)
-                          _ -> error $ "Unexpected item "<> show c
-      when (nearlyAfford cost) $ do
+      -- if you can nearly afford it, builder realizes she can build it
+      let (msg, cost) = unpackCost c
+      when (all nearlyAfford cost) $ do
         craftableReady c .= True
         notifyRoom msg
 
@@ -223,25 +224,29 @@ build i = do
      c <- gets costFn
      numItem <- gets (getItem i)
 
-     if numItem < maxNum then do
-       go b c
-     else do
-       notifyRoom maxMsg
+     -- can only check so many traps; cities can only get so big
+     if numItem < maxNum then go b c
+     else notifyRoom maxMsg
+
    where
      go :: String -> [(Item, Int)] -> DarkRoom
      go buildMsg cost = do
+       -- show that which can be used in the forest
        uiState . showForestBuildings .= True
+
        -- only build if the room is warm
        temp <- use roomTemperature
        if temp == Freezing || temp == Cold then do
          notifyRoom "builder just shivers."
 
        else do
+         -- build an _x_ to help do _y_
          canBuild <- gets (canAfford cost)
          if canBuild then do
            overStored i (+1)
            forM_ cost $ \(item', amt) -> do
              overStored item' (+ (-amt))
            notifyRoom buildMsg
-         else do
-           displayCosts cost
+
+         -- time to gather more wood
+         else displayCosts cost
