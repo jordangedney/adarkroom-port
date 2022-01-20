@@ -86,6 +86,7 @@ gatherWood = do
   temp <- use roomTemperature
   unless (temp == Freezing || temp == Cold) (overStored Wood (+2))
 
+-- XXX unable to reside in Shared.Item because of dependency cycling
 data CraftableAttributes
   = Building
      String -- available message

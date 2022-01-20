@@ -67,53 +67,6 @@ data UIState = UIState
   , _showShip            :: Bool
   , _showForestBuildings :: Bool
 
-  -- Items
-  ,  _showAlienAlloy     :: Bool
-  ,  _showBait           :: Bool
-  ,  _showBayonet        :: Bool
-  ,  _showBolas          :: Bool
-  ,  _showBullets        :: Bool
-  ,  _showCharm          :: Bool
-  ,  _showCloth          :: Bool
-  ,  _showCoal           :: Bool
-  ,  _showCompass        :: Bool
-  ,  _showEnergyCell     :: Bool
-  ,  _showFur            :: Bool
-  ,  _showGrenade        :: Bool
-  ,  _showIron           :: Bool
-  ,  _showMeat           :: Bool
-  ,  _showMedicine       :: Bool
-  ,  _showScales         :: Bool
-  ,  _showSteel          :: Bool
-  ,  _showTeeth          :: Bool
-  ,  _showWood           :: Bool
-
-  -- Craftables
-  , _showTrap            :: Bool
-  , _showCart            :: Bool
-  , _showHut             :: Bool
-  , _showLodge           :: Bool
-  , _showTradingPost     :: Bool
-  , _showTannery         :: Bool
-  , _showSmokehouse      :: Bool
-  , _showWorkshop        :: Bool
-  , _showSteelworks      :: Bool
-  , _showArmory          :: Bool
-  , _showTorch           :: Bool
-  , _showWaterskin       :: Bool
-  , _showCask            :: Bool
-  , _showWaterTank       :: Bool
-  , _showBoneSpear       :: Bool
-  , _showRucksack        :: Bool
-  , _showWagon           :: Bool
-  , _showConvoy          :: Bool
-  , _showLeatherArmor    :: Bool
-  , _showIronArmor       :: Bool
-  , _showSteelArmor      :: Bool
-  , _showIronSword       :: Bool
-  , _showSteelSword      :: Bool
-  , _showRifle           :: Bool
-
   -- Buttons
   , _showTrapBtn         :: Bool
   , _showCartBtn         :: Bool
@@ -152,53 +105,6 @@ uiStateInit = UIState
   , _showShip            = False
   , _showForestBuildings = False
 
-  -- Items
-  , _showAlienAlloy      = False
-  , _showBait            = False
-  , _showBayonet         = False
-  , _showBolas           = False
-  , _showBullets         = False
-  , _showCharm           = False
-  , _showCloth           = False
-  , _showCoal            = False
-  , _showCompass         = False
-  , _showEnergyCell      = False
-  , _showFur             = False
-  , _showGrenade         = False
-  , _showIron            = False
-  , _showMeat            = False
-  , _showMedicine        = False
-  , _showScales          = False
-  , _showSteel           = False
-  , _showTeeth           = False
-  , _showWood            = True
-
-  -- Craftables
-  , _showTrap            = False
-  , _showCart            = False
-  , _showHut             = False
-  , _showLodge           = False
-  , _showTradingPost     = False
-  , _showTannery         = False
-  , _showSmokehouse      = False
-  , _showWorkshop        = False
-  , _showSteelworks      = False
-  , _showArmory          = False
-  , _showTorch           = False
-  , _showWaterskin       = False
-  , _showCask            = False
-  , _showWaterTank       = False
-  , _showBoneSpear       = False
-  , _showRucksack        = False
-  , _showWagon           = False
-  , _showConvoy          = False
-  , _showLeatherArmor    = False
-  , _showIronArmor       = False
-  , _showSteelArmor      = False
-  , _showIronSword       = False
-  , _showSteelSword      = False
-  , _showRifle           = False
-
   -- Buttons
   , _showTrapBtn         = False
   , _showCartBtn         = False
@@ -224,5 +130,4 @@ uiStateInit = UIState
   , _showIronSwordBtn    = False
   , _showSteelSwordBtn   = False
   , _showRifleBtn        = False
-
   }

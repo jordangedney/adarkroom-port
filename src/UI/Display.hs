@@ -23,11 +23,13 @@ import UI.Components
 import qualified Outside
 import Shared.Item
 import Shared.Util
+import qualified Data.Map as Map
+import Control.Monad.Reader (asks)
 
 interleave :: [[a]] -> [a]
 interleave = concat . transpose
 
-roomStores :: Game -> Int -> Widget Name
+roomStores :: Int -> Game -> Widget Name
 roomStores = storesWindow
 
 forestStores :: Game -> Int -> Widget Name
@@ -44,8 +46,8 @@ forestStores game width =
       title = "forest" <> " " <> replicate gapLen '─' <> " pop " <> popCount
 
       buildingsWindow = vBox [ storeWidget ForestVP title buildings width
-                             , storesWindow game width]
-  in if showBuildings then buildingsWindow else storesWindow game width
+                             , storesWindow width game]
+  in if showBuildings then buildingsWindow else storesWindow width game
 
 storeWidget :: Name -> String -> [(String, String)] -> Int -> Widget Name
 storeWidget name label stockpileItems' width =
@@ -70,24 +72,13 @@ storeWidget name label stockpileItems' width =
       limitWindowSize = vLimit (height + 2) . hLimit (width + 2)
   in limitWindowSize showWindow
 
-storesWindow :: Game -> Int -> Widget Name
-storesWindow game width =
-  let showStoreWindow = view (uiState . showStores) game
-      should getter = view (uiState . getter) game
-      stockpileItems = [(name, show (getItem amount game))|
-                        (name, amount, itemShouldBeShown) <-
-        [ ("wood",   Wood,   showWood)
-        , ("bait",   Bait,   showBait)
-        , ("fur",    Fur,    showFur)
-        , ("meat",   Meat,   showMeat)
-        , ("scales", Scale,  showScales)
-        , ("teeth",  Teeth,  showTeeth)
-        , ("cloth",  Cloth,  showCloth)
-        , ("charm",  Charm,  showCharm)
-        ], should itemShouldBeShown]
-      showNothing = str (replicate (width + 2) ' ')
-      showWindow = storeWidget StoreVP "stores" stockpileItems width
-  in if showStoreWindow then showWindow else showNothing
+storesWindow :: Int -> Game -> Widget Name
+storesWindow width = do
+  showStoreWindow <- asks (view (uiState . showStores))
+  if showStoreWindow then do
+    stockpileItems <- asks (map (bimap itemToStr show) . Map.toList . view stored)
+    pure $ storeWidget StoreVP "stores" stockpileItems width
+  else pure $ str (replicate (width + 2) ' ')
 
 craftButtons :: Game -> Widget Name
 craftButtons game =
@@ -127,7 +118,7 @@ drawRoom game =
   let leftCol = ensureWidth (hCenter (fireButton <=> buildButtons game))
       leftMidCol = ensureWidth (craftButtons game)
       rightMidCol = ensureWidth (buyButtons game)
-      rightCol = hCenter (roomStores game 23)
+      rightCol = hCenter (roomStores 23 game)
 
       ensureWidth x = hLimit 21 (x <=> emptyLine)
 

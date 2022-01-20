@@ -16,13 +16,13 @@ canAfford items game = all afford items
   where afford (Compass, 0) = getItem Compass game == 0
         afford (i, amnt) = getItem i game >= amnt
 
+getItem :: Item -> Game -> Int
+getItem i g = Map.findWithDefault 0 i $ g ^. stored
+
 getStored :: Item -> State Game Int
 getStored i = do
   g <- get
   return $ Map.findWithDefault 0 i $ g ^. stored
-
-getItem :: Item -> Game -> Int
-getItem i g = Map.findWithDefault 0 i $ g ^. stored
 
 overItem :: Item -> (Int -> Int) -> Game -> Game
 overItem i fn g =
