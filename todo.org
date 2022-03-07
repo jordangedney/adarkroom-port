@@ -1,400 +1,163 @@
 #+TITLE: TODO
 
 
-
-
 * Todo
-- [ ] cart button is displaying too early
-- [ ] display msg when max (10) traps are bought
-- [ ] remove huts from stores
-- [ ] add hut to forest stores
-- [ ] add population increasing over time
-- [ ] A Silent Forest title becomes A Lonely Hut on aquisition of a hut -- Do all (A tiny village, etc)
-- [ ] A Beast Attack event
-- [ ] people act as gatherers
-- [ ] display gathering amounts
-      an always-on bottom display would work better than the web design
-- [ ] hunting lodge unlocks hunters
-- [ ] hunting lodge unlocks trapers
-- [ ] hunting lodge displays hunting amounts
-- [ ] hunting lodge displays trapping amounts
-- [ ] hunter addition and subtraction buttons
-- [ ] trapper addition and subtraction buttons
-- [ ] Mysterious Wanderer event
-- [ ] building trading post unlocks buy menu
-- [ ] buy menu teeth button
-- [ ] buy menu compass button
-- [ ] building tannery unlocks tanners
-- [ ] tanner tanning amounts shown
-- [ ] building smokehouse unlocks charcutiers
-- [ ] unlock scales in buy menu
-- [ ] display workshop build-button
-- [ ] display max hut msg
-- [ ] building workshop displays craft buttons
-- [ ] craft buttons include torch
-- [ ] craft buttons include waterskin
-- [ ] bone spear unlocks weapons
-- [ ] craft buttons include rucksack
-- [ ] craft buttons include l armor
-- [ ] create internal player stats
-- [ ] waterskin modifies player stats
-- [ ] rucksack modifies player stats
-- [ ] l armor modifies player stats
-- [ ] compass unlocks a dusty path
+
+** PrePath
+ - [ ] cart button is displaying too early
+ - [ ] display msg when max (10) traps are bought
+ - [ ] remove huts from stores
+ - [ ] add hut to forest stores
+ - [ ] add population increasing over time
+ - [ ] A Silent Forest title becomes A Lonely Hut on aquisition of a hut -- Do all (A tiny village, etc)
+ - [ ] A Beast Attack event
+ - [ ] people act as gatherers
+ - [ ] display gathering amounts
+       an always-on bottom display would work better than the web design
+ - [ ] hunting lodge unlocks hunters
+ - [ ] hunting lodge unlocks trapers
+ - [ ] hunting lodge displays hunting amounts
+ - [ ] hunting lodge displays trapping amounts
+ - [ ] hunter addition and subtraction buttons
+ - [ ] trapper addition and subtraction buttons
+ - [ ] Mysterious Wanderer event
+ - [ ] building trading post unlocks buy menu
+ - [ ] buy menu teeth button
+ - [ ] buy menu compass button
+ - [ ] building tannery unlocks tanners
+ - [ ] tanner tanning amounts shown
+ - [ ] building smokehouse unlocks charcutiers
+ - [ ] unlock scales in buy menu
+ - [ ] display workshop build-button
+ - [ ] display max hut msg
+ - [ ] building workshop displays craft buttons
+ - [ ] craft buttons include torch
+ - [ ] craft buttons include waterskin
+ - [ ] bone spear unlocks weapons
+ - [ ] craft buttons include rucksack
+ - [ ] craft buttons include l armor
+ - [ ] create internal player stats
+ - [ ] waterskin modifies player stats
+ - [ ] rucksack modifies player stats
+ - [ ] l armor modifies player stats
+ - [ ] compass unlocks a dusty path
   
 
-Path unlocked:
+** Path unlocked
+- [ ] Add path supply display window
+  The ingame supplies menu shows stats when you hover over an item- DON'T add this feature
+  - [ ] show player armor
+  - [ ] show water
+  - [ ] show variable-path-supplies available to take
+  - [ ] show variable-path-supplies in the current expedition inventory
+  - [ ] add variable-path-supplies addition and subtraction
+  - [ ] number of items free included on path-supplies page
+- [ ] add embark button to path page
 
+  
+** Path:
+- [ ] rucksack box display
+  - [ ] Current HP displayed
+  - [ ] free/available rucksack space
+  - [ ] list of items to their amounts displayed
+    
+- [ ] path map displayed
+  - [ ] show entire map first
+  - [ ] only show seen area
+  - [ ] area surrounding character is part of seen
+  - [ ] show character location '@'
+    
+- [ ] allow character movement across map
+- [ ] going home ('A') takes you back to path screen
+- [ ] walking displays messages when new areas are encountered
+- [ ] walking removes water
+- [ ] walking removes food
+- [ ] running out of water ends exploration, causes black out
+- [ ] create black out state (can't explore for a bit)
+- [ ] on blackout, everything that was done (explored, gathered, etc) is undone
+- [ ] running out of food ends exploration, causes black out
+- [ ] snarling beast attack event
+  - [ ] display two characters
+  - [ ] animate both characters on attacking
+  - [ ] animate both characters on attacking
+  - [ ] attack button causes damage
+  - [ ] cured meat heals health
+  - [ ] if beast dies, show rewards screen
+    - [ ] show dropped item buttons
+    - [ ] take all button for each item
+    - [ ] take all you can button
+    - [ ] leave button
+    - [ ] eat meat button
+  - [ ] if player dies, black out
 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
+- [ ] reusuable rewards screen
+  - [ ] shows variable text
+  - [ ] shows takeable items
+  - [ ] show takable *amt* next to items
+  - [ ] shows droppable items
+  - [ ] shows take all button
+  - [ ] buttons for eating meat (if applicable- after battles in the wilds)
+  - [ ] buttons for continuing and leaving (iff applicable- after exploring a cave)
+    
+- [ ] Attack wandering events:
+  - [ ] a snarling beast
+  - [ ] a guant man
+  - [ ] a scavenger
+  - [ ] a meat eater
+  - [ ] a feral terror
+  - [ ] a soldier
+  - [ ] a sniper
+    
+- [ ] Create explorable places
+  - [ ] After exploration, places become an outpost 'P' excluding: IRON MINES
+  
+  - [ ] A Damp Cave
+  - [ ] The Iron Mine
+  - [ ] Outposts
+  - [ ] An Old House
+  - [ ] The Coal Mine
+  - [ ] A Deserted Town
+  - [ ] The Sulfur mine
+  - [ ] A Forgotten Battlefield
+  - [ ] A Ruined City
+  - [ ] A Huge Borehole
+  - [ ] A Crashed Ship
+  - [ ] A Murky Swamp
+  
+- [ ] create roads/paths between explored outposts
+- [ ] going home maintains inventory across explorations
+      (if you find a sword instead of a spear, you'll automatically take the sword next time)
+      
+- [ ] On discovery of iron (or is it iron mines<<<?) unlock cask
+- [ ] On discovery of iron unlock wagon
+- [ ] On discovery of iron unlock i armor
+- [ ] On discovery of iron unlock i iron sword
+- [ ] On discovery of iron unlock buyable iron
+- [ ] Wandering scout event
+- [ ] add scouting ability 
+- [ ] On discovery of medicine add 'use meds' option
+- [ ] On discovery of medicine allowing buying meds
+- [ ] on discovery of coal mine allow buying of coal
+- [ ] having coal unlocks steelworks
+- [ ] coal mines unlock coal miner villager
+- [ ] iron mines unlock iron miner villager
+- [ ] steelworker unlock steelworker villager
+- [ ] medicine unlocks plague event
+- [ ] steel adds water tank
+- [ ] steel adds convoy
+- [ ] steel adds s armor
+- [ ] steel adds steel sword
+- [ ] finding rifle (or bullets?) unlocks bullet buy
+- [ ] having rifle unlocks shoot attack
+- [ ] having bolas unlocks tangle attack
+- [ ] finding bolas unlocks bolas-buy
+- [ ] finding energy-cell unlocks energy-cell
+- [ ] armory unlocks bullet-making villager
+- [ ] finding alient alloy allows you to buy it
+- [ ] finding grenades allow you to buy them
+- [ ] having grenades unlocks the 'lob' attack
+- [ ] finding a bayonet unlocks the buy button, also a new attack
+- [ ] finding 'A crashed ship' unlocks 'An Old Starship'
 
-
-
-
-
-* Room
-** display craftables
-
-* Outside
-** Increase population over time
-[[file:~/workspace/adarkroom/script/outside.js::increasePopulation: function() {][increasePopulation]]
-
-
-
-* Path
-
-* Ship
-
-* Finished
-<><><>
+** An Old Starship
+- [ ] Fuck me, how does this translate to terminal?
