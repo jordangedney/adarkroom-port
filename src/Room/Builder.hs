@@ -218,36 +218,36 @@ updateBuildables = do
 build :: Item -> DarkRoom
 build i = do
   case getCraftableAttrs i of
-   (Building _ b c) -> go b c
-   (Tool b c) -> go b c
+   (Building _ b c) -> ifAffordable c (doBuild b c)
+   (Tool b c) -> ifAffordable c (doBuild b c)
    (Resource _ b (maxNum, maxMsg) costFn) -> do
      -- traps and huts have variable cost depending on how many exist
      c <- gets costFn
      numItem <- gets (getItem i)
 
      -- can only check so many traps; cities can only get so big
-     if numItem < maxNum then go b c
-     else notifyRoom maxMsg
+     ifAffordable c $ do
+        when (numItem < maxNum) $ do doBuild b c
+        when (maxNum - numItem <= 1) $ do notifyRoom maxMsg
 
    where
-     go :: String -> [(Item, Int)] -> DarkRoom
-     go buildMsg cost = do
-       -- show that which can be used in the forest
-       uiState . showForestBuildings .= True
-
-       -- only build if the room is warm
+     ifAffordable :: [(Item, Int)] -> DarkRoom -> DarkRoom
+     ifAffordable cost buildItem = do
        temp <- use roomTemperature
        if temp == Freezing || temp == Cold then do
          notifyRoom "builder just shivers."
-
        else do
-         -- build an _x_ to help do _y_
-         canBuild <- gets (canAfford cost)
-         if canBuild then do
-           overStored i (+1)
-           forM_ cost $ \(item', amt) -> do
-             overStored item' (+ (-amt))
-           notifyRoom buildMsg
-
+         cA <- gets (canAfford cost)
+         if cA then do buildItem
          -- time to gather more wood
-         else displayCosts cost
+         else do displayCosts cost
+
+     doBuild :: String -> [(Item, Int)] -> DarkRoom
+     doBuild buildMsg cost = do
+       -- show that which can be used in the forest
+       uiState . showForestBuildings .= True
+
+       overStored i (+1)
+       forM_ cost $ \(item', amt) -> do
+        overStored item' (+ (-amt))
+       notifyRoom buildMsg

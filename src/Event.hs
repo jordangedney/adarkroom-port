@@ -23,6 +23,9 @@ import qualified RandomEvent
 import Control.Lens
 import Control.Monad (forM_, unless)
 
+    -- EventM { runEventM :: ReaderT (EventRO n) (StateT (EventState n) IO) a
+                                                   -- ReaderT (EventRO Name) (StateT (EventState Name) IO) (Next Game)
+
 handleEventWrapper :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEventWrapper game event =
   let step g = continue ((execState $ handleEvent event) g)

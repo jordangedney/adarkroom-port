@@ -4,8 +4,7 @@
 * Todo
 
 ** PrePath
- - [ ] cart button is displaying too early
- - [ ] display msg when max (10) traps are bought
+ - [X] display msg when max (10) traps are bought
  - [ ] remove huts from stores
  - [ ] add hut to forest stores
  - [ ] add population increasing over time
