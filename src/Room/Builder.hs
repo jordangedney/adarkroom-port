@@ -194,7 +194,7 @@ updateBuildables = do
   g <- get
 
       -- those buttons not yet displayed
-  let notBuildable = filter (not . (\i -> g ^. craftableReady i)) buildables
+  let notBuildable = filter (not . (\i -> g ^. craftableReady i)) buildings
 
       -- so close, yet so far
       nearlyAfford (Wood, c) = getItem Wood g >= c `div` 2

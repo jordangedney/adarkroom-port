@@ -35,9 +35,6 @@ roomStores = storesWindow
 forestStores :: Game -> Int -> Widget Name
 forestStores game width =
   let showBuildings = view (uiState . showForestBuildings) game
-      forestItems = [Cart, Trap]
-      buildings = filter (`playerHasSeen` game) forestItems
-                & map (\i -> (itemToStr i, show (getItem i game)))
       currentPopulation = view numPeople game
       maxPopulation = Outside.maxPopulation game
       popCount = show currentPopulation <> "/" <> show maxPopulation
@@ -45,7 +42,7 @@ forestStores game width =
       gapLen =  7 - length popCount
       title = "forest" <> " " <> replicate gapLen '─' <> " pop " <> popCount
 
-      buildingsWindow = vBox [ storeWidget ForestVP title buildings width
+      buildingsWindow = vBox [ storeWidget ForestVP title (formatStores buildings game) width
                              , storesWindow width game]
   in if showBuildings then buildingsWindow else storesWindow width game
 
@@ -71,6 +68,13 @@ storeWidget name label stockpileItems' width =
       -- Extra padding for the border
       limitWindowSize = vLimit (height + 2) . hLimit (width + 2)
   in limitWindowSize showWindow
+
+formatStores :: [Item] -> Game -> [(String, String)]
+formatStores items game =
+  view stored game
+  & Map.toList
+  & filter (\(i, _) -> i `elem` items)
+  & map (bimap itemToStr show)
 
 storesWindow :: Int -> Game -> Widget Name
 storesWindow width = do
@@ -104,7 +108,7 @@ buildButtons g =
 
       tooMany c = getItem c g >= maxNumCraftable c
 
-      toBuild = filter (\i -> g ^. craftableReady i) buildables
+      toBuild = filter (\i -> g ^. craftableReady i) buildings
 
       mkButton c = if tooMany c
                    then greyedButton (itemToStr c)
