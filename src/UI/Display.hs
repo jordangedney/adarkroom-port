@@ -1,7 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -Wno-unused-matches #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE LambdaCase #-}
 module UI.Display where
 
 import Brick
@@ -32,20 +30,6 @@ interleave = concat . transpose
 roomStores :: Int -> Game -> Widget Name
 roomStores = storesWindow
 
-forestStores :: Game -> Int -> Widget Name
-forestStores game width =
-  let showBuildings = view (uiState . showForestBuildings) game
-      currentPopulation = view numPeople game
-      maxPopulation = Outside.maxPopulation game
-      popCount = show currentPopulation <> "/" <> show maxPopulation
-
-      gapLen =  7 - length popCount
-      title = "forest" <> " " <> replicate gapLen '─' <> " pop " <> popCount
-
-      buildingsWindow = vBox [ storeWidget ForestVP title (formatStores buildings game) width
-                             , storesWindow width game]
-  in if showBuildings then buildingsWindow else storesWindow width game
-
 storeWidget :: Name -> String -> [(String, String)] -> Int -> Widget Name
 storeWidget name label stockpileItems' width =
   let height = length stockpileItems
@@ -70,17 +54,30 @@ storeWidget name label stockpileItems' width =
   in limitWindowSize showWindow
 
 formatStores :: [Item] -> Game -> [(String, String)]
-formatStores items game =
-  view stored game
-  & Map.toList
-  & filter (\(i, _) -> i `elem` items)
-  & map (bimap itemToStr show)
+formatStores toDisplay =
+  asks (Map.toList . view stored)
+  >>= (\allItems -> pure [(itemToStr i, show amt) | (i, amt) <- allItems, i `elem` toDisplay])
+
+forestStores :: Int -> Game -> Widget Name
+forestStores width = do
+  haveBuildings <- asks (view (uiState . showForestBuildings))
+  goodsWindow <- storesWindow width
+
+  if haveBuildings then do
+    pop <- asks (show . view numPeople)
+    maxP <- asks (show . Outside.maxPopulation)
+    let popAmt = pop <> "/" <> maxP
+        gapLen =  7 - length popAmt
+        title = "forest" <> " " <> replicate gapLen '─' <> " pop " <> popAmt
+    items <- formatStores buildings
+    pure $ vBox [ storeWidget ForestVP title items width, goodsWindow]
+  else pure goodsWindow
 
 storesWindow :: Int -> Game -> Widget Name
 storesWindow width = do
   showStoreWindow <- asks (view (uiState . showStores))
   if showStoreWindow then do
-    stockpileItems <- asks (map (bimap itemToStr show) . Map.toList . view stored)
+    stockpileItems <- formatStores goods
     pure $ storeWidget StoreVP "stores" stockpileItems width
   else pure $ str (replicate (width + 2) ' ')
 
@@ -140,7 +137,7 @@ drawForest game =
   let leftCol = ensureWidth (hCenter buttons)
       leftMidCol = ensureWidth blank
       rightMidCol = ensureWidth blank
-      rightCol = hCenter (forestStores game 23)
+      rightCol = hCenter (forestStores 23 game)
 
       ensureWidth x = hLimit 21 (x <=> emptyLine)
 

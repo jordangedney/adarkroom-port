@@ -6,7 +6,6 @@ module Shared.Constants
   , needWoodDelay
   , gatherCooldown
   , builderGatherDelay
-  , unlockTrapsDelay
   , maximumNumberOfTraps
   , maximumNumberOfHuts
   , checkTrapsCooldown
@@ -21,11 +20,7 @@ maximumNumberOfTraps :: Int
 maximumNumberOfTraps = 10
 
 maximumNumberOfHuts :: Int
-maximumNumberOfHuts = 10
-
--- builder starts helping -> traps can be build
-unlockTrapsDelay :: Int
-unlockTrapsDelay = seconds 15
+maximumNumberOfHuts = 20
 
 -- how often builder gathers wood
 builderGatherDelay :: Int

@@ -127,14 +127,14 @@ handleButtonEvent = \case
   DialogButton -> do
     inEvent %= (\case { Just _ -> Nothing ; _ -> Just RE.theShadyBuilder })
   CheatButton -> do
-    overStored Wood  (+ 50)
-    overStored Bait  (+ 50)
-    overStored Fur   (+ 50)
-    overStored Meat  (+ 50)
-    overStored Scale (+ 50)
-    overStored Teeth (+ 50)
-    overStored Cloth (+ 50)
-    overStored Charm (+ 50)
+    overStored Wood  (+ 5000)
+    overStored Bait  (+ 5000)
+    overStored Fur   (+ 5000)
+    overStored Meat  (+ 5000)
+    overStored Scale (+ 5000)
+    overStored Teeth (+ 5000)
+    overStored Cloth (+ 5000)
+    overStored Charm (+ 5000)
 
   _ -> pure ()
 
