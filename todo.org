@@ -5,8 +5,8 @@
 
 ** PrePath
  - [X] display msg when max (10) traps are bought
- - [ ] remove huts from stores
- - [ ] add hut to forest stores
+ - [X] remove huts from stores
+ - [X] add hut to forest stores
  - [ ] add population increasing over time
  - [ ] A Silent Forest title becomes A Lonely Hut on aquisition of a hut -- Do all (A tiny village, etc)
  - [ ] A Beast Attack event
@@ -40,7 +40,7 @@
  - [ ] rucksack modifies player stats
  - [ ] l armor modifies player stats
  - [ ] compass unlocks a dusty path
-  
+
 
 ** Path unlocked
 - [ ] Add path supply display window
@@ -53,19 +53,19 @@
   - [ ] number of items free included on path-supplies page
 - [ ] add embark button to path page
 
-  
+
 ** Path:
 - [ ] rucksack box display
   - [ ] Current HP displayed
   - [ ] free/available rucksack space
   - [ ] list of items to their amounts displayed
-    
+
 - [ ] path map displayed
   - [ ] show entire map first
   - [ ] only show seen area
   - [ ] area surrounding character is part of seen
   - [ ] show character location '@'
-    
+
 - [ ] allow character movement across map
 - [ ] going home ('A') takes you back to path screen
 - [ ] walking displays messages when new areas are encountered
@@ -97,7 +97,7 @@
   - [ ] shows take all button
   - [ ] buttons for eating meat (if applicable- after battles in the wilds)
   - [ ] buttons for continuing and leaving (iff applicable- after exploring a cave)
-    
+
 - [ ] Attack wandering events:
   - [ ] a snarling beast
   - [ ] a guant man
@@ -106,10 +106,10 @@
   - [ ] a feral terror
   - [ ] a soldier
   - [ ] a sniper
-    
+
 - [ ] Create explorable places
   - [ ] After exploration, places become an outpost 'P' excluding: IRON MINES
-  
+
   - [ ] A Damp Cave
   - [ ] The Iron Mine
   - [ ] Outposts
@@ -122,18 +122,18 @@
   - [ ] A Huge Borehole
   - [ ] A Crashed Ship
   - [ ] A Murky Swamp
-  
+
 - [ ] create roads/paths between explored outposts
 - [ ] going home maintains inventory across explorations
       (if you find a sword instead of a spear, you'll automatically take the sword next time)
-      
+
 - [ ] On discovery of iron (or is it iron mines<<<?) unlock cask
 - [ ] On discovery of iron unlock wagon
 - [ ] On discovery of iron unlock i armor
 - [ ] On discovery of iron unlock i iron sword
 - [ ] On discovery of iron unlock buyable iron
 - [ ] Wandering scout event
-- [ ] add scouting ability 
+- [ ] add scouting ability
 - [ ] On discovery of medicine add 'use meds' option
 - [ ] On discovery of medicine allowing buying meds
 - [ ] on discovery of coal mine allow buying of coal
