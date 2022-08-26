@@ -52,22 +52,6 @@ gather = do
   updateEvent GatherWood gatherCooldown
   addEvent "dry brush and dead branches litter the forest floor."
 
--- TODO MAYBE A BUG TO REMOVE AS-IS?
--- unlockTrapItemView :: DarkRoom
--- unlockTrapItemView = do
---   -- TODO: kill me
---   let items =
---         [ (Fur,    showFur)
---         , (Meat,   showMeat)
---         , (Scale,  showScales)
---         , (Teeth,  showTeeth)
---         , (Cloth,  showCloth)
---         , (Charm,  showCharm)
---         ]
---       unlockItems = [set (uiState . shower) True | (i, shower) <- items,
---                      getItem i game > 0] ++ [set (uiState . showBait) True]
---   in foldr (\update g -> update g) game unlockItems
-
 checkTraps :: StdGen -> DarkRoom
 checkTraps rndGen = do
   numTraps <- getStored Trap
@@ -99,9 +83,6 @@ checkTraps rndGen = do
 
   addEvent eventMsg
   updateEvent CheckTraps checkTrapsCooldown
-
-  -- TODO: KILL ME:
-  -- unlockTrapItemView
 
 maxPopulation :: Game -> Int
 maxPopulation game = getItem Hut game * 4
