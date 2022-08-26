@@ -6,6 +6,8 @@ import qualified Brick.Widgets.ProgressBar as P
 import qualified Graphics.Vty as V
 import Control.Lens (view, (&))
 
+import qualified Data.Map as Map
+
 import Shared.Game
 import Shared.UI
 import Shared.GameEvent
@@ -38,10 +40,10 @@ formatTitle label width =
   in titleWithWS <> endingOffset
 
 buttonThatIsCooling
-  :: Game -> String -> (GameEvents -> (GameEvent, Int)) -> Int -> Widget Name
-buttonThatIsCooling game label cooldownGetter maxTime =
+  :: Game -> String -> GameEvent -> Int -> Widget Name
+buttonThatIsCooling game label eventLabel maxTime =
   let amountCooling =
-        (game & _upcomingEvents & cooldownGetter & snd & fromIntegral)
+        (game & _upcomingEvents & Map.findWithDefault 0 eventLabel & fromIntegral)
         / fromIntegral maxTime
       blueBox = withDefAttr blueBackground . border
       progressAttrs =
@@ -52,11 +54,11 @@ buttonThatIsCooling game label cooldownGetter maxTime =
   in blueBox progressbar
 
 buttonWithCoolDown
-  :: Game -> (GameEvents -> (GameEvent, Int)) -> String -> Name -> Int
+  :: Game -> GameEvent -> String -> Name -> Int
   -> Widget Name
-buttonWithCoolDown game cooldownTimer label button maxTime =
-  if game & _upcomingEvents & cooldownTimer & isActive
-  then hLimit 17 $ buttonThatIsCooling game label cooldownTimer maxTime
+buttonWithCoolDown game eventLabel label button maxTime =
+  if game & _upcomingEvents & Map.lookup eventLabel & isActive
+  then hLimit 17 $ buttonThatIsCooling game label eventLabel maxTime
   else actionButton game button label
 
 newButton :: String -> Widget Name

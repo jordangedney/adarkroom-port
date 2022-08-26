@@ -22,6 +22,7 @@ import qualified Outside
 import qualified RandomEvent
 import Control.Lens
 import Control.Monad (forM_, unless)
+import qualified Data.Map as Map
 
     -- EventM { runEventM :: ReaderT (EventRO n) (StateT (EventState n) IO) a
                                                    -- ReaderT (EventRO Name) (StateT (EventState Name) IO) (Next Game)
@@ -160,6 +161,6 @@ gameTick = do
     -- TODO wtf?
     events %= (take 15 . map (over _2 (+1)))
 
-    allEvs <- filter (\x -> snd x == 0) . toList <$> use upcomingEvents
+    allEvs <- filter (\x -> snd x == 0) . Map.toList <$> use upcomingEvents
     forM_ allEvs $ \(e, _) -> do
       getGameEvent e

@@ -6,7 +6,8 @@ module Shared.GameEvent where
 
 import GHC.Generics
 import Data.Yaml
-import Control.Lens (makeLenses, over, view, (&))
+import Data.Aeson.Types (ToJSONKey, FromJSONKey)
+import qualified Data.Map as Map
 
 data GameEvent
   = UnlockForest
@@ -17,58 +18,29 @@ data GameEvent
   | BuilderUpdate
   | RoomChanged
   | BuilderGathersWood
-  deriving (Eq, Enum, Show, Ord, Generic, ToJSON, FromJSON)
+  deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON, ToJSONKey, FromJSONKey, Enum, Bounded)
 
 -- Hacky, but >0 means active, 0 triggers, and <0 means inactive
-data GameEvents = GameEvents
-  { _unlockForest       :: (GameEvent, Int)
-  , _gatherWood         :: (GameEvent, Int)
-  , _checkTraps         :: (GameEvent, Int)
-  , _fireStoked         :: (GameEvent, Int)
-  , _fireShrinking      :: (GameEvent, Int)
-  , _builderUpdate      :: (GameEvent, Int)
-  , _roomChanged        :: (GameEvent, Int)
-  , _builderGathersWood :: (GameEvent, Int)
-  } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
-
-makeLenses ''GameEvents
-
-gameEventsInit :: GameEvents
-gameEventsInit = GameEvents
-  { _unlockForest       = (UnlockForest,       -1)
-  , _gatherWood         = (GatherWood,         -1)
-  , _checkTraps         = (CheckTraps,         -1)
-  , _fireStoked         = (FireStoked,         -1)
-  , _fireShrinking      = (FireShrinking,       1)
-  , _builderUpdate      = (BuilderUpdate,      -1)
-  , _roomChanged        = (RoomChanged,         1)
-  , _builderGathersWood = (BuilderGathersWood, -1)
-  }
-
-eventGetter :: Functor f
-  => GameEvent -> ((GameEvent, Int) -> f (GameEvent, Int)) -> GameEvents
-  -> f GameEvents
-eventGetter UnlockForest       = unlockForest
-eventGetter GatherWood         = gatherWood
-eventGetter CheckTraps         = checkTraps
-eventGetter FireStoked         = fireStoked
-eventGetter FireShrinking      = fireShrinking
-eventGetter BuilderUpdate      = builderUpdate
-eventGetter RoomChanged        = roomChanged
-eventGetter BuilderGathersWood = builderGathersWood
+gameEventsInit :: Map.Map GameEvent Int
+gameEventsInit = Map.fromList
+  [ (UnlockForest,       -1)
+  , (GatherWood,         -1)
+  , (CheckTraps,         -1)
+  , (FireStoked,         -1)
+  , (FireShrinking,       1)
+  , (BuilderUpdate,      -1)
+  , (RoomChanged,         1)
+  , (BuilderGathersWood, -1)
+  ]
 
 -- Helper Functions ------------------------------------------------------------
-toList :: GameEvents -> [(GameEvent, Int)]
-toList gameEvents = allEvents & map eventGetter & map (`view` gameEvents)
+tickEvents :: Map.Map k Int -> Map.Map k Int
+tickEvents eventMap = Map.map (+ (-1)) eventMap
+  -- let step Inactive = Inactive
+  --     step Triggered = Inactive
+  --     step (Waiting x) = if x < 1 then Triggered else Waiting (x - 1)
+  -- in Map.map step eventMap
 
-tickEvents :: GameEvents -> GameEvents
-tickEvents gameEvents =
-  let allEventsDec = map (\fn -> over (eventGetter fn) eventDec) allEvents
-      eventDec (a, b) = (a, b - 1)
-  in foldl (\gameEvents' tickEvent -> tickEvent gameEvents') gameEvents allEventsDec
-
-isActive :: (GameEvent, Int) -> Bool
-isActive (_, x) = x > 0
-
-allEvents :: [GameEvent]
-allEvents = enumFrom (toEnum 0)
+isActive :: Maybe Int -> Bool
+isActive (Just x) = x > 0
+isActive _ = False

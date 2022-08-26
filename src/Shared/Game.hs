@@ -12,7 +12,7 @@ import Control.Lens (makeLenses)
 import Control.Monad.State (State)
 
 import Shared.UI (UIState, uiStateInit)
-import Shared.GameEvent (GameEvents, gameEventsInit)
+import Shared.GameEvent (gameEventsInit, GameEvent)
 import Shared.RandomEvent (Scene)
 import Shared.Item
 import qualified Data.Map as Map
@@ -70,7 +70,7 @@ data Game = Game
   { _location           :: Location
   , _stored             :: Map.Map Item Int
   , _numPeople          :: Int
-  , _upcomingEvents     :: GameEvents
+  , _upcomingEvents     :: Map.Map GameEvent Int
   , _events             :: [(String, Int)]
   , _roomEventBacklog   :: [String]
   , _forestEventBacklog :: [String]

@@ -13,7 +13,7 @@ import qualified Data.Function as Function
 
 import Shared.Constants
 import Shared.Game
-import Shared.GameEvent (_fireStoked, _gatherWood, _checkTraps)
+import Shared.GameEvent (GameEvent(FireStoked, GatherWood, CheckTraps))
 import Shared.UI
 import UI.RandomEvent
 import UI.Components
@@ -127,7 +127,7 @@ drawRoom game =
       lightFireButton = actionButton game LightButton "light fire"
       stokeFireButton =
         buttonWithCoolDown
-          game _fireStoked "stoke fire" StokeButton stokeCooldown
+          game FireStoked "stoke fire" StokeButton stokeCooldown
       fireButton = if fireIsOut then lightFireButton else stokeFireButton
 
   in hBox [leftCol, leftMidCol, rightMidCol, rightCol]
@@ -142,9 +142,9 @@ drawForest game =
       ensureWidth x = hLimit 21 (x <=> emptyLine)
 
       gatherWoodButton = buttonWithCoolDown game
-        _gatherWood "gather wood" GatherButton gatherCooldown
+        GatherWood "gather wood" GatherButton gatherCooldown
       checkTrapsButton = buttonWithCoolDown game
-        _checkTraps "check traps" CheckTrapsButton checkTrapsCooldown
+        CheckTraps "check traps" CheckTrapsButton checkTrapsCooldown
       haveTraps = getItem Trap game > 0
       buttons = if haveTraps then vBox [gatherWoodButton, checkTrapsButton]
                 else gatherWoodButton

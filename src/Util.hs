@@ -15,6 +15,8 @@ import Shared.Item (Item(..), itemToStr)
 import Control.Monad.State (get)
 import Control.Monad (forM_)
 
+import qualified Data.Map as Map
+
 count :: Eq a => a -> [a] -> Int
 count x = length . filter (x ==)
 
@@ -74,7 +76,11 @@ clearRoomBacklog = do
 
 updateEvent :: GameEvent -> Int -> DarkRoom
 updateEvent event time = do
-  upcomingEvents.eventGetter event .= (event, time)
+  upcomingEvents %= (\es -> Map.insert event time es)
+
+-- updateEvent :: GameEvent -> Int -> DarkRoom
+-- updateEvent event time = do
+--   upcomingEvents.eventGetter event .= (event, time)
 
 displayCosts :: [(Item, Int)] -> DarkRoom
 displayCosts cs = do
