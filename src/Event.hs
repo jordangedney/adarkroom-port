@@ -28,47 +28,42 @@ import qualified Data.Map as Map
                                                    -- ReaderT (EventRO Name) (StateT (EventState Name) IO) (Next Game)
 
 handleEventWrapper :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
-handleEventWrapper game event =
+handleEventWrapper game event = do
+  stdGen <- liftIO newStdGen
+
   let step g = continue ((execState $ handleEvent event) g)
-      autosave g = g & over previousStates (g:)
-  in case event of
-    -- Don't autosave:
+      stepRandom doRandomEvent = step ((execState $ doRandomEvent stdGen) game)
+      autosaved = game & over previousStates (game:)
+      buttonWithRandom e m g fn =
+        g  & execState (setMouseDown e m)
+           & execState (fn stdGen)
+           & continue
+
+  case event of
+    -- Main game loop
+    (AppEvent Tick) ->
+      if RandomEvent.shouldDoRandomEvent game
+      then stepRandom RandomEvent.doRandomEvent
+      else step game
+
+    (MouseDown SaveButton _ _ _) -> liftIO (save game) >> step game
+
+    (MouseDown (RandomEventButton x) _ _ _) -> stepRandom (flip RandomEvent.handleButton x)
+
+    (MouseDown e@CheckTrapsButton  _ _ m) ->
+      buttonWithRandom e m game Outside.checkTraps
+
+    -- Change the tick at which the next random event occurs to avoid
+    -- accidentally skipping over it.
+    (MouseDown e@HyperButton   _ _ m) ->
+      buttonWithRandom e m (game & over hyper not) RandomEvent.setNextRandomEvent
+
+    -- Don't autosave when debugging:
     (MouseDown PrevButton _ _ _) -> step game
     (MouseUp PrevButton _ _)     -> step game
 
-    -- Events which use IO:
-    (AppEvent Tick)              ->
-      if RandomEvent.shouldDoRandomEvent game
-      then do
-        random <- liftIO newStdGen
-        step ((execState $ RandomEvent.doRandomEvent random) game)
-      else step game
-
-    (MouseDown SaveButton _ _ _) -> do
-      liftIO (save game)
-      step game
-
-    (MouseDown (RandomEventButton x) _ _ _) -> do
-      random <- liftIO newStdGen
-      step ((execState $ RandomEvent.handleButton random x) game)
-
-    (MouseDown e@CheckTrapsButton  _ _ m) -> do
-      random <- liftIO newStdGen
-      game & execState (setMouseDown e m)
-           & execState (Outside.checkTraps random)
-           & continue
-
-    (MouseDown e@HyperButton   _ _ m) -> do
-      -- Change the tick at which the next random event occurs to avoid
-      -- accidentally skipping over it.
-      random <- liftIO newStdGen
-      game & execState (setMouseDown e m)
-           & over hyper not
-           & execState (RandomEvent.setNextRandomEvent random)
-           & continue
-
-    -- Normal events:
-    _                            -> step (autosave game)
+    -- User driven events (button presses, etc):
+    _ -> step autosaved
 
 handleEvent :: BrickEvent Name Tick -> DarkRoom
 handleEvent = \case
