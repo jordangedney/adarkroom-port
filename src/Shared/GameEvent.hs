@@ -35,11 +35,7 @@ gameEventsInit = Map.fromList
 
 -- Helper Functions ------------------------------------------------------------
 tickEvents :: Map.Map k Int -> Map.Map k Int
-tickEvents eventMap = Map.map (+ (-1)) eventMap
-  -- let step Inactive = Inactive
-  --     step Triggered = Inactive
-  --     step (Waiting x) = if x < 1 then Triggered else Waiting (x - 1)
-  -- in Map.map step eventMap
+tickEvents = Map.map (+ (-1))
 
 isActive :: Maybe Int -> Bool
 isActive (Just x) = x > 0
