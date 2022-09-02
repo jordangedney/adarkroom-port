@@ -1,9 +1,9 @@
 {-# LANGUAGE LambdaCase #-}
 module Event (handleEventWrapper) where
 
-import System.Random (newStdGen)
+import System.Random (newStdGen, StdGen)
 import Control.Monad.IO.Class (liftIO)
-import Brick (BrickEvent(..), EventM, Next, Location, continue)
+import Brick (BrickEvent(..), EventM, Next, continue)
 import Control.Monad.State (execState, modify)
 
 import Shared.Game
@@ -21,82 +21,92 @@ import qualified Outside
 
 import qualified RandomEvent
 import Control.Lens
-import Control.Monad (forM_, unless)
+import Control.Monad (forM_, unless, when)
+import Control.Monad.State (gets, get)
 import qualified Data.Map as Map
 
     -- EventM { runEventM :: ReaderT (EventRO n) (StateT (EventState n) IO) a
                                                    -- ReaderT (EventRO Name) (StateT (EventState Name) IO) (Next Game)
 
+
 handleEventWrapper :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEventWrapper game event = do
+  when (savePressed event) $
+    liftIO (save game)
+
   stdGen <- liftIO newStdGen
+  continue ((execState $ handleEvent stdGen event) game)
 
-  let step g = continue ((execState $ handleEvent event) g)
-      stepRandom doRandomEvent = step ((execState $ doRandomEvent stdGen) game)
-      autosaved = game & over previousStates (game:)
-      buttonWithRandom e m g fn =
-        g  & execState (setMouseDown e m)
-           & execState (fn stdGen)
-           & continue
+  where savePressed (MouseDown SaveButton _ _ _) = True
+        savePressed _ = False
 
-  case event of
-    -- Main game loop
-    (AppEvent Tick) ->
-      if RandomEvent.shouldDoRandomEvent game
-      then stepRandom RandomEvent.doRandomEvent
-      else step game
-
-    (MouseDown SaveButton _ _ _) -> liftIO (save game) >> step game
-
-    (MouseDown (RandomEventButton x) _ _ _) -> stepRandom (flip RandomEvent.handleButton x)
-
-    (MouseDown e@CheckTrapsButton  _ _ m) ->
-      buttonWithRandom e m game Outside.checkTraps
-
-    -- Change the tick at which the next random event occurs to avoid
-    -- accidentally skipping over it.
-    (MouseDown e@HyperButton   _ _ m) ->
-      buttonWithRandom e m (game & over hyper not) RandomEvent.setNextRandomEvent
-
-    -- Don't autosave when debugging:
-    (MouseDown PrevButton _ _ _) -> step game
-    (MouseUp PrevButton _ _)     -> step game
-
-    -- User driven events (button presses, etc):
-    _ -> step autosaved
-
-handleEvent :: BrickEvent Name Tick -> DarkRoom
-handleEvent = \case
+handleEvent :: StdGen -> BrickEvent Name Tick -> DarkRoom
+handleEvent stdGen = \case
   (AppEvent Tick) -> do
-    -- XXX the gui ticks how ever many times a hyper step is
-    hyperEnabled <- use hyper
-    -- TODO BUG IS THIS TICKING THE CORRECT AMOUNT, OR DID I JUST OFF BY ONE?
-    hsAmt <- (\x -> if hyperEnabled then x - 1 else 0) <$> use hyperspeedAmt
+    sDRE <- gets RandomEvent.shouldDoRandomEvent
+    when sDRE (RandomEvent.doRandomEvent stdGen)
 
-    let fasterFaster 0 = do gameTick
-        fasterFaster n = do
-          gameTick
-          fasterFaster (n - 1)
+    gameTickWrapper
 
-    fasterFaster hsAmt
+  (MouseDown e _ _ m) -> do
+    unless (e == PrevButton) $ do
+      -- autosave
+      g <- get
+      previousStates %= (g:)
 
+    (uiState . lastReportedClick) .= Just (e, m)
+    handleButtonEvent stdGen e
 
-  (MouseDown e _ _ m) -> handleMouseDown e m
-  MouseUp {} -> (uiState . lastReportedClick) .= Nothing
-  _ -> pure ()
+  (MouseUp {}) -> do
+    (uiState . lastReportedClick) .= Nothing
 
-setMouseDown :: Name -> Brick.Location -> DarkRoom
-setMouseDown buttonPressed mouseLocation = do
-  (uiState . lastReportedClick) .= Just (buttonPressed, mouseLocation)
+  -- Keyboard input does nothing for now:
+  VtyEvent _ -> pure ()
 
-handleMouseDown :: Name -> Brick.Location -> DarkRoom
-handleMouseDown pressed mouseLocation = do
-  setMouseDown pressed mouseLocation
-  handleButtonEvent pressed
+gameTickWrapper :: DarkRoom
+gameTickWrapper = do
+  -- XXX the gui ticks how ever many times a hyper step is
+  hyperEnabled <- use hyper
+  -- TODO BUG IS THIS TICKING THE CORRECT AMOUNT, OR DID I JUST OFF BY ONE?
+  hsAmt <- (\x -> if hyperEnabled then x - 1 else 0) <$> use hyperspeedAmt
 
-handleButtonEvent :: Name -> DarkRoom
-handleButtonEvent = \case
-  NoOpButton -> pure ()
+  let fasterFaster 0 = do gameTick
+      fasterFaster n = do
+        gameTick
+        fasterFaster (n - 1)
+
+  fasterFaster hsAmt
+
+gameTick :: DarkRoom
+gameTick = do
+  doNothing <- use paused
+  unless doNothing $ do
+    tickCount %= (+ 1)
+    upcomingEvents %= tickEvents
+    -- TODO wtf?
+    events %= (take 15 . map (over _2 (+1)))
+
+    allEvs <- filter (\x -> snd x == 0) . Map.toList <$> use upcomingEvents
+    forM_ allEvs $ \(e, _) -> do
+      getGameEvent e
+
+  where
+    getGameEvent :: GameEvent -> DarkRoom
+    getGameEvent = \case
+      UnlockForest       -> Outside.unlock
+      FireShrinking      -> Fire.shrinking
+      BuilderUpdate      -> Builder.update
+      BuilderGathersWood -> Builder.gatherWood
+      RoomChanged        -> Room.update
+
+      -- Button Cooldowns
+      GatherWood         -> pure ()
+      FireStoked         -> pure ()
+      CheckTraps         -> pure ()
+
+handleButtonEvent :: StdGen -> Name -> DarkRoom
+handleButtonEvent stdGen = \case
+  (RandomEventButton s) -> RandomEvent.handleButton stdGen s
 
   RoomButton -> Room.arrival
 
@@ -105,15 +115,17 @@ handleButtonEvent = \case
 
   OutsideButton    -> Outside.arrival
   GatherButton     -> Outside.gather
-  CheckTrapsButton -> error "This should be handled in handleEventWrapper"
+  CheckTrapsButton -> Outside.checkTraps stdGen
 
   (CraftButton x) -> Builder.build x
 
   PathButton -> do location .= Path
   ShipButton -> do location .= Ship
 
+  SaveButton -> pure ()
   RestartButton -> do modify (const initGame)
-  HyperButton -> error "This should be handled in handleEventWrapper"
+  HyperButton -> do hyper %= not
+                    RandomEvent.setNextRandomEvent stdGen
   DebugButton -> do debug %= not
   PrevButton -> do
     prev <- head <$> use previousStates
@@ -132,30 +144,8 @@ handleButtonEvent = \case
     overStored Cloth (+ 5000)
     overStored Charm (+ 5000)
 
-  _ -> pure ()
-
-getGameEvent :: GameEvent -> DarkRoom
-getGameEvent = \case
-  UnlockForest       -> Outside.unlock
-  FireShrinking      -> Fire.shrinking
-  BuilderUpdate      -> Builder.update
-  BuilderGathersWood -> Builder.gatherWood
-  RoomChanged        -> Room.update
-
-  -- Button Cooldowns
-  GatherWood         -> pure ()
-  FireStoked         -> pure ()
-  CheckTraps         -> pure ()
-
-gameTick :: DarkRoom
-gameTick = do
-  doNothing <- use paused
-  unless doNothing $ do
-    tickCount %= (+ 1)
-    upcomingEvents %= tickEvents
-    -- TODO wtf?
-    events %= (take 15 . map (over _2 (+1)))
-
-    allEvs <- filter (\x -> snd x == 0) . Map.toList <$> use upcomingEvents
-    forM_ allEvs $ \(e, _) -> do
-      getGameEvent e
+  -- UI Faff:
+  NoOpButton -> pure ()
+  StoreVP -> pure ()
+  ForestVP -> pure ()
+  EventsVP -> pure ()

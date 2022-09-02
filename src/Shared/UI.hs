@@ -28,7 +28,6 @@ data Name
   | EventsVP
 
   -- Random events
-  | ExitEventButton
   | RandomEventButton SceneChoice
 
   -- Room buttons
