@@ -1,7 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 module Event (handleEventWrapper) where
 
-import System.Random (newStdGen, StdGen)
+import System.Random (newStdGen, StdGen, split)
 import Control.Monad.IO.Class (liftIO)
 import Brick (BrickEvent(..), EventM, Next, continue)
 import Control.Monad.State (execState, modify)
@@ -28,7 +28,6 @@ import qualified Data.Map as Map
     -- EventM { runEventM :: ReaderT (EventRO n) (StateT (EventState n) IO) a
                                                    -- ReaderT (EventRO Name) (StateT (EventState Name) IO) (Next Game)
 
-
 handleEventWrapper :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEventWrapper game event = do
   when (savePressed event) $
@@ -44,9 +43,11 @@ handleEvent :: StdGen -> BrickEvent Name Tick -> DarkRoom
 handleEvent stdGen = \case
   (AppEvent Tick) -> do
     sDRE <- gets RandomEvent.shouldDoRandomEvent
-    when sDRE (RandomEvent.doRandomEvent stdGen)
+    let (sG, sG1) = split stdGen
+    when sDRE $ do
+      RandomEvent.doRandomEvent sG1
 
-    gameTickWrapper
+    gameTickWrapper sG
 
   (MouseDown e _ _ m) -> do
     unless (e == PrevButton) $ do
@@ -63,22 +64,23 @@ handleEvent stdGen = \case
   -- Keyboard input does nothing for now:
   VtyEvent _ -> pure ()
 
-gameTickWrapper :: DarkRoom
-gameTickWrapper = do
+gameTickWrapper :: StdGen -> DarkRoom
+gameTickWrapper stdGen = do
   -- XXX the gui ticks how ever many times a hyper step is
   hyperEnabled <- use hyper
   -- TODO BUG IS THIS TICKING THE CORRECT AMOUNT, OR DID I JUST OFF BY ONE?
   hsAmt <- (\x -> if hyperEnabled then x - 1 else 0) <$> use hyperspeedAmt
 
-  let fasterFaster 0 = do gameTick
-      fasterFaster n = do
-        gameTick
-        fasterFaster (n - 1)
+  let fasterFaster 0 gen = do gameTick gen
+      fasterFaster n gen = do
+        let (sG, sG1) = split gen
+        gameTick sG1
+        fasterFaster (n - 1) sG
 
-  fasterFaster hsAmt
+  fasterFaster hsAmt stdGen
 
-gameTick :: DarkRoom
-gameTick = do
+gameTick :: StdGen -> DarkRoom
+gameTick _ = do
   doNothing <- use paused
   unless doNothing $ do
     tickCount %= (+ 1)
