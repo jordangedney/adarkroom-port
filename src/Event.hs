@@ -23,21 +23,25 @@ import qualified RandomEvent
 import Control.Lens
 import Control.Monad (forM_, unless, when)
 import Control.Monad.State (gets, get)
+import Control.Concurrent.STM.TVar (TVar, writeTVar)
+import Control.Monad.STM (atomically)
 import qualified Data.Map as Map
 
     -- EventM { runEventM :: ReaderT (EventRO n) (StateT (EventState n) IO) a
                                                    -- ReaderT (EventRO Name) (StateT (EventState Name) IO) (Next Game)
 
-handleEventWrapper :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
-handleEventWrapper game event = do
-  when (savePressed event) $
+handleEventWrapper :: TVar Bool -> Game -> BrickEvent Name Tick -> EventM Name (Next Game)
+handleEventWrapper enableHyper game event = do
+  when (pressed SaveButton) $
     liftIO (save game)
+
+  when (pressed HyperButton) $ do
+    liftIO $ atomically $ writeTVar enableHyper (not (_hyper game))
 
   stdGen <- liftIO newStdGen
   continue ((execState $ handleEvent stdGen event) game)
 
-  where savePressed (MouseDown SaveButton _ _ _) = True
-        savePressed _ = False
+  where pressed b = case event of (MouseDown x _ _ _) -> b == x; _ -> False
 
 handleEvent :: StdGen -> BrickEvent Name Tick -> DarkRoom
 handleEvent stdGen = \case
@@ -47,7 +51,7 @@ handleEvent stdGen = \case
     when sDRE $ do
       RandomEvent.doRandomEvent sG1
 
-    gameTickWrapper sG
+    gameTick sG
 
   (MouseDown e _ _ m) -> do
     unless (e == PrevButton) $ do
@@ -63,21 +67,6 @@ handleEvent stdGen = \case
 
   -- Keyboard input does nothing for now:
   VtyEvent _ -> pure ()
-
-gameTickWrapper :: StdGen -> DarkRoom
-gameTickWrapper stdGen = do
-  -- XXX the gui ticks how ever many times a hyper step is
-  hyperEnabled <- use hyper
-  -- TODO BUG IS THIS TICKING THE CORRECT AMOUNT, OR DID I JUST OFF BY ONE?
-  hsAmt <- (\x -> if hyperEnabled then x - 1 else 0) <$> use hyperspeedAmt
-
-  let fasterFaster 0 gen = do gameTick gen
-      fasterFaster n gen = do
-        let (sG, sG1) = split gen
-        gameTick sG1
-        fasterFaster (n - 1) sG
-
-  fasterFaster hsAmt stdGen
 
 gameTick :: StdGen -> DarkRoom
 gameTick _ = do
@@ -124,10 +113,11 @@ handleButtonEvent stdGen = \case
   PathButton -> do location .= Path
   ShipButton -> do location .= Ship
 
-  SaveButton -> pure ()
-  RestartButton -> do modify (const initGame)
+  -- Both of these are handled above, as they need IO
+  SaveButton  -> pure ()
   HyperButton -> do hyper %= not
-                    RandomEvent.setNextRandomEvent stdGen
+
+  RestartButton -> do modify (const initGame)
   DebugButton -> do debug %= not
   PrevButton -> do
     prev <- head <$> use previousStates

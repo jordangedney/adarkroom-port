@@ -42,6 +42,7 @@ library:
   - containers
   - unordered-containers
   - aeson
+  - stm
 
 executables:
   a-dark-room-exe:
@@ -55,3 +56,4 @@ executables:
     - a-dark-room
     - brick
     - vty
+    - stm
