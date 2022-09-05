@@ -75,7 +75,7 @@ gameTick _ = do
     tickCount %= (+ 1)
     upcomingEvents %= tickEvents
     -- TODO wtf?
-    notifications %= (take 15 . map (over _2 (+2)))
+    notifications %= (take 15 . map (over _2 (+1)))
 
     allEvs <- filter (\x -> snd x == 0) . Map.toList <$> use upcomingEvents
     forM_ allEvs $ \(e, _) -> do
