@@ -74,7 +74,9 @@ gameTick _ = do
   unless doNothing $ do
     tickCount %= (+ 1)
     upcomingEvents %= tickEvents
-    -- TODO wtf?
+
+    -- Only keep track of the last 15 notificaitons. Also keep track of how old
+    -- the notification is so that the UI can tick the color properly.
     notifications %= (take 15 . map (over _2 (+1)))
 
     allEvs <- filter (\x -> snd x == 0) . Map.toList <$> use upcomingEvents
