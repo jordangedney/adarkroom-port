@@ -27,9 +27,6 @@ import Control.Concurrent.STM.TVar (TVar, writeTVar)
 import Control.Monad.STM (atomically)
 import qualified Data.Map as Map
 
-    -- EventM { runEventM :: ReaderT (EventRO n) (StateT (EventState n) IO) a
-                                                   -- ReaderT (EventRO Name) (StateT (EventState Name) IO) (Next Game)
-
 handleEventWrapper :: TVar Bool -> Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEventWrapper enableHyper game event = do
   when (pressed SaveButton) $
@@ -41,11 +38,11 @@ handleEventWrapper enableHyper game event = do
   stdGen <- liftIO newStdGen
   continue ((execState $ handleEvent stdGen event) game)
 
-  where pressed b = case event of (MouseDown x _ _ _) -> b == x; _ -> False
+  where pressed b = case event of MouseDown x _ _ _ -> b == x; _ -> False
 
 handleEvent :: StdGen -> BrickEvent Name Tick -> DarkRoom
 handleEvent stdGen = \case
-  (AppEvent Tick) -> do
+  AppEvent Tick -> do
     sDRE <- gets RandomEvent.shouldDoRandomEvent
     let (sG, sG1) = split stdGen
     when sDRE $ do
@@ -53,17 +50,16 @@ handleEvent stdGen = \case
 
     gameTick sG
 
-  (MouseDown e _ _ m) -> do
+  MouseDown e _ _ m -> do
     unless (e == PrevButton) $ do
       -- autosave
       g <- get
       previousStates %= (g:)
 
-    (uiState . lastReportedClick) .= Just (e, m)
+    uiState . lastReportedClick .= Just (e, m)
     handleButtonEvent stdGen e
 
-  (MouseUp {}) -> do
-    (uiState . lastReportedClick) .= Nothing
+  MouseUp {} -> do uiState . lastReportedClick .= Nothing
 
   -- Keyboard input does nothing for now:
   VtyEvent _ -> pure ()
@@ -73,19 +69,14 @@ gameTick _ = do
   doNothing <- use paused
   unless doNothing $ do
     tickCount %= (+ 1)
-    upcomingEvents %= tickEvents
+    upcomingEvents %= (fmap (+ (-1)))
 
     -- Only keep track of the last 15 notificaitons. Also keep track of how old
     -- the notification is so that the UI can tick the color properly.
     notifications %= (take 15 . map (over _2 (+1)))
 
     allEvs <- filter (\x -> snd x == 0) . Map.toList <$> use upcomingEvents
-    forM_ allEvs $ \(e, _) -> do
-      getGameEvent e
-
-  where
-    getGameEvent :: GameEvent -> DarkRoom
-    getGameEvent = \case
+    forM_ allEvs $ \(e, _) -> case e of
       UnlockForest       -> Outside.unlock
       FireShrinking      -> Fire.shrinking
       BuilderUpdate      -> Builder.update
@@ -99,7 +90,7 @@ gameTick _ = do
 
 handleButtonEvent :: StdGen -> Name -> DarkRoom
 handleButtonEvent stdGen = \case
-  (RandomEventButton s) -> RandomEvent.handleButton stdGen s
+  RandomEventButton s -> RandomEvent.handleButton stdGen s
 
   RoomButton -> Room.arrival
 
@@ -110,14 +101,10 @@ handleButtonEvent stdGen = \case
   GatherButton     -> Outside.gather
   CheckTrapsButton -> Outside.checkTraps stdGen
 
-  (CraftButton x) -> Builder.build x
+  CraftButton x -> Builder.build x
 
   PathButton -> do location .= Path
   ShipButton -> do location .= Ship
-
-  -- Both of these are handled above, as they need IO
-  SaveButton  -> pure ()
-  HyperButton -> do hyper %= not
 
   RestartButton -> do modify (const initGame)
   DebugButton -> do debug %= not
@@ -137,6 +124,10 @@ handleButtonEvent stdGen = \case
     overStored Teeth (+ 5000)
     overStored Cloth (+ 5000)
     overStored Charm (+ 5000)
+
+  -- Both of these are touched above too, as they need IO
+  SaveButton  -> pure ()
+  HyperButton -> do hyper %= not
 
   -- UI Faff:
   NoOpButton -> pure ()

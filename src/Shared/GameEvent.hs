@@ -28,9 +28,6 @@ gameEventsInit = Map.fromList [(e, -1) | e <- enumFrom (toEnum 0)]
   & Map.insert RoomChanged 1
 
 -- Helper Functions ------------------------------------------------------------
-tickEvents :: Map.Map k Int -> Map.Map k Int
-tickEvents = Map.map (+ (-1))
-
 isActive :: Maybe Int -> Bool
 isActive (Just x) = x > 0
 isActive _ = False
