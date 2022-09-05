@@ -7,6 +7,7 @@ import Data.Maybe (isNothing)
 import System.Random (StdGen, randomR)
 import Control.Lens
 
+import Shared.GameEvent (GameEvent(RandomEvent))
 import Shared.Game
 import Shared.RandomEvent
 import Shared.Item
@@ -14,27 +15,20 @@ import Shared.Util
 
 import Room.Event
 
-import Util (randomChoice, choice, notifyRoom, displayCosts)
+import Util (randomChoice, choice, notifyRoom, displayCosts, updateEvent)
 import Control.Monad.State (get, gets)
 import Control.Monad (unless, forM_, when)
 
 availableEvents :: Game -> [Scene]
-availableEvents g = [e | (e, p) <- evs, p]
-  where evs = Room.Event.events g
-
-shouldDoRandomEvent :: Game -> Bool
-shouldDoRandomEvent game = view tickCount game == view nextRandomAt game
+availableEvents g = [e | (e, p) <- Room.Event.events g, p]
 
 setNextRandomEvent :: StdGen -> DarkRoom
-setNextRandomEvent rnd = do
+setNextRandomEvent stdGen = do
   -- they keep on coming and coming
-  hs <- use hyperspeedAmt
   let ticksPerMinute = 10 * 60
-      (nextRandom' :: Int, _) =
-        randomR (ticksPerMinute * 3, ticksPerMinute * 6) rnd
-      nextRandom = nextRandom' + (hs - (nextRandom' `mod` hs))
-  tC <- use tickCount
-  nextRandomAt .= (tC + nextRandom)
+      (nextRandom :: Int, _) = randomR (ticksPerMinute * 3, ticksPerMinute * 6) stdGen
+
+  updateEvent RandomEvent nextRandom
 
 doRandomEvent :: StdGen -> DarkRoom
 doRandomEvent rnd = do

@@ -1,7 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 module Event (handleEventWrapper) where
 
-import System.Random (newStdGen, StdGen, split)
+import System.Random (newStdGen, StdGen)
 import Control.Monad.IO.Class (liftIO)
 import Brick (BrickEvent(..), EventM, Next, continue)
 import Control.Monad.State (execState, modify)
@@ -22,7 +22,7 @@ import qualified Outside
 import qualified RandomEvent
 import Control.Lens
 import Control.Monad (forM_, unless, when)
-import Control.Monad.State (gets, get)
+import Control.Monad.State (get)
 import Control.Concurrent.STM.TVar (TVar, writeTVar)
 import Control.Monad.STM (atomically)
 import qualified Data.Map as Map
@@ -45,11 +45,6 @@ handleEventWrapper enableHyper game event = do
 handleBrickEvent :: StdGen -> BrickEvent Name Tick -> DarkRoom
 handleBrickEvent stdGen = \case
   AppEvent Tick -> do
-    sDRE <- gets RandomEvent.shouldDoRandomEvent
-    let (sG, sG1) = split stdGen
-    when sDRE $ do
-      RandomEvent.doRandomEvent sG1
-
     doNothing <- use paused
     unless doNothing $ do
       tickCount %= (+ 1)
@@ -60,7 +55,7 @@ handleBrickEvent stdGen = \case
       notifications %= (take 15 . map (over _2 (+1)))
 
       allEvs <- filter (\x -> snd x == 0) . Map.toList <$> use upcomingEvents
-      forM_ allEvs $ \(e, _) -> handleGameEvent sG e
+      forM_ allEvs $ \(e, _) -> handleGameEvent stdGen e
 
   MouseDown e _ _ m -> do
     unless (e == PrevButton) $ do
@@ -78,12 +73,13 @@ handleBrickEvent stdGen = \case
 
 -- | Events which occur randomly or over time.
 handleGameEvent :: StdGen -> GameEvent -> DarkRoom
-handleGameEvent _ = \case
+handleGameEvent stdGen = \case
   UnlockForest       -> Outside.unlock
   FireShrinking      -> Fire.shrinking
   BuilderUpdate      -> Builder.update
   BuilderGathersWood -> Builder.gatherWood
   RoomChanged        -> Room.update
+  RandomEvent        -> RandomEvent.doRandomEvent stdGen
 
   -- Button Cooldowns:
   GatherWood         -> pure ()
