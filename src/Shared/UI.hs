@@ -20,10 +20,8 @@ deriving instance ToJSON Location
 deriving instance FromJSON Location
 
 data Name
-  = NoOpButton
-
   -- Scrollable (?) windows
-  | StoreVP
+  = StoreVP
   | ForestVP
   | EventsVP
 

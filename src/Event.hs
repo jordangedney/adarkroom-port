@@ -27,6 +27,7 @@ import Control.Concurrent.STM.TVar (TVar, writeTVar)
 import Control.Monad.STM (atomically)
 import qualified Data.Map as Map
 
+-- | Perform IO and convert from Brick's EventM into the internal DarkRoom type.
 handleEventWrapper :: TVar Bool -> Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEventWrapper enableHyper game event = do
   when (pressed SaveButton) $
@@ -36,23 +37,34 @@ handleEventWrapper enableHyper game event = do
     liftIO $ atomically $ writeTVar enableHyper (not (_hyper game))
 
   stdGen <- liftIO newStdGen
-  continue ((execState $ handleEvent stdGen event) game)
+  continue ((execState $ handleBrickEvent stdGen event) game)
 
   where pressed b = case event of MouseDown x _ _ _ -> b == x; _ -> False
 
-handleEvent :: StdGen -> BrickEvent Name Tick -> DarkRoom
-handleEvent stdGen = \case
+-- | Game-engine bookkeeping before dispatching story-driven events.
+handleBrickEvent :: StdGen -> BrickEvent Name Tick -> DarkRoom
+handleBrickEvent stdGen = \case
   AppEvent Tick -> do
     sDRE <- gets RandomEvent.shouldDoRandomEvent
     let (sG, sG1) = split stdGen
     when sDRE $ do
       RandomEvent.doRandomEvent sG1
 
-    gameTick sG
+    doNothing <- use paused
+    unless doNothing $ do
+      tickCount %= (+ 1)
+      upcomingEvents %= (fmap (+ (-1)))
+
+      -- Only the last 15 notificaitons are likely to be relevant.
+      -- Keep track of the age so that the UI can change the color.
+      notifications %= (take 15 . map (over _2 (+1)))
+
+      allEvs <- filter (\x -> snd x == 0) . Map.toList <$> use upcomingEvents
+      forM_ allEvs $ \(e, _) -> handleGameEvent sG e
 
   MouseDown e _ _ m -> do
     unless (e == PrevButton) $ do
-      -- autosave
+      -- Autosave for debugging.
       g <- get
       previousStates %= (g:)
 
@@ -61,33 +73,24 @@ handleEvent stdGen = \case
 
   MouseUp {} -> do uiState . lastReportedClick .= Nothing
 
-  -- Keyboard input does nothing for now:
+  -- Keyboard input does nothing for now.
   VtyEvent _ -> pure ()
 
-gameTick :: StdGen -> DarkRoom
-gameTick _ = do
-  doNothing <- use paused
-  unless doNothing $ do
-    tickCount %= (+ 1)
-    upcomingEvents %= (fmap (+ (-1)))
+-- | Events which occur randomly or over time.
+handleGameEvent :: StdGen -> GameEvent -> DarkRoom
+handleGameEvent _ = \case
+  UnlockForest       -> Outside.unlock
+  FireShrinking      -> Fire.shrinking
+  BuilderUpdate      -> Builder.update
+  BuilderGathersWood -> Builder.gatherWood
+  RoomChanged        -> Room.update
 
-    -- Only keep track of the last 15 notificaitons. Also keep track of how old
-    -- the notification is so that the UI can tick the color properly.
-    notifications %= (take 15 . map (over _2 (+1)))
+  -- Button Cooldowns:
+  GatherWood         -> pure ()
+  FireStoked         -> pure ()
+  CheckTraps         -> pure ()
 
-    allEvs <- filter (\x -> snd x == 0) . Map.toList <$> use upcomingEvents
-    forM_ allEvs $ \(e, _) -> case e of
-      UnlockForest       -> Outside.unlock
-      FireShrinking      -> Fire.shrinking
-      BuilderUpdate      -> Builder.update
-      BuilderGathersWood -> Builder.gatherWood
-      RoomChanged        -> Room.update
-
-      -- Button Cooldowns
-      GatherWood         -> pure ()
-      FireStoked         -> pure ()
-      CheckTraps         -> pure ()
-
+-- | User driven events, created through the UI.
 handleButtonEvent :: StdGen -> Name -> DarkRoom
 handleButtonEvent stdGen = \case
   RandomEventButton s -> RandomEvent.handleButton stdGen s
@@ -125,12 +128,11 @@ handleButtonEvent stdGen = \case
     overStored Cloth (+ 5000)
     overStored Charm (+ 5000)
 
-  -- Both of these are touched above too, as they need IO
+  -- Both of these are touched above too, as they need IO.
   SaveButton  -> pure ()
   HyperButton -> do hyper %= not
 
-  -- UI Faff:
-  NoOpButton -> pure ()
+  -- We don't support scrolling within UI windows.
   StoreVP -> pure ()
   ForestVP -> pure ()
   EventsVP -> pure ()
