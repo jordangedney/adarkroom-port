@@ -71,7 +71,7 @@ data Game = Game
   , _stored             :: Map.Map Item Int
   , _numPeople          :: Int
   , _upcomingEvents     :: Map.Map GameEvent Int
-  , _events             :: [(String, Int)]
+  , _notifications      :: [(String, Int)]
   , _roomEventBacklog   :: [String]
   , _forestEventBacklog :: [String]
   , _tickCount          :: Int
@@ -103,7 +103,7 @@ initGame                = Game
   , _stored             = Map.fromList [(Wood, 15)]
   , _numPeople          = 0
   , _upcomingEvents     = gameEventsInit
-  , _events             = []
+  , _notifications      = []
   , _roomEventBacklog   = []
   , _forestEventBacklog = []
   , _tickCount          = 0

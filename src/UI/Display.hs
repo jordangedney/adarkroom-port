@@ -153,7 +153,7 @@ drawForest game =
 
 eventsWindow :: Game -> Widget Name
 eventsWindow g =
-  let events' = _events g
+  let events' = _notifications g
       withWhitespace = interleave [events', replicate (length events') (" ", 0)]
       withStyling = [(s, case t of
                            0 -> blackText
@@ -245,14 +245,14 @@ drawGameWindow game =
                show (view tickCount game) ++ "  "
                                           ++ show (view nextRandomAt game)
               else "")
-      notifications = padLeft (Pad 2) (vBox [vLimit 45 (eventsWindow game), showGameTick])
+      notificationsWindow = padLeft (Pad 2) (vBox [vLimit 45 (eventsWindow game), showGameTick])
 
       gameActions =
         padLeft (Pad 2) (vBox [locationsWindow game, locationMenu game])
       actions = vBox [gameActions, bottomMenu game]
 
       outerBorder = center . hLimit 130 . vLimit 50 . withBorderStyle unicodeRounded . border
-  in outerBorder (padAll 1 (hBox [notifications , actions]))
+  in outerBorder (padAll 1 (hBox [notificationsWindow , actions]))
 
 drawUI :: Game -> [Widget Name]
 drawUI game = ($ game) <$> [drawDialogWindow, drawGameWindow]

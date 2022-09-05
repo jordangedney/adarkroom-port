@@ -60,7 +60,7 @@ listOfRandomPercentages randomGen =
 
 addEvent :: String -> DarkRoom
 addEvent message = do
-  events %= ((message, 0):)
+  notifications %= ((message, 0):)
 
 notifyRoom :: String -> DarkRoom
 notifyRoom message = do
@@ -71,7 +71,7 @@ notifyRoom message = do
 clearRoomBacklog :: DarkRoom
 clearRoomBacklog = do
   game <- get
-  events %= (\es ->  map (, 0) (view roomEventBacklog game) ++ es)
+  notifications %= (\es ->  map (, 0) (view roomEventBacklog game) ++ es)
   roomEventBacklog .= []
 
 updateEvent :: GameEvent -> Int -> DarkRoom
