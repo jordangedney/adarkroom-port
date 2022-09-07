@@ -105,7 +105,7 @@ buildButtons g =
 
       tooMany c = getItem c g >= maxNumCraftable c
 
-      toBuild = filter (\i -> g ^. craftableReady i) buildings
+      toBuild = filter (flip Map.member (g ^. (uiState . showItemButton))) buildings
 
       mkButton c = if tooMany c
                    then greyedButton (itemToStr c)

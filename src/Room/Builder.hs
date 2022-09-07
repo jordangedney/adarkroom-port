@@ -13,6 +13,7 @@ where
 
 import Control.Lens
 import Control.Monad.State (get, gets, forM_, when, unless)
+import qualified Data.Map as Map
 
 import Shared.UI
 import Shared.Game
@@ -194,7 +195,8 @@ updateBuildables = do
   g <- get
 
       -- those buttons not yet displayed
-  let notBuildable = filter (not . (\i -> g ^. craftableReady i)) buildings
+  -- let notBuildable = Prelude.filter (not . (\i -> Map.member g ^. uiState . showItemButton i)) buildings
+  let notBuildable = filter (not . (flip Map.member (g ^. (uiState . showItemButton)))) buildings
 
       -- so close, yet so far
       nearlyAfford (Wood, c) = getItem Wood g >= c `div` 2
@@ -208,11 +210,11 @@ updateBuildables = do
 
   -- once builder is well
   when (g ^. milestones . buildUnlocked) $ do
-    forM_ notBuildable $ \c -> do
+    forM_ notBuildable $ \i -> do
       -- if you can nearly afford it, builder realizes she can build it
-      let (msg, cost) = unpackCost c
+      let (msg, cost) = unpackCost i
       when (all nearlyAfford cost) $ do
-        craftableReady c .= True
+        (uiState . showItemButton) %= (Map.insert i True)
         notifyRoom msg
 
 build :: Item -> DarkRoom

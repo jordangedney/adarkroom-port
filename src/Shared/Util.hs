@@ -3,7 +3,6 @@
 
 module Shared.Util where
 
-import Shared.UI
 import Shared.Item (Item(..))
 import Shared.Game
 
@@ -36,35 +35,3 @@ overStored :: Item -> (Int -> Int) -> DarkRoom
 overStored i fn = do
   stored %= Map.insertWith (+) i 0
   stored %= Map.insertWith (\a b-> fn a + b) i 0
-
-itemShowBtn :: Functor f =>
-  Item -> (Bool -> f Bool) -> UIState  -> f UIState
-itemShowBtn = \case
-  Trap -> showTrapBtn
-  Cart -> showCartBtn
-  Hut -> showHutBtn
-  Lodge -> showLodgeBtn
-  TradingPost -> showTradingPostBtn
-  Tannery -> showTanneryBtn
-  Smokehouse -> showSmokehouseBtn
-  Workshop -> showWorkshopBtn
-  Steelworks -> showSteelworksBtn
-  Armory -> showArmoryBtn
-  Torch -> showTorchBtn
-  Waterskin -> showWaterskinBtn
-  Cask -> showCaskBtn
-  WaterTank -> showWaterTankBtn
-  BoneSpear -> showBoneSpearBtn
-  Rucksack -> showRucksackBtn
-  Wagon -> showWagonBtn
-  Convoy -> showConvoyBtn
-  LeatherArmor -> showLeatherArmorBtn
-  IronArmor -> showIronArmorBtn
-  SteelArmor -> showSteelArmorBtn
-  IronSword -> showIronSwordBtn
-  SteelSword -> showSteelSwordBtn
-  Rifle -> showRifleBtn
-  _ -> error "you done fucked"
-
--- craftableReady :: Functor f => Item -> (Int -> f Int) -> Game -> f Game
-craftableReady i = uiState . itemShowBtn i
