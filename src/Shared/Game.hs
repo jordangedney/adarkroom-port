@@ -47,7 +47,7 @@ data BuilderState
 data Milestones = Milestones
   { _fireLit             :: Bool
   , _seenForest          :: Bool
-  , _buildUnlocked     :: Bool
+  , _buildUnlocked       :: Bool
   , _craftUnlocked       :: Bool
   , _buyUnlocked         :: Bool
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
@@ -58,7 +58,7 @@ milestonesInit :: Milestones
 milestonesInit = Milestones
   { _fireLit          = False
   , _seenForest       = False
-  , _buildUnlocked  = False
+  , _buildUnlocked    = False
   , _craftUnlocked    = False
   , _buyUnlocked      = False
   }
