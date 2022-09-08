@@ -8,7 +8,7 @@
  - [X] remove huts from stores
  - [X] add hut to forest stores
  - [X] add population increasing over time
- - [ ] A Silent Forest title becomes A Lonely Hut on aquisition of a hut -- Do all (A tiny village, etc)
+ - [X] A Silent Forest title becomes A Lonely Hut on aquisition of a hut -- Do all (A tiny village, etc)
  - [ ] A Beast Attack event
  - [ ] people act as gatherers
  - [ ] display gathering amounts

@@ -12,10 +12,11 @@ import Shared.Game
 import Shared.RandomEvent
 import Shared.Item
 import Shared.Util
+import Shared.Constants (minutes)
 
 import Room.Event
 
-import Util (randomChoice, choice, notifyRoom, displayCosts, updateEvent, minutes)
+import Util (randomChoice, choice, notifyRoom, displayCosts, updateEvent)
 import Control.Monad.State (get, gets)
 import Control.Monad (unless, forM_, when)
 

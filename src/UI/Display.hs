@@ -173,9 +173,17 @@ locationsWindow :: Game -> Widget Name
 locationsWindow game =
   let locationTxt Room    = if _fireState game == Dead then "A Dark Room"
                             else "A Firelit Room"
-      locationTxt Outside = "A Silent Forest"
+      locationTxt Outside = forestText
       locationTxt Path    = "A Dusty Path"
       locationTxt Ship    = "An Old Starship"
+
+      hts = Map.findWithDefault 0 Hut (game ^. stored)
+      forestText | hts == 0  = "A Silent Forest"
+                 | hts == 1  = "A Lonely Hut"
+                 | hts <= 4  = "A Tiny Village"
+                 | hts <= 8  = "A Modest Village"
+                 | hts <= 14 = "A Large Village"
+                 | otherwise = "A Raucous Village"
 
       stylize button room =
         let atLocation = _location game == room

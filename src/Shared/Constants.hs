@@ -9,6 +9,8 @@ module Shared.Constants
   , maximumNumberOfTraps
   , maximumNumberOfHuts
   , checkTrapsCooldown
+  , minutes
+  , seconds
   )
 where
 
@@ -49,3 +51,9 @@ roomWarmDelay = seconds 30
 -- fire stoke -> fire cools
 fireCoolDelay :: Int
 fireCoolDelay = minutes 5
+
+-- ticks are 1/100 of a second, so adjust all times
+minutes :: Int -> Int
+minutes t = 10 * 60 * t
+seconds :: Int -> Int
+seconds t = 10 * t
