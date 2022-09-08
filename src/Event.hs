@@ -80,6 +80,7 @@ handleGameEvent stdGen = \case
   BuilderGathersWood -> Builder.gatherWood
   RoomChanged        -> Room.update
   Random             -> RandomEvent.start stdGen
+  PopulationIncrease -> Room.increasePopulation stdGen
 
   -- Button Cooldowns:
   GatherWood         -> pure ()

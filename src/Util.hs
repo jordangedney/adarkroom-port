@@ -56,6 +56,12 @@ listOfRandomPercentages randomGen =
   let (percentage, gen) = randomR (1, 100) randomGen
   in percentage : listOfRandomPercentages gen
 
+-- ticks are 1/100 of a second, so adjust all times
+minutes :: Int -> Int
+minutes t = 10 * 60 * t
+seconds :: Int -> Int
+seconds t = 10 * t
+
 -- Game Utils ------------------------------------------------------------------
 
 addEvent :: String -> DarkRoom

@@ -1,9 +1,10 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Outside
   ( unlock
   , arrival
   , gather
   , checkTraps
-  , maxPopulation
   )
 where
 
@@ -18,7 +19,7 @@ import Shared.Constants
 
 import Util (addEvent, updateEvent, randomChoices)
 import Shared.Item
-import Shared.Util (getItem, playerHasSeen, overStored, getStored)
+import Shared.Util (playerHasSeen, overStored, getStored)
 import Control.Monad (forM_, unless)
 import Control.Monad.State (gets)
 
@@ -83,6 +84,3 @@ checkTraps rndGen = do
 
   addEvent eventMsg
   updateEvent CheckTraps checkTrapsCooldown
-
-maxPopulation :: Game -> Int
-maxPopulation game = getItem Hut game * 4

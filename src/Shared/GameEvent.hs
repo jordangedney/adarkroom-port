@@ -20,6 +20,7 @@ data GameEvent
   | RoomChanged
   | BuilderGathersWood
   | Random
+  | PopulationIncrease
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON, ToJSONKey, FromJSONKey, Enum, Bounded)
 
 -- Hacky, but >0 means active, 0 triggers, and <0 means inactive
@@ -28,6 +29,7 @@ gameEventsInit = Map.fromList [(e, -1) | e <- enumFrom (toEnum 0)]
   & Map.insert FireShrinking 1
   & Map.insert RoomChanged 1
   & Map.insert Random 1
+  & Map.insert PopulationIncrease 1
 
 -- Helper Functions ------------------------------------------------------------
 tickEvents :: Map.Map k Int -> Map.Map k Int

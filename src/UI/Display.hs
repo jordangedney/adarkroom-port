@@ -18,7 +18,7 @@ import Shared.UI
 import UI.RandomEvent
 import UI.Components
 
-import qualified Outside
+import qualified Room.Room as Room
 import Shared.Item
 import Shared.Util
 import qualified Data.Map as Map
@@ -65,7 +65,7 @@ forestStores width = do
 
   if haveBuildings then do
     pop <- asks (show . view numPeople)
-    maxP <- asks (show . Outside.maxPopulation)
+    maxP <- asks (show . Room.maxPopulation)
     let popAmt = pop <> "/" <> maxP
         gapLen =  7 - length popAmt
         title = "forest" <> " " <> replicate gapLen '─' <> " pop " <> popAmt

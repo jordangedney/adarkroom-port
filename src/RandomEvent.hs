@@ -15,15 +15,14 @@ import Shared.Util
 
 import Room.Event
 
-import Util (randomChoice, choice, notifyRoom, displayCosts, updateEvent)
+import Util (randomChoice, choice, notifyRoom, displayCosts, updateEvent, minutes)
 import Control.Monad.State (get, gets)
 import Control.Monad (unless, forM_, when)
 
 start :: StdGen -> DarkRoom
 start stdGen = do
   -- set up the next random event
-  let ticksPerMinute = 10 * 60
-      (nextRandom :: Int, stdGen') = randomR (ticksPerMinute * 3, ticksPerMinute * 6) stdGen
+  let (nextRandom :: Int, stdGen') = randomR (minutes 3, minutes 6) stdGen
   updateEvent Random nextRandom
 
   -- jump into an available event if not in one
