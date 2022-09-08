@@ -7,7 +7,7 @@ import Data.Maybe (isNothing)
 import System.Random (StdGen, randomR)
 import Control.Lens
 
-import Shared.GameEvent (GameEvent(RandomEvent))
+import Shared.GameEvent (GameEvent(Random))
 import Shared.Game
 import Shared.RandomEvent
 import Shared.Item
@@ -24,7 +24,7 @@ start stdGen = do
   -- set up the next random event
   let ticksPerMinute = 10 * 60
       (nextRandom :: Int, stdGen') = randomR (ticksPerMinute * 3, ticksPerMinute * 6) stdGen
-  updateEvent RandomEvent nextRandom
+  updateEvent Random nextRandom
 
   -- jump into an available event if not in one
   needEvent <- isNothing <$> use inEvent

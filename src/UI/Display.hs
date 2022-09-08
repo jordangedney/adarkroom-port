@@ -13,7 +13,7 @@ import qualified Data.Function as Function
 
 import Shared.Constants
 import Shared.Game
-import Shared.GameEvent (GameEvent(FireStoked, GatherWood, CheckTraps, RandomEvent))
+import Shared.GameEvent (GameEvent(FireStoked, GatherWood, CheckTraps, Random))
 import Shared.UI
 import UI.RandomEvent
 import UI.Components
@@ -243,7 +243,7 @@ drawGameWindow game =
   let showGameTick =
         str (if view debug game then
                show (view tickCount game) ++ "  "
-                                          ++ show ((_upcomingEvents game) Map.! RandomEvent)
+                                          ++ show ((_upcomingEvents game) Map.! Random)
               else "")
       notificationsWindow = padLeft (Pad 2) (vBox [vLimit 45 (eventsWindow game), showGameTick])
 
