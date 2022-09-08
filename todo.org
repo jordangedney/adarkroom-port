@@ -7,7 +7,6 @@
  - [X] display msg when max (10) traps are bought
  - [X] remove huts from stores
  - [X] add hut to forest stores
- - [ ] shady builder cannot build more than 20 huts
  - [X] add population increasing over time
  - [ ] A Silent Forest title becomes A Lonely Hut on aquisition of a hut -- Do all (A tiny village, etc)
  - [ ] A Beast Attack event
