@@ -19,27 +19,19 @@ import Util (randomChoice, choice, notifyRoom, displayCosts, updateEvent)
 import Control.Monad.State (get, gets)
 import Control.Monad (unless, forM_, when)
 
-availableEvents :: Game -> [Scene]
-availableEvents g = [e | (e, p) <- Room.Event.events g, p]
-
-setNextRandomEvent :: StdGen -> DarkRoom
-setNextRandomEvent stdGen = do
-  -- they keep on coming and coming
+start :: StdGen -> DarkRoom
+start stdGen = do
+  -- set up the next random event
   let ticksPerMinute = 10 * 60
-      (nextRandom :: Int, _) = randomR (ticksPerMinute * 3, ticksPerMinute * 6) stdGen
-
+      (nextRandom :: Int, stdGen') = randomR (ticksPerMinute * 3, ticksPerMinute * 6) stdGen
   updateEvent RandomEvent nextRandom
-
-doRandomEvent :: StdGen -> DarkRoom
-doRandomEvent rnd = do
-  setNextRandomEvent rnd
 
   -- jump into an available event if not in one
   needEvent <- isNothing <$> use inEvent
-  availEvs <- gets availableEvents
+  availEvs <- gets (map fst . filter snd . Room.Event.events)
 
   when (needEvent && not (null availEvs)) $ do
-    let ev = choice rnd availEvs
+    let ev = choice stdGen' availEvs
     inEvent .= Just ev
     addReward (currentScene ev)
 
