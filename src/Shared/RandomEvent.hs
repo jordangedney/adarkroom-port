@@ -16,19 +16,23 @@ data Scene = Scene
   , currentScene :: SceneEvent
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
--- GiveSome: (Item1, Percentage, Item2, Percentage2)
--- Item1 gets reduced by percentage, Item2 is gained by Percentage2 of Percentage
+-- The reward system is (probably overly) complicated
 data Reward
-  = Give [(Item, Int)]
-  | GiveSome [(Item, Int, Item, Int)]
-  | None
+  -- Give: an item directly
+  = Give Item Int
+  -- GiveSome: (Item1, Percentage, Item2, Percentage2)
+  -- Item1 gets reduced by percentage, Item2 is gained by Percentage2 of Percentage
+  | EquivalentExchange Item Int Item Int
+  -- Gives a random amount of the item in the range
+  | GiveRange Item (Int, Int)
+  -- Combine multiple reward types
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 data SceneEvent = SceneEvent
   { text :: [String]
   , notification :: Maybe String
 --   , blink :: Bool
-  , reward :: Reward
+  , reward :: [Reward]
   , choices :: [SceneChoice]
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
@@ -39,4 +43,5 @@ data SceneChoice = SceneChoice
   { choiceTxt :: String
   , cost :: [(Item, Int)]
   , nextScene :: Maybe StayOrGo
+  , choiceNotification :: Maybe String
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)

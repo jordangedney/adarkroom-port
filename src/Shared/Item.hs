@@ -50,6 +50,8 @@ data Item
   | IronSword
   | SteelSword
   | Rifle
+  -- blatant objectification:
+  | People
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON, ToJSONKey, FromJSONKey, Enum, Bounded)
 
 itemToStr :: Item -> String

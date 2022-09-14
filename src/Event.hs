@@ -114,7 +114,7 @@ handleButtonEvent stdGen = \case
     paused .= True
   PauseButton -> do paused %= not
   DialogButton -> do
-    inEvent %= (\case { Just _ -> Nothing ; _ -> Just RE.theShadyBuilder })
+    inEvent %= (\case { Just _ -> Nothing ; _ -> Just RE.beastAttack })
   CheatButton -> do
     overStored Wood  (+ 5000)
     overStored Bait  (+ 5000)

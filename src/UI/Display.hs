@@ -64,7 +64,7 @@ forestStores width = do
   goodsWindow <- storesWindow width
 
   if haveBuildings then do
-    pop <- asks (show . view numPeople)
+    pop <- asks (show . getItem People)
     maxP <- asks (show . Room.maxPopulation)
     let popAmt = pop <> "/" <> maxP
         gapLen =  7 - length popAmt

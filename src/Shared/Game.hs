@@ -69,7 +69,6 @@ data Location = Room | Outside | Path | Ship
 data Game = Game
   { _location           :: Location
   , _stored             :: Map.Map Item Int
-  , _numPeople          :: Int
   , _upcomingEvents     :: Map.Map GameEvent Int
   , _notifications      :: [(String, Int)]
   , _roomEventBacklog   :: [String]
@@ -96,7 +95,6 @@ initGame :: Game
 initGame                = Game
   { _location           = Room
   , _stored             = Map.fromList [(Wood, 15)]
-  , _numPeople          = 0
   , _upcomingEvents     = gameEventsInit
   , _notifications      = []
   , _roomEventBacklog   = []

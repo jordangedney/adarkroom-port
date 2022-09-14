@@ -56,6 +56,10 @@ listOfRandomPercentages randomGen =
   let (percentage, gen) = randomR (1, 100) randomGen
   in percentage : listOfRandomPercentages gen
 
+range :: (Ord a, Enum a) => (a, a) -> [a]
+range (a, b) = if a < b then [a..b] else reverse $ [b..a]
+
+
 -- Game Utils ------------------------------------------------------------------
 
 addEvent :: String -> DarkRoom

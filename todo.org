@@ -9,7 +9,7 @@
  - [X] add hut to forest stores
  - [X] add population increasing over time
  - [X] A Silent Forest title becomes A Lonely Hut on aquisition of a hut -- Do all (A tiny village, etc)
- - [ ] A Beast Attack event
+ - [X] A Beast Attack event
  - [ ] people act as gatherers
  - [ ] display gathering amounts
        an always-on bottom display would work better than the web design

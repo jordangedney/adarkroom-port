@@ -69,7 +69,7 @@ increasePopulation :: StdGen -> DarkRoom
 increasePopulation stdGen = do
   let (nextIncrease :: Int, stdGen') = randomR (minutes 1, minutes 3) stdGen
   updateEvent PopulationIncrease nextIncrease
-  space <- gets (\g -> maxPopulation g - (view numPeople g))
+  space <- gets (\g -> maxPopulation g - (getItem People g))
   let halfSpace = space `quot` 2
       newPeople'= fst (randomR (1, halfSpace) stdGen') + halfSpace
       newPeople = if newPeople' > 0 then newPeople' else 1
@@ -82,4 +82,4 @@ increasePopulation stdGen = do
 
   unless (space == 0) $ do
     notifyRoom arrivalMessage
-    numPeople %= (+ newPeople)
+    overStored People (+ newPeople)
