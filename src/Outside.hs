@@ -17,7 +17,7 @@ import Shared.GameEvent (GameEvent(GatherWood, CheckTraps))
 import Shared.Game
 import Shared.Constants
 
-import Util (addEvent, updateEvent, randomChoices)
+import Util (notify, updateEvent, randomChoices)
 import Shared.Item
 import Shared.Util (playerHasSeen, overStored, getStored)
 import Control.Monad (forM_, unless)
@@ -29,8 +29,8 @@ unlock = do
   (uiState . showStores) .= True
   (uiState . showOutside) .= True
   overStored Wood (const 4)
-  addEvent "the wind howls outside."
-  addEvent "the wood is running out."
+  notify "the wind howls outside."
+  notify "the wood is running out."
 
 firstArrival :: DarkRoom
 firstArrival = do
@@ -38,7 +38,7 @@ firstArrival = do
   -- the sunlight hurts my eyes
   unless goneOutside $ do
     (milestones . seenForest) .= True
-    addEvent "the sky is grey and the wind blows relentlessly."
+    notify "the sky is grey and the wind blows relentlessly."
 
 arrival :: DarkRoom
 arrival = do
@@ -51,7 +51,7 @@ gather = do
   amountToGather <- gets ((\p -> if p then 50 else 10) . playerHasSeen Cart)
   overStored Wood (+ amountToGather)
   updateEvent GatherWood gatherCooldown
-  addEvent "dry brush and dead branches litter the forest floor."
+  notify "dry brush and dead branches litter the forest floor."
 
 checkTraps :: StdGen -> DarkRoom
 checkTraps rndGen = do
@@ -82,5 +82,5 @@ checkTraps rndGen = do
                    else intercalate ", " (init dropMsgs) ++ " and " ++ last dropMsgs
       eventMsg = "the traps contain " ++ eventItems ++ "."
 
-  addEvent eventMsg
+  notify eventMsg
   updateEvent CheckTraps checkTrapsCooldown

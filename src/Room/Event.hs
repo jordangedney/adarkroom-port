@@ -29,7 +29,7 @@ theBeggar = Scene
           {text = [ "a beggar arrives."
                    , "\n"
                    , "asks for any spare furs to keep him warm at night."]
-          , notification = Just "a beggar arrives"
+          , notification = Just "a beggar arrives."
           -- , blink = True
           , reward = []
           , choices =
@@ -106,7 +106,7 @@ theNomad = Scene
                    , "\n"
                    , "won't say from where he came, but it's clear that"
                    , "he's not staying."]
-          , notification = Just "a nomad arrives, looking to trade"
+          , notification = Just "a nomad arrives, looking to trade."
           -- , blink = True
           , reward = []
           , choices =
@@ -158,7 +158,7 @@ noisesOutside = Scene
                    , "\n"
                    , "\n"
                    ]
-          , notification = Just "strange noises can be heard through the walls"
+          , notification = Just "strange noises can be heard through the walls."
           -- , blink = True
           , reward = []
           , choices =
@@ -221,7 +221,7 @@ noisesInside = Scene
                    , "\n"
                    , "\n"
                    ]
-          , notification = Just "something's in the store room"
+          , notification = Just "something's in the store room."
           -- , blink = True
           , reward = []
           , choices =
@@ -295,7 +295,7 @@ theShadyBuilder = Scene
                    , "\n"
                    , "says he can build you a hut for less wood."
                    ]
-          , notification = Just "a shady builder passes through"
+          , notification = Just "a shady builder passes through."
           -- , blink = True
           , reward = []
           , choices =
@@ -316,7 +316,7 @@ theShadyBuilder = Scene
           { text = ["the shady builder has made off with your wood."
                    , "\n"
                    ]
-          , notification = Just "the shady builder has made off with your wood"
+          , notification = Just "the shady builder has made off with your wood."
           , reward = []
           , choices = [ SceneChoice { choiceTxt = "go home"
                                     , cost = []
@@ -350,7 +350,7 @@ beastAttack = Scene
           {text = [ "a pack of snarling beasts pours out of the trees."
                   , "the fight is short and bloody, but the beasts are repelled."
                   , "the villagers retreat to mourn the dead." ]
-          , notification = Just "wild beasts attack the villagers"
+          , notification = Just "wild beasts attack the villagers."
           , reward = [ Give Fur 100, Give Meat 100, Give Teeth 10
                      , GiveRange People (-10, -1) ]
           , choices =

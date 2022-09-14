@@ -28,16 +28,15 @@ data Reward
   -- Combine multiple reward types
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
+data StayOrGo = Stay (Maybe String) (Item, Int) | Go ([(Int, SceneEvent)], SceneEvent)
+  deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
+
 data SceneEvent = SceneEvent
   { text :: [String]
   , notification :: Maybe String
---   , blink :: Bool
   , reward :: [Reward]
   , choices :: [SceneChoice]
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
-
-data StayOrGo = Stay (Maybe String) (Item, Int) | Go ([(Int, SceneEvent)], SceneEvent)
-  deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 data SceneChoice = SceneChoice
   { choiceTxt :: String

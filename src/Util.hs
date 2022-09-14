@@ -62,15 +62,16 @@ range (a, b) = if a < b then [a..b] else reverse $ [b..a]
 
 -- Game Utils ------------------------------------------------------------------
 
-addEvent :: String -> DarkRoom
-addEvent message = do
+notify :: String -> DarkRoom
+notify message = do
   notifications %= ((message, 0):)
 
 notifyRoom :: String -> DarkRoom
 notifyRoom message = do
   inRoom <- (== Room) <$> use location
-  if inRoom then addEvent message
+  if inRoom then notify message
   else roomEventBacklog  %= (:) message
+
 
 clearRoomBacklog :: DarkRoom
 clearRoomBacklog = do

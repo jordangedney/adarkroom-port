@@ -16,7 +16,7 @@ import Shared.Constants (minutes)
 
 import Room.Event
 
-import Util (randomChoice, choice, notifyRoom, displayCosts, updateEvent, range, addEvent)
+import Util (randomChoice, choice, notifyRoom, displayCosts, updateEvent, range, notify)
 import Control.Monad.State (get, gets)
 import Control.Monad (unless, forM_, when)
 
@@ -36,7 +36,9 @@ start stdGen = do
     addReward stdGen' (currentScene ev)
 
 addReward :: StdGen -> SceneEvent -> DarkRoom
-addReward stdGen (SceneEvent _ _ xs _) = forM_ xs (giveReward stdGen)
+addReward stdGen (SceneEvent _ m xs _) = do
+  forM_ m notify
+  forM_ xs (giveReward stdGen)
 
 giveReward :: StdGen -> Reward -> DarkRoom
 giveReward stdGen = \case
@@ -80,14 +82,14 @@ handleButton :: StdGen -> SceneChoice -> DarkRoom
 handleButton r (SceneChoice _ cs next m) = do
   -- if there's no item to buy just continue on
   if null cs then do
-    forM_ m addEvent
+    forM_ m notify
     doSceneChoice r next
 
   else do
     -- buy the item, if you can
     game <- get
     if canAfford cs game then do
-      forM_ m addEvent
+      forM_ m notify
       forM_ cs $ \(i, amt) -> do
         overStored i (subtract amt)
         doSceneChoice r next
