@@ -17,7 +17,7 @@ import Shared.Item
 import Shared.Util
 import Shared.GameEvent (GameEvent(RoomChanged, PopulationIncrease))
 import Shared.Constants (roomWarmDelay, minutes)
-import Util (notifyRoom, clearRoomBacklog, updateEvent)
+import Util (notify, notifyRoom, clearRoomBacklog, updateEvent)
 
 import qualified Room.Builder as Builder
 
@@ -81,5 +81,5 @@ increasePopulation stdGen = do
                      | otherwise       = "the town's booming. word does get around."
 
   unless (space == 0) $ do
-    notifyRoom arrivalMessage
+    notify arrivalMessage
     overStored People (+ newPeople)
