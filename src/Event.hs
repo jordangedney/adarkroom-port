@@ -16,7 +16,7 @@ import SaveGame (save)
 import qualified Room.Fire as Fire
 import qualified Room.Room as Room
 import qualified Room.Builder as Builder
-import qualified Room.Event as RE
+-- import qualified Room.Event as RE
 import qualified Outside
 
 import qualified RandomEvent
@@ -113,8 +113,8 @@ handleButtonEvent stdGen = \case
     modify (const prev)
     paused .= True
   PauseButton -> do paused %= not
-  DialogButton -> do
-    inEvent %= (\case { Just _ -> Nothing ; _ -> Just RE.beastAttack })
+  DialogButton -> RandomEvent.start stdGen
+    -- inEvent %= (\case { Just _ -> Nothing ; _ -> Just RE.beastAttack})
   CheatButton -> do
     overStored Wood  (+ 5000)
     overStored Bait  (+ 5000)

@@ -17,6 +17,7 @@ import Shared.Item
 import Shared.Util
 import Shared.GameEvent (GameEvent(RoomChanged, PopulationIncrease))
 import Shared.Constants (roomWarmDelay, minutes)
+
 import Util (notify, notifyRoom, clearRoomBacklog, updateEvent)
 
 import qualified Room.Builder as Builder

@@ -342,13 +342,16 @@ theShadyBuilder = Scene
 beastAttack :: Scene
 beastAttack = Scene
   { title = "A Beast Attack"
-  , windowSize = 52
+  , windowSize = 54
   , currentScene = start
   }
   where start = SceneEvent
 
           {text = [ "a pack of snarling beasts pours out of the trees."
-                  , "the fight is short and bloody, but the beasts are repelled."
+                  , "\n\n"
+                  , "the fight is short and bloody, but the beasts are"
+                  , "repelled."
+                  , "\n\n"
                   , "the villagers retreat to mourn the dead." ]
           , notification = Just "wild beasts attack the villagers."
           , reward = [ Give Fur 100, Give Meat 100, Give Teeth 10
