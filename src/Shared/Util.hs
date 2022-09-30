@@ -9,7 +9,7 @@ import Shared.Game
 
 import Control.Lens
 import qualified Data.Map as Map
-import Control.Monad.State (State, get, when, gets)
+import Control.Monad.State (State, get, when)
 
 canAfford :: [(Item, Int)] -> Game -> Bool
 canAfford items game = all afford items
@@ -40,21 +40,30 @@ overStored i fn = do
   -- [Yes, it would be better if the types kept these from getting out of sync,
   -- but keeping the People and Huts as part of the Item type is very convenient.]
   when (i `elem` [Hut, People]) $ do
-    numPeople <- getStored People
-    mP <- gets maxPopulation
+    -- Handle when Huts are removed
+    numPeople <- (\g -> min (maxPopulation g) (getItem People g)) <$> get
+    stored %= Map.insert People numPeople
 
-    when (numPeople > mP) $
-      stored %= Map.insertWith subtract People (numPeople - mP)
+    w <- Map.toList <$> use workers
+    unaccountedWorkers >>= equalizeWorkers w
 
-    numPeople' <- getStored People
-    w <- use workers
-    let toRemove = (Map.foldr (+) 0 w) - numPeople'
-    equalizeWorkers (Map.toList w) toRemove
+    -- Handle when people are subtracted
+    -- let toRemove = (Map.foldr (+) 0 w) - numPeople'
+    -- toRemove <- unaccountedWorkers
+    -- equalizeWorkers (Map.toList w) toRemove
+
+    -- Handle when people are added
+
 
  where equalizeWorkers :: [(Worker, Int)] -> Int -> DarkRoom
        equalizeWorkers _ 0 = pure ()
        equalizeWorkers [] _ = pure ()
-       equalizeWorkers ((workerType, numWorker):xs) toRemove = do
-         let amt = min numWorker toRemove
+       equalizeWorkers ((workerType, numWorker):xs) delta = do
+         let amt = min numWorker delta
          workers %= Map.insertWith subtract workerType amt
-         equalizeWorkers xs (toRemove - amt)
+         equalizeWorkers xs (delta - amt)
+
+       unaccountedWorkers = do
+        numPeople <- getStored People
+        numWorkers <- sum <$> use workers
+        pure $ numWorkers - numPeople
