@@ -53,12 +53,12 @@ giveReward stdGen = \case
     numAvail <- takePercent removePercent <$> getStored toRemove
     let numAdd = takePercent addPercent numAvail
 
-    overStored toRemove (subtract numAvail)
-    overStored toAdd (+ numAdd)
+    giveReward stdGen (Give toRemove ((-1) * numAvail))
+    giveReward stdGen (Give toAdd numAdd)
 
   GiveRange i bounds -> do
     let amtToGive = choice stdGen (range bounds)
-    overStored i (+ amtToGive)
+    giveReward stdGen (Give i amtToGive)
 
 doSceneChoice :: StdGen -> Maybe StayOrGo -> DarkRoom
 doSceneChoice rnd = \case

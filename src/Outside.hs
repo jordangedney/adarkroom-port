@@ -1,10 +1,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Outside
   ( unlock
   , arrival
   , gather
   , checkTraps
+  , workerReward
   )
 where
 
@@ -84,3 +86,16 @@ checkTraps rndGen = do
 
   notify eventMsg
   updateEvent CheckTraps checkTrapsCooldown
+
+workerReward :: Worker -> [(Item, Float)]
+workerReward = \case
+  Gatherer -> [(Wood, 1)]
+  Hunter -> [(Fur, 0.5), (Meat, 0.5)]
+  Trapper -> [(Meat, -1), (Bait, 1)]
+  Tanner -> [(Fur, -5), (Leather, 1)]
+  Charcutier -> [(Meat, -5), (Wood, -5), (CuredMeat, -1)]
+  IronMiner -> [(CuredMeat, -1), (Iron, -1)]
+  CoalMiner -> [(CuredMeat, -1), (Coal, 1)]
+  SulphurMiner -> [(CuredMeat, -1), (Sulphur, 1)]
+  Steelworker -> [(Iron, -1), (Coal, -1), (Steel, 1)]
+  Armourer -> [(Steel, -1), (Sulphur, -1), (Bullets, 1)]

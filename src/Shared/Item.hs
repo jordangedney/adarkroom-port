@@ -20,6 +20,7 @@ data Item
   | Compass
   | Wood
   | Meat
+  | CuredMeat
   | Coal
   | Leather
   | Iron
@@ -50,6 +51,7 @@ data Item
   | IronSword
   | SteelSword
   | Rifle
+  | Bullets
   -- blatant objectification:
   | People
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON, ToJSONKey, FromJSONKey, Enum, Bounded)

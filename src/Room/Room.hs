@@ -63,9 +63,6 @@ arrival = do
   Builder.canHelp
   Builder.updateBuildables
 
-maxPopulation :: Game -> Int
-maxPopulation game = getItem Hut game * 4
-
 increasePopulation :: StdGen -> DarkRoom
 increasePopulation stdGen = do
   let (nextIncrease :: Int, stdGen') = randomR (minutes 1, minutes 3) stdGen

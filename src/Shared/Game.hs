@@ -7,6 +7,7 @@ module Shared.Game where
 
 import GHC.Generics
 import Data.Yaml
+import Data.Aeson.Types (ToJSONKey, FromJSONKey)
 
 import Control.Lens (makeLenses)
 import Control.Monad.State (State)
@@ -44,6 +45,19 @@ data BuilderState
   | Helping
   deriving (Eq, Show, Enum, Ord, Generic, ToJSON, FromJSON)
 
+data Worker
+  = Gatherer
+  | Hunter
+  | Trapper
+  | Tanner
+  | Charcutier
+  | IronMiner
+  | CoalMiner
+  | SulphurMiner
+  | Steelworker
+  | Armourer
+  deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON, ToJSONKey, FromJSONKey)
+
 data Milestones = Milestones
   { _fireLit             :: Bool
   , _seenForest          :: Bool
@@ -70,6 +84,7 @@ data Game = Game
   { _location           :: Location
   , _stored             :: Map.Map Item Int
   , _upcomingEvents     :: Map.Map GameEvent Int
+  , _workers            :: Map.Map Worker Int
   , _notifications      :: [(String, Int)]
   , _roomEventBacklog   :: [String]
   , _forestEventBacklog :: [String]
@@ -96,6 +111,7 @@ initGame                = Game
   { _location           = Room
   , _stored             = Map.fromList [(Wood, 15)]
   , _upcomingEvents     = gameEventsInit
+  , _workers            = Map.fromList []
   , _notifications      = []
   , _roomEventBacklog   = []
   , _forestEventBacklog = []

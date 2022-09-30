@@ -346,7 +346,6 @@ beastAttack = Scene
   , currentScene = start
   }
   where start = SceneEvent
-
           {text = [ "a pack of snarling beasts pours out of the trees."
                   , "\n\n"
                   , "the fight is short and bloody, but the beasts are"
