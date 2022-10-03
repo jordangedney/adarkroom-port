@@ -25,7 +25,6 @@ app = App
   , appStartEvent   = return ()
   , appAttrMap      = const theMap }
 
-
 main :: IO ()
 main = do
   let buildVty = do

@@ -1,10 +1,10 @@
 #!/bin/bash
 if [ "$1" == "build" ]; then
-    find . | grep .hs | entr sh -c 'stack build --fast --pedantic; pkill a-dark-room-exe;'
+    find . | grep .hs | entr sh -c 'cabal build; pkill adarkroom-port;'
     exit 0
 fi
 if [ "$1" == "run" ]; then
-    while true; do stack exec a-dark-room-exe; done
+    while true; do cabal run; done
     exit 0
 fi
 
