@@ -1,0 +1,66 @@
+cabal-version:      3.4
+name:               adarkroom-port
+version:            0.1.0.0
+license:            MPL-2.0
+license-file:       LICENSE
+author:             Jordan Gedney
+maintainer:         jordangedney@gmail.com
+category:           Game
+build-type:         Simple
+extra-doc-files:    CHANGELOG.md
+common warnings
+    ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -fno-warn-orphans -Wmissing-signatures
+
+executable adarkroom-port
+    -- Import common warning flags.
+    import:           warnings
+
+    -- .hs or .lhs file containing the Main module.
+    main-is:          Main.hs
+
+    -- Modules included in this executable, other than Main.
+    other-modules:
+        Event
+        Outside
+        RandomEvent
+        Room.Builder
+        Room.Event
+        Room.Fire
+        Room.Room
+        SaveGame
+        Shared.Constants
+        Shared.Game
+        Shared.GameEvent
+        Shared.Item
+        Shared.RandomEvent
+        Shared.UI
+        Shared.Util
+        UI.Components
+        UI.Display
+        UI.RandomEvent
+        Util
+
+    -- LANGUAGE extensions used by modules in this package.
+    -- other-extensions:
+
+    -- Other library packages from which modules are imported.
+    build-depends:    base ^>=4.17.0.0
+                    , aeson
+                    , brick
+                    , containers
+                    , lens
+                    , mtl
+                    , random
+                    , safe
+                    , stm
+                    , unordered-containers
+                    , vty
+                    , yaml
+
+
+    -- Directories containing source files.
+    hs-source-dirs:   app
+
+    -- Base language which the package is written in.
+    default-language: GHC2021
+    ghc-options: -threaded 

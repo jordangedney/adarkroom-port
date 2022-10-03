@@ -22,8 +22,9 @@ app = App
   { appDraw         = drawUI
   , appChooseCursor = neverShowCursor
   , appHandleEvent  = undefined
-  , appStartEvent   = return
+  , appStartEvent   = return ()
   , appAttrMap      = const theMap }
+
 
 main :: IO ()
 main = do

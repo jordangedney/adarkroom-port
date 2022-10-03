@@ -3,7 +3,7 @@ module Event (handleEventWrapper) where
 
 import System.Random (newStdGen, StdGen)
 import Control.Monad.IO.Class (liftIO)
-import Brick (BrickEvent(..), EventM, Next, continue)
+import Brick (BrickEvent(..), EventM)
 import Control.Monad.State (execState, modify)
 
 import Shared.Game
@@ -22,14 +22,15 @@ import qualified Outside
 import qualified RandomEvent
 import Control.Lens
 import Control.Monad (forM_, unless, when)
-import Control.Monad.State (get)
+import Control.Monad.State (get, put)
 import Control.Concurrent.STM.TVar (TVar, writeTVar)
 import Control.Monad.STM (atomically)
 import qualified Data.Map as Map
 
 -- | Perform IO and convert from Brick's EventM into the internal DarkRoom type.
-handleEventWrapper :: TVar Bool -> Game -> BrickEvent Name Tick -> EventM Name (Next Game)
-handleEventWrapper enableHyper game event = do
+handleEventWrapper :: TVar Bool -> BrickEvent Name Tick -> EventM Name Game ()
+handleEventWrapper enableHyper event = do
+  game <- get
   when (pressed SaveButton) $
     liftIO (save game)
 
@@ -37,7 +38,7 @@ handleEventWrapper enableHyper game event = do
     liftIO $ atomically $ writeTVar enableHyper (not (_hyper game))
 
   stdGen <- liftIO newStdGen
-  continue ((execState $ handleBrickEvent stdGen event) game)
+  put $ ((execState $ handleBrickEvent stdGen event) game)
 
   where pressed b = case event of MouseDown x _ _ _ -> b == x; _ -> False
 
