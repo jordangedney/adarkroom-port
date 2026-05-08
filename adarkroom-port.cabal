@@ -25,6 +25,7 @@ executable adarkroom-port
         Path
         Path.Enemy
         RandomEvent
+        Rewards
         Room.Builder
         Room.Event
         Room.Fire
@@ -35,11 +36,13 @@ executable adarkroom-port
         Shared.GameEvent
         Shared.Item
         Shared.RandomEvent
+        Shared.Rewards
         Shared.UI
         Shared.Util
         UI.Components
         UI.Display
         UI.RandomEvent
+        UI.Rewards
         Util
 
     -- LANGUAGE extensions used by modules in this package.

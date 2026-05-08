@@ -17,6 +17,7 @@ import Shared.Game
 import Shared.GameEvent (GameEvent(FireStoked, GatherWood, CheckTraps, Random))
 import Shared.UI
 import UI.RandomEvent
+import UI.Rewards (drawRewardsWindow)
 import UI.Components
 
 import qualified Room.Room as Room
@@ -233,6 +234,7 @@ bottomMenu g =
       buttonsToLabels = [ (textButton g RestartButton,  "restart.")
                         , (textButton g SaveButton, "save.")
                         , (textButton g DialogButton, "ay.")
+                        , (textButton g DebugRewardsButton, "rw.")
                         , (textButton g CheatButton, "ch.")
                         , changingButton hyper HyperButton "classic." "hyper."
                         , changingButton debug PauseButton  "pause." ""
@@ -306,10 +308,10 @@ supplyRow game i =
   let avail = Path.available i game
       have  = Path.allocated i game
       free  = Path.inventoryFree game
-      eventActive = isJust (view inEvent game)
+      modalActive = isJust (view inEvent game) || isJust (view inRewards game)
 
       mkBtn n btnLabel enabled =
-        if enabled && not eventActive
+        if enabled && not modalActive
         then clickable n (withDefAttr blueBackground (str btnLabel))
         else withDefAttr progressBarToDo (str btnLabel)
 
@@ -372,7 +374,7 @@ gatheringPanel g =
   in if totalWorkers <= 0 then blank else padLeftRight 2 panel
 
 drawUI :: Game -> [Widget Name]
-drawUI game = ($ game) <$> [drawDialogWindow, drawGameWindow]
+drawUI game = ($ game) <$> [drawRewardsWindow, drawDialogWindow, drawGameWindow]
 
 dummyMap :: [String]
 dummyMap = map (intersperse ' ')
