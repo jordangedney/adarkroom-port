@@ -67,6 +67,7 @@ forestStores :: Int -> Game -> Widget Name
 forestStores width = do
   haveBuildings <- asks (view (uiState . showForestBuildings))
   goodsWindow <- storesWindow width
+  villagers <- villagersWindow width
 
   if haveBuildings then do
     pop <- asks (show . getItem People)
@@ -75,8 +76,20 @@ forestStores width = do
         gapLen =  7 - length popAmt
         title = "forest" <> " " <> replicate gapLen '─' <> " pop " <> popAmt
     items <- formatStores buildings
-    pure $ vBox [ storeWidget ForestVP title items width, goodsWindow]
+    pure $ vBox [ storeWidget ForestVP title items width, villagers, goodsWindow]
   else pure goodsWindow
+
+villagersWindow :: Int -> Game -> Widget Name
+villagersWindow width game =
+  let entries =
+        [ (Tanner, "tanner") | getItem Tannery game > 0 ] ++
+        [ (Charcutier, "charcutier") | getItem Smokehouse game > 0 ]
+      mkRow (w, label) =
+        (label, show (Map.findWithDefault 0 w (game ^. workers)))
+      rows = map mkRow entries
+  in if null rows
+     then str (replicate (width + 2) ' ')
+     else storeWidget WorkersVP "villagers" rows width
 
 storesWindow :: Int -> Game -> Widget Name
 storesWindow width = do
@@ -112,11 +125,22 @@ craftButtons game =
 
 buyButtons :: Game -> Widget Name
 buyButtons game =
-  let buyMenuUnlocked  = view (milestones . buyUnlocked) game
-      buyDemo =
+  let buyMenuUnlocked = view (milestones . buyUnlocked) game
+
+      -- scales unlock once you've seen them
+      buyables =
+        [ Scale | playerHasSeen Scale game ] ++
+        [ Teeth, Compass ]
+
+      mkButton i
+        | i == Compass && getItem Compass game > 0 =
+            greyedButton (itemToStr i)
+        | otherwise = actionButton game (BuyButton i) (itemToStr i)
+
+      buyMenu =
         str "  buy:"
-        <=> hCenter (actionButton game LightButton "light fire")
-  in if buyMenuUnlocked then padTop (Pad 4) buyDemo else blank
+        <=> vBox (map mkButton buyables)
+  in if buyMenuUnlocked then padTop (Pad 4) buyMenu else blank
 
 buildButtons :: Game -> Widget Name
 buildButtons g =
@@ -140,7 +164,7 @@ drawRoom game =
   let leftCol = ensureWidth (hCenter (fireButton <=> buildButtons game))
       leftMidCol = ensureWidth (craftButtons game)
       rightMidCol = ensureWidth (buyButtons game)
-      rightCol = hCenter (roomStores 23 game)
+      rightCol = hCenter (vBox [villagersWindow 23 game, roomStores 23 game])
 
       ensureWidth x = hLimit 21 (x <=> emptyLine)
 

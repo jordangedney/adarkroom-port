@@ -7,6 +7,8 @@ module Room.Builder
   , approach
   , gatherWood
   , build
+  , buy
+  , buyCost
   , updateBuildables
   )
 where
@@ -259,6 +261,7 @@ build i = do
 applyBuildEffect :: Item -> DarkRoom
 applyBuildEffect = \case
   Workshop -> milestones . craftUnlocked .= True
+  TradingPost -> milestones . buyUnlocked .= True
   Waterskin -> firstTime Waterskin $ playerStats . waterCapacity += 10
   Rucksack -> firstTime Rucksack $ playerStats . inventoryCapacity += 10
   LeatherArmor -> firstTime LeatherArmor $ playerStats . armor += 1
@@ -268,3 +271,23 @@ applyBuildEffect = \case
     firstTime item action = do
       cnt <- getStored item
       when (cnt == 1) action
+
+-- | Costs at the trading post. (Compass, 0) entries gate the purchase
+-- to one-only via canAfford's special-case for compasses.
+buyCost :: Item -> [(Item, Int)]
+buyCost = \case
+  Scale -> [(Fur, 100)]
+  Teeth -> [(Fur, 200)]
+  Compass -> [(Fur, 300), (Scale, 15), (Teeth, 5), (Compass, 0)]
+  _ -> []
+
+buy :: Item -> DarkRoom
+buy i = do
+  let cost = buyCost i
+  game <- get
+  if canAfford cost game
+    then do
+      forM_ cost $ \(item', amt) -> do
+        when (amt > 0) $ overStored item' (subtract amt)
+      overStored i (+1)
+    else displayCosts cost

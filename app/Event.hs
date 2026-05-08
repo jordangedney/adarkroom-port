@@ -107,6 +107,7 @@ handleButtonEvent stdGen = \case
   CheckTrapsButton -> Outside.checkTraps stdGen
 
   CraftButton x -> Builder.build x
+  BuyButton x   -> Builder.buy x
 
   PathButton -> Path.arrival
   EmbarkButton -> Path.embark
@@ -154,3 +155,4 @@ handleButtonEvent stdGen = \case
   StoreVP -> pure ()
   ForestVP -> pure ()
   EventsVP -> pure ()
+  WorkersVP -> pure ()
