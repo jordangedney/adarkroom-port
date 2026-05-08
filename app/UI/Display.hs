@@ -249,12 +249,77 @@ bottomMenu g =
    in padLeft (Pad leftPadding) (hBox buttons)
 
 drawPath :: Game -> Widget Name
-drawPath _game =
+drawPath game =
+  if view embarked game then drawPathMap game else drawPathUnlocked game
+
+drawPathMap :: Game -> Widget Name
+drawPathMap _game =
   let gameMap = withBorderStyle unicodeRounded . border
       align = hLimit 90 . padLeft (Pad 2)
       inventoryTitle = str "rucksack"
       inventory = hCenter $ borderWithLabel inventoryTitle emptyLine
   in align (vBox [inventory, map str dummyMap & vBox & gameMap])
+
+-- The "path unlocked" supply allocation screen. Shown when the player has
+-- equipped the compass and arrived at Path, but hasn't embarked yet.
+drawPathUnlocked :: Game -> Widget Name
+drawPathUnlocked g =
+  let armorN = view (playerStats . armor) g
+      waterN = view (playerStats . waterCapacity) g
+      capN   = view (playerStats . inventoryCapacity) g
+
+      expeditionItems = view expedition g
+      usedSpace = sum (Map.elems expeditionItems)
+      freeSpace = capN - usedSpace
+
+      stat label value =
+        padLeft (Pad 2) (str (label <> ": " <> show value))
+
+      pathBtn buttonId enabled label =
+        if enabled
+        then textButton g buttonId label
+        else withAttr progressBarToDo (str label)
+
+      supplyRow item =
+        let inStores = getItem item g
+            inExp = Map.findWithDefault 0 item expeditionItems
+            canAdd = inStores > 0 && freeSpace > 0
+            canSub = inExp > 0
+            label = hLimit 14 (padRight Max (str ("  " <> itemToStr item)))
+            countCell n = hLimit 6 (padRight Max (str (show n)))
+            storesLabel = str "  stores: "
+            expLabel    = str "  expedition: "
+            addBtn = pathBtn (PathAddButton item) canAdd " [+] "
+            subBtn = pathBtn (PathSubButton item) canSub " [-] "
+        in hBox
+          [ label
+          , storesLabel, countCell inStores
+          , expLabel,    countCell inExp
+          , addBtn, subBtn
+          ]
+
+      supplyHeader = padLeft (Pad 2) (str "variable supplies:")
+      supplyList = vBox (map supplyRow variablePathSupplies)
+
+      capacityLine = padLeft (Pad 2) $ str
+        ("rucksack: " <> show freeSpace <> " / " <> show capN <> " free")
+
+      embarkBtn = padTop (Pad 1) $ hCenter $
+        actionButton g EmbarkButton "embark"
+
+      header = padLeft (Pad 1) (str "supplies")
+
+      content = vBox
+        [ header
+        , padTop (Pad 1) (vBox [stat "armor" armorN, stat "water" waterN])
+        , padTop (Pad 1) supplyHeader
+        , supplyList
+        , padTop (Pad 1) capacityLine
+        , embarkBtn
+        ]
+
+      align = hLimit 90 . padLeft (Pad 2)
+  in align (withBorderStyle unicodeRounded $ border (padAll 1 content))
 
 locationMenu :: Game -> Widget Name
 locationMenu game =

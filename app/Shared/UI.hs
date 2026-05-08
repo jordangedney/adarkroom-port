@@ -55,6 +55,11 @@ data Name
 
   -- Build and craft buttons
   | CraftButton Item
+
+  -- Path-unlocked screen
+  | EmbarkButton
+  | PathAddButton Item
+  | PathSubButton Item
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 

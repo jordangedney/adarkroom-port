@@ -22,6 +22,7 @@ executable adarkroom-port
     other-modules:
         Event
         Outside
+        Path
         RandomEvent
         Room.Builder
         Room.Event

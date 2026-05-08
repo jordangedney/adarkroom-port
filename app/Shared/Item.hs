@@ -76,3 +76,8 @@ weapons = [BoneSpear, IronSword, SteelSword, Rifle]
 goods :: [Item]
 goods  = [Fur, Cloth, Charm, Scale, Teeth, Bait, Compass, Wood, Meat, Coal,
           Leather, Iron, Steel, Sulphur, Torch]
+
+-- Items the player chooses how many of to take on an expedition.
+-- Water is fixed (player's water capacity); armor is whatever's equipped.
+variablePathSupplies :: [Item]
+variablePathSupplies = [CuredMeat, Torch, Charm, Bullets]
