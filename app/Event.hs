@@ -18,6 +18,7 @@ import qualified Room.Room as Room
 import qualified Room.Builder as Builder
 -- import qualified Room.Event as RE
 import qualified Outside
+import qualified Path
 
 import qualified RandomEvent
 import Control.Lens
@@ -105,7 +106,10 @@ handleButtonEvent stdGen = \case
 
   CraftButton x -> Builder.build x
 
-  PathButton -> do location .= Path
+  PathButton -> Path.arrival
+  EmbarkButton -> Path.embark
+  IncreaseSupplyButton i -> Path.increaseSupply i
+  DecreaseSupplyButton i -> Path.decreaseSupply i
   ShipButton -> do location .= Ship
 
   RestartButton -> do modify (const initGame)

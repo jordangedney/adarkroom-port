@@ -21,10 +21,12 @@ import UI.Components
 
 import qualified Room.Room as Room
 import qualified Outside
+import qualified Path
 import Shared.Item
 import Shared.Util
 import qualified Data.Map as Map
 import Control.Monad.Reader (asks)
+import Data.Maybe (isJust)
 
 interleave :: [[a]] -> [a]
 interleave = concat . transpose
@@ -249,12 +251,75 @@ bottomMenu g =
    in padLeft (Pad leftPadding) (hBox buttons)
 
 drawPath :: Game -> Widget Name
-drawPath _game =
+drawPath game =
+  if view embarked game then drawPathMap game else drawPathSupplies game
+
+drawPathMap :: Game -> Widget Name
+drawPathMap _game =
   let gameMap = withBorderStyle unicodeRounded . border
       align = hLimit 90 . padLeft (Pad 2)
       inventoryTitle = str "rucksack"
       inventory = hCenter $ borderWithLabel inventoryTitle emptyLine
   in align (vBox [inventory, map str dummyMap & vBox & gameMap])
+
+-- Supply allocation screen shown after the dusty path is unlocked but
+-- before the player embarks. Lets the player divvy out path-allocatable
+-- items (cured meat, torches, ...) into a fresh expedition inventory.
+drawPathSupplies :: Game -> Widget Name
+drawPathSupplies game =
+  let armorVal = view (playerStats . armor) game
+      waterVal = view (playerStats . waterCapacity) game
+      capVal   = view (playerStats . inventoryCapacity) game
+      used     = Path.inventoryUsed game
+      free     = Path.inventoryFree game
+
+      statsLine label val =
+        str (justifyLeftX 12 (label <> ":")) <+> str (show val)
+
+      visibleSupplies =
+        [ i | i <- Path.pathSupplies
+            , getItem i game > 0 || Path.allocated i game > 0
+        ]
+
+      supplyRows = case visibleSupplies of
+        [] -> str "  (no supplies to take yet — craft some first.)"
+        is -> vBox (map (supplyRow game) is)
+
+      embarkBtn = actionButton game EmbarkButton "embark"
+
+      content = vBox
+        [ padBottom (Pad 1) (statsLine "armor" armorVal)
+        , padBottom (Pad 1) (statsLine "water" waterVal)
+        , str "supplies:"
+        , padTop (Pad 1) supplyRows
+        , padTop (Pad 1) (str ("  rucksack: " <> show used <> "/" <> show capVal
+                               <> " (" <> show free <> " free)"))
+        , padTop (Pad 1) (hCenter embarkBtn)
+        ]
+
+      panel = withBorderStyle unicodeRounded
+            $ borderWithLabel (str "a dusty path") (padLeftRight 2 content)
+  in hLimit 90 (padLeft (Pad 2) panel)
+
+supplyRow :: Game -> Item -> Widget Name
+supplyRow game i =
+  let avail = Path.available i game
+      have  = Path.allocated i game
+      free  = Path.inventoryFree game
+      eventActive = isJust (view inEvent game)
+
+      mkBtn n btnLabel enabled =
+        if enabled && not eventActive
+        then clickable n (withDefAttr blueBackground (str btnLabel))
+        else withDefAttr progressBarToDo (str btnLabel)
+
+      decBtn = mkBtn (DecreaseSupplyButton i) " [-] " (have > 0)
+      incBtn = mkBtn (IncreaseSupplyButton i) " [+] " (avail > 0 && free > 0)
+
+      rowLabel = justifyLeftX 14 ("  " <> itemToStr i <> ":")
+      countCell = str (justifyLeftX 4 (" " <> show have <> " "))
+      availCell = str ("  " <> show avail <> " available")
+  in str rowLabel <+> decBtn <+> countCell <+> incBtn <+> availCell
 
 locationMenu :: Game -> Widget Name
 locationMenu game =
