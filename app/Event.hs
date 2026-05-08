@@ -82,6 +82,7 @@ handleGameEvent stdGen = \case
   RoomChanged        -> Room.update
   Random             -> RandomEvent.start stdGen
   PopulationIncrease -> Room.increasePopulation stdGen
+  WorkerIncome       -> Outside.applyWorkerIncome
 
   -- Button Cooldowns:
   GatherWood         -> pure ()
