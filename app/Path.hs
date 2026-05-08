@@ -98,7 +98,7 @@ embark = do
     movesUntilWater .= pathStepsPerWater
     movesUntilFood  .= pathStepsPerFood
     pathPlayer .= startTile
-    pathSeen   .= Set.singleton startTile
+    pathSeen   .= seenAround startTile
     embarked .= True
     -- Heal at the trailhead so each expedition starts at full HP.
     mx <- use (playerStats . maxHp)
@@ -148,6 +148,23 @@ startTile = case findChar 'A' of
       , ch == target
       ]
 
+-- How many tiles the player can see in each direction from their position
+-- (Chebyshev / king-move distance). 2 gives a 5x5 visible square.
+sightRadius :: Int
+sightRadius = 2
+
+-- All in-bounds tiles within `sightRadius` of `(col, row)`.
+seenAround :: (Int, Int) -> Set.Set (Int, Int)
+seenAround (col, row) = Set.fromList
+  [ (c, r)
+  | dc <- [-sightRadius .. sightRadius]
+  , dr <- [-sightRadius .. sightRadius]
+  , let c = col + dc
+        r = row + dr
+  , c >= 0, c < pathMapWidth
+  , r >= 0, r < pathMapHeight
+  ]
+
 -- Movement ---------------------------------------------------------------
 
 move :: Direction -> DarkRoom
@@ -167,7 +184,7 @@ move dir = do
       Nothing -> pure ()
       Just newTile -> do
         pathPlayer .= (nc, nr)
-        pathSeen %= Set.insert (nc, nr)
+        pathSeen %= Set.union (seenAround (nc, nr))
         when (terrainName prevTile /= terrainName (Just newTile)) $
           forM_ (terrainName (Just newTile)) $ \name ->
             notify ("you enter " <> name <> ".")

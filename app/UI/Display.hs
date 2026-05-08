@@ -28,6 +28,7 @@ import qualified Path
 import Shared.Item
 import Shared.Util
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 import Control.Monad.Reader (asks)
 import Data.Maybe (isJust)
 
@@ -347,34 +348,61 @@ drawPath game =
 
 drawPathMap :: Game -> Widget Name
 drawPathMap game =
-  let (px, py) = view pathPlayer game
-
-      placePlayer rowIdx line
-        | rowIdx == py && px >= 0 && px < length line =
-            take px line ++ "@" ++ drop (px + 1) line
-        | otherwise = line
-
-      mapRows = zipWith placePlayer [0..] Path.pathMapData
-      withSpacing = map (intersperse ' ') mapRows
+  let withSpacing = map (intersperse ' ') (renderPathMap game)
       gameMap = withBorderStyle unicodeRounded . border . vBox
               $ map str withSpacing
       align = hLimit 130 . padLeft (Pad 2)
-
-      water = view pathWater game
-      food  = Map.findWithDefault 0 CuredMeat (view expeditionInventory game)
-      hpV   = view (playerStats . hp) game
-      mxHp  = view (playerStats . maxHp) game
-      stats = "  hp: " <> show hpV <> "/" <> show mxHp
-            <> "    water: " <> show water
-            <> "    " <> itemToStr CuredMeat <> ": " <> show food
-            <> "    (hjkl/arrows to walk, A to head home)"
-      statusBar = withBorderStyle unicodeRounded
-                $ borderWithLabel (str "rucksack") (str stats)
       -- Manual fight trigger until map walking auto-spawns encounters;
       -- the combat machinery is already wired up, so this button just
       -- proves the loop end-to-end.
       fightBtn = hCenter (actionButton game StartBeastFightButton "fight a beast")
-  in align (vBox [statusBar, gameMap, padTop (Pad 1) fightBtn])
+  in align (vBox [rucksackBox game, gameMap, padTop (Pad 1) fightBtn])
+
+-- The rucksack box shown over the path map: current HP, free vs. total
+-- inventory space, and the list of items the player took with them.
+rucksackBox :: Game -> Widget Name
+rucksackBox game =
+  let curHp = view (playerStats . hp) game
+      maxH  = view (playerStats . maxHp) game
+      cap   = view (playerStats . inventoryCapacity) game
+      used  = Path.inventoryUsed game
+      free  = cap - used
+      water = view pathWater game
+      waterCap = view (playerStats . waterCapacity) game
+      items = [(i, n) | (i, n) <- Map.toList (view expeditionInventory game), n /= 0]
+
+      header = str ("hp: " <> show curHp <> "/" <> show maxH
+                  <> "    water: " <> show water <> "/" <> show waterCap
+                  <> "    rucksack: " <> show used <> "/" <> show cap
+                  <> " (" <> show free <> " free)")
+      itemLine (i, n) =
+        str ("  " <> justifyLeftX 14 (itemToStr i <> ":") <> show n)
+      itemsBlock = case items of
+        [] -> str "  (rucksack empty)"
+        is -> vBox (map itemLine is)
+      hint = str "  (hjkl/arrows to walk, A to head home)"
+
+      content = vBox [header, str " ", itemsBlock, str " ", hint]
+      panel = withBorderStyle unicodeRounded
+            $ borderWithLabel (str "rucksack") (padLeftRight 1 content)
+  in panel
+
+-- Render the path map row-by-row with fog of war: the player position is
+-- shown as `@`, tiles in `pathSeen` show their map glyph, everything else
+-- renders as a blank space. In debug mode the full map is rendered.
+renderPathMap :: Game -> [String]
+renderPathMap game =
+  let (px, py) = view pathPlayer game
+      seen     = view pathSeen game
+      showAll  = view debug game
+      cell row col original
+        | row == py && col == px         = '@'
+        | showAll                        = original
+        | (col, row) `Set.member` seen   = original
+        | otherwise                      = ' '
+      renderRow row line =
+        [ cell row col ch | (col, ch) <- zip [0..] line ]
+  in zipWith renderRow [0..] Path.pathMapData
 
 -- Supply allocation screen shown after the dusty path is unlocked but
 -- before the player embarks. Lets the player divvy out path-allocatable
