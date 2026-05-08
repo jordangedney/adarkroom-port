@@ -2,6 +2,7 @@ module Room.Event where
 
 import Control.Lens (view)
 
+import Shared.Constants (maximumNumberOfHuts)
 import Shared.Game
 import Shared.RandomEvent
 import Shared.Item
@@ -14,7 +15,7 @@ events g =
   , (noisesOutside,    view location g == Room && getItem Wood g > 15)
   , (noisesInside,     view location g == Room && getItem Wood g > 15)
   , (theShadyBuilder,  view location g == Room && getItem Hut  g > 4
-                                               && getItem Hut  g < 20)
+                                               && getItem Hut  g < maximumNumberOfHuts)
 
   , (beastAttack,       view location g == Outside && getItem People g > 0)
   ]

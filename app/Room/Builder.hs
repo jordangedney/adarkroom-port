@@ -253,4 +253,18 @@ build i = do
        overStored i (+1)
        forM_ cost $ \(item', amt) -> do
         overStored item' (+ (-amt))
+       applyBuildEffect i
        notifyRoom buildMsg
+
+applyBuildEffect :: Item -> DarkRoom
+applyBuildEffect = \case
+  Workshop -> milestones . craftUnlocked .= True
+  Waterskin -> firstTime Waterskin $ playerStats . waterCapacity += 10
+  Rucksack -> firstTime Rucksack $ playerStats . inventoryCapacity += 10
+  LeatherArmor -> firstTime LeatherArmor $ playerStats . armor += 1
+  BoneSpear -> firstTime BoneSpear $ milestones . weaponsUnlocked .= True
+  _ -> pure ()
+  where
+    firstTime item action = do
+      cnt <- getStored item
+      when (cnt == 1) action

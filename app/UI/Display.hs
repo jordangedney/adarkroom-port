@@ -83,11 +83,27 @@ storesWindow width = do
 
 craftButtons :: Game -> Widget Name
 craftButtons game =
-  let craftMenuUnlocked  = view (milestones . craftUnlocked) game
-      craftDemo =
-        str "  craft:"
-        <=> hCenter (actionButton game LightButton "light fire")
-  in if craftMenuUnlocked then padTop (Pad 4) craftDemo else blank
+  let craftMenuUnlocked   = view (milestones . craftUnlocked) game
+      weaponsMenuUnlocked = view (milestones . weaponsUnlocked) game
+
+      mkCraftButton item =
+        actionButton game (CraftButton item) (itemToStr item)
+
+      craftItems  = [Torch, Waterskin, Rucksack, LeatherArmor, BoneSpear]
+      weaponItems = [IronSword, SteelSword, Rifle]
+
+      craftSection =
+        padTop (Pad 1) (str "craft:")
+        <=> vBox (map mkCraftButton craftItems)
+      weaponsSection =
+        padTop (Pad 1) (str "weapons:")
+        <=> vBox (map mkCraftButton weaponItems)
+
+      menu = case (craftMenuUnlocked, weaponsMenuUnlocked) of
+        (True, True)  -> craftSection <=> weaponsSection
+        (True, False) -> craftSection
+        _             -> blank
+  in menu
 
 buyButtons :: Game -> Widget Name
 buyButtons game =
@@ -195,9 +211,11 @@ locationsWindow game =
         let locationUnlocked = showP (_uiState game)
         in if locationUnlocked then str " | " <+> stylize button locat else blank
 
+      pathUnlocked ui = _showPath ui || getItem Compass game > 0
+
       leftCol     = padLeft (Pad 3) (stylize RoomButton Room)
       leftMidCol  = showUnlocked _showOutside OutsideButton Outside
-      rightMidCol = showUnlocked _showPath PathButton Path
+      rightMidCol = showUnlocked pathUnlocked PathButton Path
       rightCol    = showUnlocked _showShip ShipButton Ship
 
   in  padBottom (Pad 1) (hBox [leftCol, leftMidCol, rightMidCol, rightCol])
