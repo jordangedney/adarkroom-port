@@ -9,7 +9,8 @@ import Shared.Game
 
 import Control.Lens
 import qualified Data.Map as Map
-import Control.Monad.State (State, get, when)
+import Control.Monad (when)
+import Control.Monad.State (State, get)
 
 canAfford :: [(Item, Int)] -> Game -> Bool
 canAfford items game = all afford items
