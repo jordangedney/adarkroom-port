@@ -249,12 +249,74 @@ bottomMenu g =
    in padLeft (Pad leftPadding) (hBox buttons)
 
 drawPath :: Game -> Widget Name
-drawPath _game =
+drawPath game =
+  if view embarked game then drawPathEmbarked game else drawPathSupplies game
+
+drawPathEmbarked :: Game -> Widget Name
+drawPathEmbarked _game =
   let gameMap = withBorderStyle unicodeRounded . border
       align = hLimit 90 . padLeft (Pad 2)
       inventoryTitle = str "rucksack"
       inventory = hCenter $ borderWithLabel inventoryTitle emptyLine
   in align (vBox [inventory, map str dummyMap & vBox & gameMap])
+
+-- Compact +/- button used for supply allocation. Wider buttons elsewhere
+-- (justifyCenter15) waste too much horizontal space for single-glyph labels.
+smallButton :: Bool -> Name -> String -> Widget Name
+smallButton enabled buttonId label =
+  let body = str (" " <> label <> " ") & border
+  in if enabled
+     then body & withDefAttr blueBackground & clickable buttonId
+     else body & withDefAttr progressBarToDo
+
+drawPathSupplies :: Game -> Widget Name
+drawPathSupplies game =
+  let armorVal = view (playerStats . armor) game
+      waterVal = view (playerStats . waterCapacity) game
+      capVal   = view (playerStats . inventoryCapacity) game
+      used     = expeditionUsed game
+      free     = capVal - used
+
+      headerLine =
+        str ("  armor: " <> show armorVal
+             <> "    water: " <> show waterVal
+             <> "    free: " <> show free <> " / " <> show capVal)
+
+      visibleSupplies = filter (`playerHasSeen` game) pathSupplies
+
+      supplyRow item =
+        let storedCnt    = getItem item game
+            takingCnt    = getExpedition item game
+            availableCnt = storedCnt - takingCnt
+            canAdd       = availableCnt > 0 && free > 0
+            canSub       = takingCnt > 0
+            label =
+              "  " <> justifyLeftX 14 (itemToStr item)
+              <> " avail: "  <> justifyLeftX 5 (show availableCnt)
+              <> " taking: " <> justifyLeftX 5 (show takingCnt)
+        in hBox [ str label
+                , smallButton canSub (PathSupplyRemove item) "-"
+                , str " "
+                , smallButton canAdd (PathSupplyAdd item) "+"
+                ]
+
+      noSupplies = str "  no supplies to take yet."
+      supplyRows =
+        if null visibleSupplies
+        then noSupplies
+        else vBox (map supplyRow visibleSupplies)
+
+      embark = hCenter (actionButton game EmbarkButton "embark")
+
+      panel = headerLine
+              <=> str " "
+              <=> supplyRows
+              <=> str " "
+              <=> embark
+
+      titled = withBorderStyle unicodeRounded
+             $ borderWithLabel (str "supplies") panel
+  in hLimit 90 (padLeft (Pad 2) titled)
 
 locationMenu :: Game -> Widget Name
 locationMenu game =

@@ -117,6 +117,8 @@ data Game = Game
   , _progressAmount     :: Float
   , _milestones         :: Milestones
   , _playerStats        :: PlayerStats
+  , _expedition         :: Map.Map Item Int
+  , _embarked           :: Bool
   , _hyper              :: Bool
   , _debug              :: Bool
   , _previousStates     :: [Game]
@@ -145,6 +147,8 @@ initGame                = Game
   , _progressAmount     = 0.5
   , _milestones         = milestonesInit
   , _playerStats        = playerStatsInit
+  , _expedition         = Map.fromList []
+  , _embarked           = False
   , _hyper              = True
   , _debug              = True
   , _previousStates     = []

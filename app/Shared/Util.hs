@@ -20,6 +20,19 @@ canAfford items game = all afford items
 getItem :: Item -> Game -> Int
 getItem i g = Map.findWithDefault 0 i $ g ^. stored
 
+-- Items the player can pack for an expedition. Filtered by what's stored.
+pathSupplies :: [Item]
+pathSupplies = [CuredMeat, Torch, Charm, Bullets]
+
+getExpedition :: Item -> Game -> Int
+getExpedition i g = Map.findWithDefault 0 i $ g ^. expedition
+
+expeditionUsed :: Game -> Int
+expeditionUsed g = sum (Map.elems (g ^. expedition))
+
+expeditionFree :: Game -> Int
+expeditionFree g = view (playerStats . inventoryCapacity) g - expeditionUsed g
+
 getStored :: Item -> State Game Int
 getStored i = do
   g <- get

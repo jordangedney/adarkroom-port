@@ -55,6 +55,11 @@ data Name
 
   -- Build and craft buttons
   | CraftButton Item
+
+  -- Path supply allocation buttons
+  | EmbarkButton
+  | PathSupplyAdd Item
+  | PathSupplyRemove Item
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 

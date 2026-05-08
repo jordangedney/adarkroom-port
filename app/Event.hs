@@ -9,7 +9,7 @@ import Control.Monad.State (execState, modify)
 import Shared.Game
 import Shared.GameEvent
 import Shared.UI (Name(..), lastReportedClick)
-import Shared.Util (overStored)
+import Shared.Util (overStored, getItem, getExpedition, expeditionFree)
 import Shared.Item
 import SaveGame (save)
 
@@ -22,7 +22,7 @@ import qualified Outside
 import qualified RandomEvent
 import Control.Lens
 import Control.Monad (forM_, unless, when)
-import Control.Monad.State (get, put)
+import Control.Monad.State (get, gets, put)
 import Control.Concurrent.STM.TVar (TVar, writeTVar)
 import Control.Monad.STM (atomically)
 import qualified Data.Map as Map
@@ -105,8 +105,23 @@ handleButtonEvent stdGen = \case
 
   CraftButton x -> Builder.build x
 
-  PathButton -> do location .= Path
+  PathButton -> do
+    location .= Path
+    embarked .= False
   ShipButton -> do location .= Ship
+
+  EmbarkButton -> do embarked .= True
+
+  PathSupplyAdd item -> do
+    free <- gets expeditionFree
+    available <- gets (\g -> getItem item g - getExpedition item g)
+    when (free > 0 && available > 0) $
+      expedition %= Map.insertWith (+) item 1
+
+  PathSupplyRemove item -> do
+    cur <- gets (getExpedition item)
+    when (cur > 0) $
+      expedition %= Map.adjust (subtract 1) item
 
   RestartButton -> do modify (const initGame)
   DebugButton -> do debug %= not
