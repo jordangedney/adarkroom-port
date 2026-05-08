@@ -40,19 +40,21 @@ overStored i fn = do
   -- [Yes, it would be better if the types kept these from getting out of sync,
   -- but keeping the People and Huts as part of the Item type is very convenient.]
   when (i `elem` [Hut, People]) $ do
-    -- Handle when Huts are removed
+    -- Cap people at maxPopulation (huts may have been removed)
     numPeople <- (\g -> min (maxPopulation g) (getItem People g)) <$> get
     stored %= Map.insert People numPeople
 
-    w <- Map.toList <$> use workers
-    unaccountedWorkers >>= equalizeWorkers w
-
-    -- Handle when people are subtracted
-    -- let toRemove = (Map.foldr (+) 0 w) - numPeople'
-    -- toRemove <- unaccountedWorkers
-    -- equalizeWorkers (Map.toList w) toRemove
-
-    -- Handle when people are added
+    delta <- unaccountedWorkers
+    case compare delta 0 of
+      GT -> do
+        -- More workers than people: peel some off, starting with whichever
+        -- worker types currently have headcount.
+        w <- Map.toList <$> use workers
+        equalizeWorkers w delta
+      LT -> do
+        -- New villagers default to Gatherer (matches the original web game).
+        workers %= Map.insertWith (+) Gatherer (negate delta)
+      EQ -> pure ()
 
 
  where equalizeWorkers :: [(Worker, Int)] -> Int -> DarkRoom

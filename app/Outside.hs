@@ -7,23 +7,26 @@ module Outside
   , gather
   , checkTraps
   , workerReward
+  , applyWorkerIncome
+  , workerProductionRates
   )
 where
 
 import System.Random (StdGen)
 import Control.Lens
 import Data.List (nub, intercalate)
+import qualified Data.Map as Map
 
 import Shared.UI
-import Shared.GameEvent (GameEvent(GatherWood, CheckTraps))
+import Shared.GameEvent (GameEvent(GatherWood, CheckTraps, WorkerIncome))
 import Shared.Game
 import Shared.Constants
 
 import Util (notify, updateEvent, randomChoices)
 import Shared.Item
-import Shared.Util (playerHasSeen, overStored, getStored)
-import Control.Monad (forM_, unless)
-import Control.Monad.State (gets)
+import Shared.Util (playerHasSeen, overStored, getStored, getItem)
+import Control.Monad (forM_, unless, when)
+import Control.Monad.State (gets, get)
 
 unlock :: DarkRoom
 unlock = do
@@ -99,3 +102,31 @@ workerReward = \case
   SulphurMiner -> [(CuredMeat, -1), (Sulphur, 1)]
   Steelworker -> [(Iron, -1), (Coal, -1), (Steel, 1)]
   Armourer -> [(Steel, -1), (Sulphur, -1), (Bullets, 1)]
+
+-- Per-income-tick contribution of every worker, summed across types.
+-- Sums (count * reward) for each worker type, grouped by Item.
+workerProductionRates :: Game -> [(Item, Float)]
+workerProductionRates g =
+  let scaled = concatMap
+        (\(w, n) -> [(i, r * fromIntegral n) | (i, r) <- workerReward w])
+        (Map.toList (g ^. workers))
+  in Map.toList (Map.fromListWith (+) scaled)
+
+-- Apply one income tick to stores and reschedule.
+-- A worker type only produces if its negative inputs (consumed resources) are
+-- in stock at the scaled amount; otherwise that worker type is skipped.
+applyWorkerIncome :: DarkRoom
+applyWorkerIncome = do
+  ws <- Map.toList <$> use workers
+  forM_ ws $ \(w, n) -> when (n > 0) (applyOneWorker w n)
+  updateEvent WorkerIncome workerIncomeDelay
+
+applyOneWorker :: Worker -> Int -> DarkRoom
+applyOneWorker w n = do
+  let scaled = [(i, r * fromIntegral n) | (i, r) <- workerReward w]
+  g <- get
+  let canRun = all (\(i, r) ->
+        r >= 0 || fromIntegral (getItem i g) >= negate r) scaled
+  when canRun $ forM_ scaled $ \(i, r) -> do
+    let amt = floor r :: Int
+    when (amt /= 0) $ overStored i (+ amt)

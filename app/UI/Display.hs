@@ -10,6 +10,7 @@ import Brick.Widgets.Border.Style
 import Control.Lens
 import Data.List (sortBy, intersperse, transpose)
 import qualified Data.Function as Function
+import Numeric (showFFloat)
 
 import Shared.Constants
 import Shared.Game
@@ -19,6 +20,7 @@ import UI.RandomEvent
 import UI.Components
 
 import qualified Room.Room as Room
+import qualified Outside
 import Shared.Item
 import Shared.Util
 import qualified Data.Map as Map
@@ -244,7 +246,7 @@ locationMenu game =
           Outside -> drawForest
           Path    -> drawPath
           Ship    -> drawRoom
-  in vLimit 43 (currentLocation <=> emptyColumn)
+  in vLimit 40 (currentLocation <=> emptyColumn)
 
 drawGameWindow :: Game -> Widget Name
 drawGameWindow game =
@@ -257,10 +259,34 @@ drawGameWindow game =
 
       gameActions =
         padLeft (Pad 2) (vBox [locationsWindow game, locationMenu game])
-      actions = vBox [gameActions, bottomMenu game]
+      actions = vBox [gameActions, gatheringPanel game, bottomMenu game]
 
       outerBorder = center . hLimit 130 . vLimit 50 . withBorderStyle unicodeRounded . border
   in outerBorder (padAll 1 (hBox [notificationsWindow , actions]))
+
+-- Always-on display of per-second worker production rates. Hidden until
+-- there's at least one assigned worker, since the panel would otherwise be
+-- empty in the opening Dark Room phase before villagers arrive.
+gatheringPanel :: Game -> Widget Name
+gatheringPanel g =
+  let totalWorkers = sum (Map.elems (g ^. workers))
+      perTick = Outside.workerProductionRates g
+      perSec = sortBy (compare `Function.on` fst)
+        [ (i, r / fromIntegral workerIncomeSeconds)
+        | (i, r) <- perTick, r /= 0 ]
+
+      formatRate (i, r) =
+        let sign = if r >= 0 then "+" else ""
+            num  = showFFloat (Just 1) r ""
+        in itemToStr i <> " " <> sign <> num <> "/s"
+
+      rateStr   = unwords (map formatRate perSec)
+      rateLine  = if null perSec then "no production" else rateStr
+      content   = padLeftRight 2 (str rateLine)
+      labelText = "gathering"
+      panel     = withBorderStyle unicodeRounded
+                $ borderWithLabel (str labelText) content
+  in if totalWorkers <= 0 then blank else padLeftRight 2 panel
 
 drawUI :: Game -> [Widget Name]
 drawUI game = ($ game) <$> [drawDialogWindow, drawGameWindow]

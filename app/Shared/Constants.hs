@@ -9,10 +9,20 @@ module Shared.Constants
   , maximumNumberOfTraps
   , maximumNumberOfHuts
   , checkTrapsCooldown
+  , workerIncomeDelay
+  , workerIncomeSeconds
   , minutes
   , seconds
   )
 where
+
+-- worker income event period in seconds (matches A Dark Room's 10s income tick)
+workerIncomeSeconds :: Int
+workerIncomeSeconds = 10
+
+-- worker income event in ticks
+workerIncomeDelay :: Int
+workerIncomeDelay = seconds workerIncomeSeconds
 
 -- checkTraps button cooldown
 checkTrapsCooldown :: Int
