@@ -10,7 +10,9 @@ import Control.Concurrent.STM.TVar (newTVar, readTVar)
 import Control.Monad (forever, void)
 import Control.Monad.STM (atomically)
 import Event (handleEventWrapper)
-import Graphics.Vty (Mode (Mouse), mkVty, outputIface, setMode, standardIOConfig)
+import Graphics.Vty (Mode (Mouse), outputIface, setMode)
+import Graphics.Vty.Config (defaultConfig)
+import Graphics.Vty.CrossPlatform (mkVty)
 import SaveGame (load)
 import Shared.Game (Game(_hyper), Tick (..),)
 import Shared.UI (Name)
@@ -28,7 +30,7 @@ app = App
 main :: IO ()
 main = do
   let buildVty = do
-        v <- mkVty =<< standardIOConfig
+        v <- mkVty defaultConfig
         setMode (outputIface v) Mouse True
         return v
   initialVty <- buildVty

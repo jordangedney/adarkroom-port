@@ -12,7 +12,8 @@ module Room.Builder
 where
 
 import Control.Lens
-import Control.Monad.State (get, gets, forM_, when, unless)
+import Control.Monad (forM_, when, unless)
+import Control.Monad.State (get, gets)
 import qualified Data.Map as Map
 
 import Shared.UI
