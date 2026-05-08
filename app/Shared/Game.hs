@@ -101,6 +101,31 @@ playerStatsInit = PlayerStats
 data Location = Room | Outside | Path | Ship
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
+data CombatStatus
+  = Fighting
+  | Won
+  | Lost
+  deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
+
+-- One in-flight encounter. Snarling beast is the canonical instance,
+-- but every parameter is data so other wandering events reuse this.
+data Combat = Combat
+  { _enemyName        :: String
+  , _enemyChar        :: Char
+  , _enemyHp          :: Int
+  , _enemyMaxHp       :: Int
+  , _enemyDamage      :: Int
+  , _enemyHitChance   :: Int
+  , _enemyAttackTimer :: Int
+  , _enemyAttackDelay :: Int
+  , _enemyDrops       :: [(Item, Int)]
+  , _playerAttackAnim :: Int
+  , _enemyAttackAnim  :: Int
+  , _combatStatus     :: CombatStatus
+  } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
+
+makeLenses ''Combat
+
 data Game = Game
   { _location           :: Location
   , _stored             :: Map.Map Item Int
@@ -124,6 +149,8 @@ data Game = Game
   , _previousStates     :: [Game]
   , _paused             :: Bool
   , _inEvent            :: Maybe Scene
+  , _combat             :: Maybe Combat
+  , _blackoutTimer      :: Int
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''Game
@@ -154,4 +181,6 @@ initGame                = Game
   , _previousStates     = []
   , _paused             = False
   , _inEvent            = Nothing
+  , _combat             = Nothing
+  , _blackoutTimer      = 0
   }

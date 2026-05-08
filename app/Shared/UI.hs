@@ -60,6 +60,11 @@ data Name
   | EmbarkButton
   | IncreaseSupplyButton Item
   | DecreaseSupplyButton Item
+
+  -- Path combat
+  | AttackButton
+  | EatMeatButton
+  | LeaveCombatButton
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 

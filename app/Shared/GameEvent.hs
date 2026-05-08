@@ -22,6 +22,7 @@ data GameEvent
   | Random
   | PopulationIncrease
   | WorkerIncome
+  | PathEncounter
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON, ToJSONKey, FromJSONKey, Enum, Bounded)
 
 -- Hacky, but >0 means active, 0 triggers, and <0 means inactive

@@ -19,6 +19,7 @@ import qualified Room.Builder as Builder
 -- import qualified Room.Event as RE
 import qualified Outside
 import qualified Path
+import qualified Path.Combat as Combat
 
 import qualified RandomEvent
 import Control.Lens
@@ -59,6 +60,12 @@ handleBrickEvent stdGen = \case
       allEvs <- filter (\x -> snd x == 0) . Map.toList <$> use upcomingEvents
       forM_ allEvs $ \(e, _) -> handleGameEvent stdGen e
 
+      -- Drive combat animations and enemy attacks once per tick.
+      Combat.combatTick stdGen
+
+      -- Walk down the post-knockout cooldown.
+      blackoutTimer %= max 0 . subtract 1
+
   MouseDown e _ _ m -> do
     unless (e == PrevButton) $ do
       -- Autosave for debugging.
@@ -84,6 +91,7 @@ handleGameEvent stdGen = \case
   Random             -> RandomEvent.start stdGen
   PopulationIncrease -> Room.increasePopulation stdGen
   WorkerIncome       -> Outside.applyWorkerIncome
+  PathEncounter      -> Combat.maybeStartEncounter stdGen
 
   -- Button Cooldowns:
   GatherWood         -> pure ()
@@ -107,10 +115,16 @@ handleButtonEvent stdGen = \case
   CraftButton x -> Builder.build x
 
   PathButton -> Path.arrival
-  EmbarkButton -> Path.embark
+  EmbarkButton -> do
+    Path.embark
+    Combat.scheduleEncounter stdGen
   IncreaseSupplyButton i -> Path.increaseSupply i
   DecreaseSupplyButton i -> Path.decreaseSupply i
   ShipButton -> do location .= Ship
+
+  AttackButton -> Combat.playerAttack
+  EatMeatButton -> Combat.eatCuredMeat
+  LeaveCombatButton -> Combat.leaveCombat stdGen
 
   RestartButton -> do modify (const initGame)
   DebugButton -> do debug %= not

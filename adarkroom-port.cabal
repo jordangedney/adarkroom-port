@@ -23,6 +23,7 @@ executable adarkroom-port
         Event
         Outside
         Path
+        Path.Combat
         RandomEvent
         Room.Builder
         Room.Event
@@ -36,6 +37,7 @@ executable adarkroom-port
         Shared.RandomEvent
         Shared.UI
         Shared.Util
+        UI.Combat
         UI.Components
         UI.Display
         UI.RandomEvent

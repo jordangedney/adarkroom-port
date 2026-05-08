@@ -16,6 +16,7 @@ import Shared.Constants
 import Shared.Game
 import Shared.GameEvent (GameEvent(FireStoked, GatherWood, CheckTraps, Random))
 import Shared.UI
+import UI.Combat
 import UI.RandomEvent
 import UI.Components
 
@@ -372,7 +373,7 @@ gatheringPanel g =
   in if totalWorkers <= 0 then blank else padLeftRight 2 panel
 
 drawUI :: Game -> [Widget Name]
-drawUI game = ($ game) <$> [drawDialogWindow, drawGameWindow]
+drawUI game = ($ game) <$> [drawCombatWindow, drawDialogWindow, drawGameWindow]
 
 dummyMap :: [String]
 dummyMap = map (intersperse ' ')
