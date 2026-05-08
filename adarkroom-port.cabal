@@ -23,6 +23,7 @@ executable adarkroom-port
         Event
         Outside
         Path
+        Path.Enemy
         RandomEvent
         Room.Builder
         Room.Event
