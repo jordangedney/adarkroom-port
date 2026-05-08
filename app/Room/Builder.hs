@@ -7,6 +7,8 @@ module Room.Builder
   , approach
   , gatherWood
   , build
+  , buy
+  , buyCost
   , updateBuildables
   )
 where
@@ -254,3 +256,26 @@ build i = do
        forM_ cost $ \(item', amt) -> do
         overStored item' (+ (-amt))
        notifyRoom buildMsg
+
+       -- the trading post brings nomads who buy and sell goods
+       when (i == TradingPost) $ (milestones . buyUnlocked) .= True
+
+-- | Costs at the trading post. (Compass, 0) entries gate the purchase
+-- to one-only via canAfford's special-case for compasses.
+buyCost :: Item -> [(Item, Int)]
+buyCost = \case
+  Scale -> [(Fur, 100)]
+  Teeth -> [(Fur, 200)]
+  Compass -> [(Fur, 300), (Scale, 15), (Teeth, 5), (Compass, 0)]
+  _ -> []
+
+buy :: Item -> DarkRoom
+buy i = do
+  let cost = buyCost i
+  game <- get
+  if canAfford cost game
+    then do
+      forM_ cost $ \(item', amt) -> do
+        when (amt > 0) $ overStored item' (subtract amt)
+      overStored i (+1)
+    else displayCosts cost

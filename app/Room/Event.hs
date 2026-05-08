@@ -15,6 +15,7 @@ events g =
   , (noisesInside,     view location g == Room && getItem Wood g > 15)
   , (theShadyBuilder,  view location g == Room && getItem Hut  g > 4
                                                && getItem Hut  g < 20)
+  , (mysteriousWanderer, view location g == Room && getItem Hut g > 0)
 
   , (beastAttack,       view location g == Outside && getItem People g > 0)
   ]
@@ -359,6 +360,29 @@ beastAttack = Scene
             [ SceneChoice { choiceTxt = "go home"
                           , cost = []
                           , choiceNotification = Just "predators become prey. price is unfair."
+                          , nextScene = Nothing
+                          }
+            ]
+          }
+
+mysteriousWanderer :: Scene
+mysteriousWanderer = Scene
+  { title = "A Mysterious Wanderer"
+  , windowSize = 54
+  , currentScene = start
+  }
+  where start = SceneEvent
+          {text = [ "a mysterious wanderer comes through the village,"
+                  , "weathered and silent."
+                  , "\n\n"
+                  , "she warms herself by the fire for a while, then leaves"
+                  , "a small bundle behind before slipping back into the trees." ]
+          , notification = Just "a mysterious wanderer passes through."
+          , reward = [ Give Fur 50, Give Cloth 5, GiveRange Teeth (1, 5) ]
+          , choices =
+            [ SceneChoice { choiceTxt = "go home"
+                          , cost = []
+                          , choiceNotification = Nothing
                           , nextScene = Nothing
                           }
             ]

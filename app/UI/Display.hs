@@ -91,11 +91,22 @@ craftButtons game =
 
 buyButtons :: Game -> Widget Name
 buyButtons game =
-  let buyMenuUnlocked  = view (milestones . buyUnlocked) game
-      buyDemo =
-        str "  buy:"
-        <=> hCenter (actionButton game LightButton "light fire")
-  in if buyMenuUnlocked then padTop (Pad 4) buyDemo else blank
+  let buyMenuUnlocked = view (milestones . buyUnlocked) game
+
+      -- scales unlock once you've seen them
+      buyables =
+        [ Scale | playerHasSeen Scale game ] ++
+        [ Teeth, Compass ]
+
+      mkButton i
+        | i == Compass && getItem Compass game > 0 =
+            greyedButton (itemToStr i)
+        | otherwise = actionButton game (BuyButton i) (itemToStr i)
+
+      buyMenu =
+        padTop (Pad 1) (str "buy:")
+        <=> vBox (map mkButton buyables)
+  in if buyMenuUnlocked then padTop (Pad 4) buyMenu else blank
 
 buildButtons :: Game -> Widget Name
 buildButtons g =
