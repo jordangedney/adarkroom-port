@@ -18,6 +18,8 @@ import Shared.Rewards (Rewards)
 import Shared.Item
 import Shared.Worker (Worker(..))
 import qualified Data.Map as Map
+import Data.Set (Set)
+import qualified Data.Set as Set
 
 data Tick = Tick deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
@@ -107,6 +109,12 @@ data Game = Game
   , _playerStats        :: PlayerStats
   , _embarked           :: Bool
   , _expeditionInventory :: Map.Map Item Int
+  , _pathPlayer         :: (Int, Int)
+  , _pathSeen           :: Set (Int, Int)
+  , _pathWater          :: Int
+  , _movesUntilWater    :: Int
+  , _movesUntilFood     :: Int
+  , _blackoutCooldown   :: Int
   , _hyper              :: Bool
   , _debug              :: Bool
   , _previousStates     :: [Game]
@@ -138,6 +146,12 @@ initGame                = Game
   , _playerStats        = playerStatsInit
   , _embarked           = False
   , _expeditionInventory = Map.empty
+  , _pathPlayer         = (0, 0)
+  , _pathSeen           = Set.empty
+  , _pathWater          = 0
+  , _movesUntilWater    = 0
+  , _movesUntilFood     = 0
+  , _blackoutCooldown   = 0
   , _hyper              = True
   , _debug              = True
   , _previousStates     = []

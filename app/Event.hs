@@ -14,6 +14,8 @@ import Shared.Item
 import Shared.Worker (Worker(Gatherer))
 import SaveGame (save)
 
+import qualified Graphics.Vty as V
+
 import qualified Room.Fire as Fire
 import qualified Room.Room as Room
 import qualified Room.Builder as Builder
@@ -54,6 +56,7 @@ handleBrickEvent stdGen = \case
     unless doNothing $ do
       tickCount %= (+ 1)
       upcomingEvents %= (fmap (+ (-1)))
+      Path.tickBlackout
 
       -- Only the last 15 notificaitons are likely to be relevant.
       -- Keep track of the age so that the UI can change the color.
@@ -73,8 +76,22 @@ handleBrickEvent stdGen = \case
 
   MouseUp {} -> do uiState . lastReportedClick .= Nothing
 
-  -- Keyboard input does nothing for now.
+  VtyEvent (V.EvKey k _) -> handlePathKey k
   VtyEvent _ -> pure ()
+
+handlePathKey :: V.Key -> DarkRoom
+handlePathKey k = case k of
+  V.KChar 'h' -> Path.move Path.West
+  V.KChar 'j' -> Path.move Path.South
+  V.KChar 'k' -> Path.move Path.North
+  V.KChar 'l' -> Path.move Path.East
+  V.KLeft     -> Path.move Path.West
+  V.KDown     -> Path.move Path.South
+  V.KUp       -> Path.move Path.North
+  V.KRight    -> Path.move Path.East
+  V.KChar 'a' -> Path.goHome
+  V.KChar 'A' -> Path.goHome
+  _           -> pure ()
 
 -- | Events which occur randomly or over time.
 handleGameEvent :: StdGen -> GameEvent -> DarkRoom

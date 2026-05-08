@@ -11,6 +11,9 @@ module Shared.Constants
   , checkTrapsCooldown
   , workerIncomeDelay
   , workerIncomeSeconds
+  , pathStepsPerWater
+  , pathStepsPerFood
+  , pathBlackoutTicks
   , minutes
   , seconds
   )
@@ -61,6 +64,18 @@ roomWarmDelay = seconds 30
 -- fire stoke -> fire cools
 fireCoolDelay :: Int
 fireCoolDelay = minutes 5
+
+-- one drink of water consumed every N steps on the path
+pathStepsPerWater :: Int
+pathStepsPerWater = 2
+
+-- one cured meat consumed every N steps on the path
+pathStepsPerFood :: Int
+pathStepsPerFood = 2
+
+-- recovery time after a blackout on the path
+pathBlackoutTicks :: Int
+pathBlackoutTicks = seconds 30
 
 -- ticks are 1/100 of a second, so adjust all times
 minutes :: Int -> Int
