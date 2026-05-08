@@ -22,6 +22,7 @@ import qualified Room.Builder as Builder
 -- import qualified Room.Event as RE
 import qualified Outside
 import qualified Path
+import qualified Path.Combat as Combat
 import qualified Rewards
 import Shared.Rewards (RewardsContext(..))
 
@@ -61,6 +62,8 @@ handleBrickEvent stdGen = \case
       -- Only the last 15 notificaitons are likely to be relevant.
       -- Keep track of the age so that the UI can change the color.
       notifications %= (take 15 . map (over _2 (+1)))
+
+      Combat.combatTick
 
       allEvs <- filter (\x -> snd x == 0) . Map.toList <$> use upcomingEvents
       forM_ allEvs $ \(e, _) -> handleGameEvent stdGen e
@@ -135,10 +138,21 @@ handleButtonEvent stdGen = \case
   IncreaseSupplyButton i -> Path.increaseSupply i
   DecreaseSupplyButton i -> Path.decreaseSupply i
 
+  AttackButton          -> Combat.attackBeast stdGen
+  ClaimRewardsButton    -> Combat.claimRewards stdGen
+  WakeUpButton          -> Combat.wakeUp
+  StartBeastFightButton -> Path.triggerBeastFight stdGen
+
   TakeRewardButton i -> Rewards.takeOne i
   DropRewardButton i -> Rewards.dropOne i
   TakeAllRewardsButton -> Rewards.takeAll
-  EatMeatButton -> Rewards.eatMeat
+  EatMeatButton -> do
+    -- During combat, eating meat heals mid-fight; otherwise it's the
+    -- rewards screen "eat meat" button (same effect, no combat ticking).
+    inC <- use inCombat
+    case inC of
+      Just _  -> Combat.eatMeat
+      Nothing -> Rewards.eatMeat
   LeaveRewardsButton -> Rewards.leave
   ContinueRewardsButton -> Rewards.continue
   DebugRewardsButton ->
@@ -159,14 +173,15 @@ handleButtonEvent stdGen = \case
   DialogButton -> RandomEvent.start stdGen
     -- inEvent %= (\case { Just _ -> Nothing ; _ -> Just RE.beastAttack})
   CheatButton -> do
-    overStored Wood  (+ 5000)
-    overStored Bait  (+ 5000)
-    overStored Fur   (+ 5000)
-    overStored Meat  (+ 5000)
-    overStored Scale (+ 5000)
-    overStored Teeth (+ 5000)
-    overStored Cloth (+ 5000)
-    overStored Charm (+ 5000)
+    overStored Wood      (+ 5000)
+    overStored Bait      (+ 5000)
+    overStored Fur       (+ 5000)
+    overStored Meat      (+ 5000)
+    overStored Scale     (+ 5000)
+    overStored Teeth     (+ 5000)
+    overStored Cloth     (+ 5000)
+    overStored Charm     (+ 5000)
+    overStored CuredMeat (+ 5000)
 
   -- Both of these are touched above too, as they need IO.
   SaveButton  -> pure ()

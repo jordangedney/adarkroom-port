@@ -74,7 +74,7 @@ blueButton buttonId label =
 
 actionButton :: Game -> Name -> String -> Widget Name
 actionButton game buttonId label =
-  if isJust (view inEvent game) || isJust (view inRewards game)
+  if isJust (view inEvent game) || isJust (view inCombat game) || isJust (view inRewards game)
   then greyedButton label
   else blueButton buttonId label
 

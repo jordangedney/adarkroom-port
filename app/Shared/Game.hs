@@ -91,6 +91,29 @@ playerStatsInit = PlayerStats
 data Location = Room | Outside | Path | Ship
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
+data CombatState
+  = CombatActive
+  | CombatVictory
+  | CombatDefeat
+  deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
+
+data Combat = Combat
+  { _enemyName      :: String
+  , _enemyHp        :: Int
+  , _enemyMaxHp     :: Int
+  , _enemyAttack    :: (Int, Int)
+  , _enemyArt       :: [String]
+  , _enemyDrops     :: [(Item, (Int, Int))]
+  , _victoryText    :: [String]
+  , _defeatText     :: [String]
+  , _combatState    :: CombatState
+  , _playerAtkAnim  :: Int
+  , _enemyAtkAnim   :: Int
+  , _attackCooldown :: Int
+  } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
+
+makeLenses ''Combat
+
 data Game = Game
   { _location           :: Location
   , _stored             :: Map.Map Item Int
@@ -120,6 +143,7 @@ data Game = Game
   , _previousStates     :: [Game]
   , _paused             :: Bool
   , _inEvent            :: Maybe Scene
+  , _inCombat           :: Maybe Combat
   , _inRewards          :: Maybe Rewards
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
@@ -157,5 +181,6 @@ initGame                = Game
   , _previousStates     = []
   , _paused             = False
   , _inEvent            = Nothing
+  , _inCombat           = Nothing
   , _inRewards          = Nothing
   }

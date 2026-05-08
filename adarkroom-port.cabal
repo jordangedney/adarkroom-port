@@ -23,6 +23,7 @@ executable adarkroom-port
         Event
         Outside
         Path
+        Path.Combat
         Path.Enemy
         RandomEvent
         Rewards
@@ -40,6 +41,7 @@ executable adarkroom-port
         Shared.UI
         Shared.Util
         Shared.Worker
+        UI.Combat
         UI.Components
         UI.Display
         UI.RandomEvent

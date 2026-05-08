@@ -13,8 +13,11 @@ module Path
   , goHome
   , tickBlackout
   , pathMapData
+  , triggerBeastFight
   ) where
 
+import Data.Maybe (isJust)
+import System.Random (StdGen)
 import Control.Lens
 import Control.Monad (forM_, unless, when)
 import Control.Monad.State (get, gets)
@@ -43,10 +46,14 @@ import Shared.Game
   , pathWater
   , playerStats
   , waterCapacity
+  , inCombat
+  , hp
+  , maxHp
   )
 import Shared.Item (Item(CuredMeat, Torch))
 import Shared.Util (getItem, overStored)
 
+import Path.Combat (beginCombat, snarlingBeast)
 import Util (clearRoomBacklog, notify)
 
 -- Items the player can allocate to the expedition before embarking.
@@ -93,6 +100,9 @@ embark = do
     pathPlayer .= startTile
     pathSeen   .= Set.singleton startTile
     embarked .= True
+    -- Heal at the trailhead so each expedition starts at full HP.
+    mx <- use (playerStats . maxHp)
+    playerStats . hp .= mx
 
 increaseSupply :: Item -> DarkRoom
 increaseSupply i = do
@@ -306,3 +316,13 @@ pathMapData =
   , ",,,,,,.......................,B,,,,,,,,,,,,,,,,,,,,,,,,,....."
   , ";,,,,...............Y........,,B,,B,,,,,,,,,,,,,,,,,,,,......"
   ]
+
+-- Manual trigger for the canonical encounter while embarked. Map walking
+-- (separate bead) will eventually invoke this automatically.
+triggerBeastFight :: StdGen -> DarkRoom
+triggerBeastFight _ = do
+  onPath <- (== Path) <$> use location
+  isEmbarked <- use embarked
+  alreadyFighting <- isJust <$> use inCombat
+  when (onPath && isEmbarked && not alreadyFighting) $
+    beginCombat snarlingBeast

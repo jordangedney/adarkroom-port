@@ -64,6 +64,12 @@ data Name
   | IncreaseSupplyButton Item
   | DecreaseSupplyButton Item
 
+  -- Path combat
+  | AttackButton
+  | ClaimRewardsButton
+  | WakeUpButton
+  | StartBeastFightButton
+
   -- Rewards screen (post-combat / post-exploration)
   | TakeRewardButton Item
   | DropRewardButton Item

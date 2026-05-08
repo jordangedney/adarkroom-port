@@ -18,6 +18,7 @@ import Shared.GameEvent (GameEvent(FireStoked, GatherWood, CheckTraps, Random))
 import Shared.UI
 import Shared.Worker (Worker(..))
 import UI.RandomEvent
+import UI.Combat (drawCombatWindow)
 import UI.Rewards (drawRewardsWindow)
 import UI.Components
 
@@ -362,13 +363,18 @@ drawPathMap game =
       water = view pathWater game
       food  = Map.findWithDefault 0 CuredMeat (view expeditionInventory game)
       hpV   = view (playerStats . hp) game
-      stats = "  hp: " <> show hpV
+      mxHp  = view (playerStats . maxHp) game
+      stats = "  hp: " <> show hpV <> "/" <> show mxHp
             <> "    water: " <> show water
             <> "    " <> itemToStr CuredMeat <> ": " <> show food
             <> "    (hjkl/arrows to walk, A to head home)"
       statusBar = withBorderStyle unicodeRounded
                 $ borderWithLabel (str "rucksack") (str stats)
-  in align (vBox [statusBar, gameMap])
+      -- Manual fight trigger until map walking auto-spawns encounters;
+      -- the combat machinery is already wired up, so this button just
+      -- proves the loop end-to-end.
+      fightBtn = hCenter (actionButton game StartBeastFightButton "fight a beast")
+  in align (vBox [statusBar, gameMap, padTop (Pad 1) fightBtn])
 
 -- Supply allocation screen shown after the dusty path is unlocked but
 -- before the player embarks. Lets the player divvy out path-allocatable
@@ -423,7 +429,7 @@ supplyRow game i =
   let avail = Path.available i game
       have  = Path.allocated i game
       free  = Path.inventoryFree game
-      modalActive = isJust (view inEvent game) || isJust (view inRewards game)
+      modalActive = isJust (view inEvent game) || isJust (view inCombat game) || isJust (view inRewards game)
 
       mkBtn n btnLabel enabled =
         if enabled && not modalActive
@@ -489,4 +495,4 @@ gatheringPanel g =
   in if totalWorkers <= 0 then blank else padLeftRight 2 panel
 
 drawUI :: Game -> [Widget Name]
-drawUI game = ($ game) <$> [drawRewardsWindow, drawDialogWindow, drawGameWindow]
+drawUI game = ($ game) <$> [drawRewardsWindow, drawCombatWindow, drawDialogWindow, drawGameWindow]
