@@ -6,6 +6,7 @@ module Shared.Util where
 
 import Shared.Item (Item(..))
 import Shared.Game
+import Shared.Worker (Worker(..))
 
 import Control.Lens
 import qualified Data.Map as Map
@@ -70,3 +71,12 @@ overStored i fn = do
         numPeople <- getStored People
         numWorkers <- sum <$> use workers
         pure $ numWorkers - numPeople
+
+-- | Move at most n workers from src to dst. Bounded by available workers in src.
+assignWorker :: Worker -> Worker -> Int -> DarkRoom
+assignWorker src dst n = do
+  available <- Map.findWithDefault 0 src <$> use workers
+  let amt = min n available
+  when (amt > 0) $ do
+    workers %= Map.insertWith (+) src (negate amt)
+    workers %= Map.insertWith (+) dst amt

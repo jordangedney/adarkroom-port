@@ -9,8 +9,9 @@ import Control.Monad.State (execState, modify)
 import Shared.Game
 import Shared.GameEvent
 import Shared.UI (Name(..), lastReportedClick)
-import Shared.Util (overStored)
+import Shared.Util (overStored, assignWorker)
 import Shared.Item
+import Shared.Worker (Worker(Gatherer))
 import SaveGame (save)
 
 import qualified Room.Fire as Fire
@@ -108,6 +109,9 @@ handleButtonEvent stdGen = \case
 
   CraftButton x -> Builder.build x
   BuyButton x   -> Builder.buy x
+
+  IncWorker w -> assignWorker Gatherer w 1
+  DecWorker w -> assignWorker w Gatherer 1
 
   PathButton -> Path.arrival
   EmbarkButton -> Path.embark

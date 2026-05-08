@@ -84,6 +84,20 @@ dialogButton = blueButton
 greyedButton :: String -> Widget Name
 greyedButton label = newButton label & withDefAttr progressBarToDo
 
+-- | Compact button rendered as bracketed text (e.g. "[-]" or "[+]"). Used
+-- for inline +/- controls where the standard 17-wide button is too large.
+smallButton :: Name -> String -> Widget Name
+smallButton buttonId label =
+  str ("[" <> label <> "]")
+  & withDefAttr blueBackground
+  & clickable buttonId
+
+-- | Greyed counterpart to 'smallButton' for when the action is unavailable.
+greyedSmallButton :: String -> Widget Name
+greyedSmallButton label =
+  str ("[" <> label <> "]")
+  & withDefAttr progressBarToDo
+
 cantAffordButton :: Name -> String -> Widget Name
 cantAffordButton buttonId label =
   newButton label

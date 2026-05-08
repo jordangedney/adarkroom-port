@@ -39,6 +39,7 @@ executable adarkroom-port
         Shared.Rewards
         Shared.UI
         Shared.Util
+        Shared.Worker
         UI.Components
         UI.Display
         UI.RandomEvent

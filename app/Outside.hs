@@ -20,6 +20,7 @@ import qualified Data.Map as Map
 import Shared.UI
 import Shared.GameEvent (GameEvent(GatherWood, CheckTraps, WorkerIncome))
 import Shared.Game
+import Shared.Worker (Worker(..))
 import Shared.Constants
 
 import Util (notify, updateEvent, randomChoices)

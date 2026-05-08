@@ -16,6 +16,7 @@ import Brick.Types (Location)
 
 import Shared.RandomEvent (SceneChoice)
 import Shared.Item (Item)
+import Shared.Worker (Worker)
 
 deriving instance ToJSON Location
 deriving instance FromJSON Location
@@ -71,6 +72,10 @@ data Name
   | LeaveRewardsButton
   | ContinueRewardsButton
   | DebugRewardsButton
+
+  -- Villager allocation buttons
+  | IncWorker Worker
+  | DecWorker Worker
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 

@@ -7,7 +7,6 @@ module Shared.Game where
 
 import GHC.Generics
 import Data.Yaml
-import Data.Aeson.Types (ToJSONKey, FromJSONKey)
 
 import Control.Lens (makeLenses)
 import Control.Monad.State (State)
@@ -17,6 +16,7 @@ import Shared.GameEvent (gameEventsInit, GameEvent)
 import Shared.RandomEvent (Scene)
 import Shared.Rewards (Rewards)
 import Shared.Item
+import Shared.Worker (Worker(..))
 import qualified Data.Map as Map
 
 data Tick = Tick deriving (Eq, Show, Generic, ToJSON, FromJSON)
@@ -45,19 +45,6 @@ data BuilderState
   | Sleeping
   | Helping
   deriving (Eq, Show, Enum, Ord, Generic, ToJSON, FromJSON)
-
-data Worker
-  = Gatherer
-  | Hunter
-  | Trapper
-  | Tanner
-  | Charcutier
-  | IronMiner
-  | CoalMiner
-  | SulphurMiner
-  | Steelworker
-  | Armourer
-  deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON, ToJSONKey, FromJSONKey)
 
 data Milestones = Milestones
   { _fireLit             :: Bool

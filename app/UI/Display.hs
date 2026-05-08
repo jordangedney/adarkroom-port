@@ -16,6 +16,7 @@ import Shared.Constants
 import Shared.Game
 import Shared.GameEvent (GameEvent(FireStoked, GatherWood, CheckTraps, Random))
 import Shared.UI
+import Shared.Worker (Worker(..))
 import UI.RandomEvent
 import UI.Rewards (drawRewardsWindow)
 import UI.Components
@@ -79,17 +80,80 @@ forestStores width = do
     pure $ vBox [ storeWidget ForestVP title items width, villagers, goodsWindow]
   else pure goodsWindow
 
+-- | Compact rate string for a worker, e.g. "+0.5 fur, +0.5 meat".
+-- Drops the "0" before the decimal to save horizontal room.
+formatWorkerRates :: Worker -> String
+formatWorkerRates w =
+  let entries = Outside.workerReward w
+      fmtAmt a
+        | a < 0     = "-" <> trimZero (negate a)
+        | otherwise = "+" <> trimZero a
+      trimZero a
+        | a == fromIntegral (truncate a :: Int) = show (truncate a :: Int)
+        | a > 0 && a < 1 = drop 1 (show a)        -- "0.5" -> ".5"
+        | otherwise = show a
+      fmtEntry (i, a) = fmtAmt a <> " " <> itemToStr i
+  in case entries of
+       [] -> ""
+       xs -> foldr1 (\a b -> a <> ", " <> b) (map fmtEntry xs)
+
 villagersWindow :: Int -> Game -> Widget Name
 villagersWindow width game =
-  let entries =
-        [ (Tanner, "tanner") | getItem Tannery game > 0 ] ++
-        [ (Charcutier, "charcutier") | getItem Smokehouse game > 0 ]
-      mkRow (w, label) =
-        (label, show (Map.findWithDefault 0 w (game ^. workers)))
-      rows = map mkRow entries
-  in if null rows
+  let totalWorkers = sum (Map.elems (game ^. workers))
+      hasLodge = getItem Lodge game > 0
+
+      nameWidth = 11
+      countWidth = 3
+
+      pad :: Int -> String -> String
+      pad n s = s ++ replicate (max 0 (n - length s)) ' '
+
+      padR :: Int -> String -> String
+      padR n s = replicate (max 0 (n - length s)) ' ' ++ s
+
+      mkSimpleRow label w =
+        let count = Map.findWithDefault 0 w (game ^. workers)
+        in str ("  " <> pad nameWidth label <> padR countWidth (show count))
+
+      mkAssignableRow label w =
+        let count = Map.findWithDefault 0 w (game ^. workers)
+            gathererCount = Map.findWithDefault 0 Gatherer (game ^. workers)
+            decBtn = if count > 0
+                     then smallButton (DecWorker w) "-"
+                     else greyedSmallButton "-"
+            incBtn = if gathererCount > 0
+                     then smallButton (IncWorker w) "+"
+                     else greyedSmallButton "+"
+            firstLine =
+              str ("  " <> pad nameWidth label <> padR countWidth (show count) <> " ")
+                <+> decBtn <+> incBtn
+            rateLine =
+              str ("    " <> formatWorkerRates w)
+        in firstLine <=> rateLine
+
+      gathererRow = [ mkSimpleRow "gatherer" Gatherer | totalWorkers > 0 ]
+      lodgeRows
+        | hasLodge = [ mkAssignableRow "hunter" Hunter
+                     , mkAssignableRow "trapper" Trapper
+                     ]
+        | otherwise = []
+      tanneryRows = [ mkSimpleRow "tanner" Tanner | getItem Tannery game > 0 ]
+      smokehouseRows = [ mkSimpleRow "charcutier" Charcutier | getItem Smokehouse game > 0 ]
+
+      allRows = gathererRow ++ lodgeRows ++ tanneryRows ++ smokehouseRows
+      height = sum [ if hasLodge then 4 else 0  -- 2 lines per assignable row
+                   , length gathererRow
+                   , length tanneryRows
+                   , length smokehouseRows
+                   ]
+
+      windowBody =
+        borderWithLabel (str (formatTitle "villagers" (width - 1)))
+        . viewport WorkersVP Vertical
+        $ vBox allRows
+  in if null allRows
      then str (replicate (width + 2) ' ')
-     else storeWidget WorkersVP "villagers" rows width
+     else vLimit (height + 2) (hLimit (width + 2) windowBody)
 
 storesWindow :: Int -> Game -> Widget Name
 storesWindow width = do
