@@ -22,7 +22,7 @@ maximumNumberOfTraps :: Int
 maximumNumberOfTraps = 10
 
 maximumNumberOfHuts :: Int
-maximumNumberOfHuts = 20
+maximumNumberOfHuts = 10
 
 -- how often builder gathers wood
 builderGatherDelay :: Int

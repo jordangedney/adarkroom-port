@@ -70,8 +70,20 @@ craftableItems = [Trap, Cart, Hut, Lodge, TradingPost, Tannery, Smokehouse,
   Rucksack, Wagon, Convoy, LeatherArmor, IronArmor, SteelArmor, IronSword,
   SteelSword, Rifle]
 
+-- Weapons category — gated on first bone-spear craft. BoneSpear itself sits in
+-- craftables so the player can reach it before the category exists.
 weapons :: [Item]
-weapons = [BoneSpear, IronSword, SteelSword, Rifle]
+weapons = [IronSword, SteelSword, Rifle]
+
+-- Items the workshop unlocks immediately on completion (per bead PrePath).
+workshopTools :: [Item]
+workshopTools = [Torch, Waterskin, Rucksack, LeatherArmor]
+
+-- All non-building, non-weapon-category craftables. These show up in the craft
+-- menu as the player gathers the resources they need.
+craftables :: [Item]
+craftables = [Torch, Waterskin, Cask, WaterTank, BoneSpear, Rucksack, Wagon,
+              Convoy, LeatherArmor, IronArmor, SteelArmor]
 
 goods :: [Item]
 goods  = [Fur, Cloth, Charm, Scale, Teeth, Bait, Compass, Wood, Meat, Coal,

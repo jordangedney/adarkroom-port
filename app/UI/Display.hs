@@ -83,11 +83,27 @@ storesWindow width = do
 
 craftButtons :: Game -> Widget Name
 craftButtons game =
-  let craftMenuUnlocked  = view (milestones . craftUnlocked) game
-      craftDemo =
-        str "  craft:"
-        <=> hCenter (actionButton game LightButton "light fire")
-  in if craftMenuUnlocked then padTop (Pad 4) craftDemo else blank
+  let craftMenuUnlocked = view (milestones . craftUnlocked) game
+      shown = view (uiState . showItemButton) game
+      toCraft = filter (`Map.member` shown) craftables
+      mkButton c = actionButton game (CraftButton c) (itemToStr c)
+      buttons = vBox (map mkButton toCraft)
+      craftMenu = padTop (Pad 1) (str "craft:") <=> buttons
+  in if craftMenuUnlocked && not (null toCraft)
+     then padTop (Pad 1) craftMenu
+     else blank
+
+weaponsButtons :: Game -> Widget Name
+weaponsButtons game =
+  let weaponsMenuUnlocked = view (milestones . weaponsUnlocked) game
+      shown = view (uiState . showItemButton) game
+      toCraft = filter (`Map.member` shown) weapons
+      mkButton c = actionButton game (CraftButton c) (itemToStr c)
+      buttons = vBox (map mkButton toCraft)
+      weaponsMenu = padTop (Pad 1) (str "weapons:") <=> buttons
+  in if weaponsMenuUnlocked && not (null toCraft)
+     then padTop (Pad 1) weaponsMenu
+     else blank
 
 buyButtons :: Game -> Widget Name
 buyButtons game =
@@ -117,7 +133,7 @@ buildButtons g =
 drawRoom :: Game -> Widget Name
 drawRoom game =
   let leftCol = ensureWidth (hCenter (fireButton <=> buildButtons game))
-      leftMidCol = ensureWidth (craftButtons game)
+      leftMidCol = ensureWidth (craftButtons game <=> weaponsButtons game)
       rightMidCol = ensureWidth (buyButtons game)
       rightCol = hCenter (roomStores 23 game)
 

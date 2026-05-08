@@ -23,6 +23,22 @@ import Shared.Item
 import Shared.Util
 import Util (notifyRoom, updateEvent, displayCosts)
 
+-- Stat boosts applied when a tool is crafted. Each craft is additive, matching
+-- how `build` increments the stored count rather than treating tools as
+-- one-time flags.
+toolStatEffect :: Item -> DarkRoom
+toolStatEffect = \case
+  Waterskin    -> playerStats . waterCapacity     += 40
+  Cask         -> playerStats . waterCapacity     += 60
+  WaterTank    -> playerStats . waterCapacity     += 100
+  Rucksack     -> playerStats . inventoryCapacity += 10
+  Wagon        -> playerStats . inventoryCapacity += 30
+  Convoy       -> playerStats . inventoryCapacity += 60
+  LeatherArmor -> playerStats . armor             += 1
+  IronArmor    -> playerStats . armor             += 1
+  SteelArmor   -> playerStats . armor             += 1
+  _            -> pure ()
+
 showState :: BuilderState -> String
 showState = \case
   Approaching ->
@@ -194,28 +210,39 @@ updateBuildables :: DarkRoom
 updateBuildables = do
   g <- get
 
-      -- those buttons not yet displayed
-  -- let notBuildable = Prelude.filter (not . (\i -> Map.member g ^. uiState . showItemButton i)) buildings
-  let notBuildable = filter (not . (flip Map.member (g ^. (uiState . showItemButton)))) buildings
-
       -- so close, yet so far
-      nearlyAfford (Wood, c) = getItem Wood g >= c `div` 2
+  let nearlyAfford (Wood, c) = getItem Wood g >= c `div` 2
       nearlyAfford (i   , _) = playerHasSeen i g
 
-      -- same data, just takes some shuffling
-      unpackCost c = case getCraftableAttrs c of
-        (Building m _ cost')    -> (m, cost')
-        (Resource m _ _ costFn) -> (m, costFn g)
-        _                       -> error $ "Unexpected item "<> show c
+      notShown items = filter (not . flip Map.member (g ^. (uiState . showItemButton))) items
+
+      -- buildings and resources advertise themselves; tools/weapons quietly
+      -- appear when costs are nearly met.
+      unlockBuildable c =
+        case getCraftableAttrs c of
+          Building m _ cost' ->
+            when (all nearlyAfford cost') $ do
+              (uiState . showItemButton) %= Map.insert c True
+              notifyRoom m
+          Resource m _ _ costFn ->
+            when (all nearlyAfford (costFn g)) $ do
+              (uiState . showItemButton) %= Map.insert c True
+              notifyRoom m
+          Tool _ cost' ->
+            when (all nearlyAfford cost') $
+              (uiState . showItemButton) %= Map.insert c True
 
   -- once builder is well
-  when (g ^. milestones . buildUnlocked) $ do
-    forM_ notBuildable $ \i -> do
-      -- if you can nearly afford it, builder realizes she can build it
-      let (msg, cost) = unpackCost i
-      when (all nearlyAfford cost) $ do
-        (uiState . showItemButton) %= (Map.insert i True)
-        notifyRoom msg
+  when (g ^. milestones . buildUnlocked) $
+    forM_ (notShown buildings) unlockBuildable
+
+  -- workshop is up; tools surface as the player can nearly afford them
+  when (g ^. milestones . craftUnlocked) $
+    forM_ (notShown craftables) unlockBuildable
+
+  -- bone spear was crafted; weapons follow the same pattern
+  when (g ^. milestones . weaponsUnlocked) $
+    forM_ (notShown weapons) unlockBuildable
 
 build :: Item -> DarkRoom
 build i = do
@@ -253,3 +280,24 @@ build i = do
        forM_ cost $ \(item', amt) -> do
         overStored item' (+ (-amt))
        notifyRoom buildMsg
+       postBuild i
+
+postBuild :: Item -> DarkRoom
+postBuild i = do
+  -- crafted tools change what the player can carry/withstand
+  toolStatEffect i
+
+  -- workshop opens up the craft menu
+  when (i == Workshop) $ do
+    (milestones . craftUnlocked) .= True
+    forM_ workshopTools $ \t ->
+      (uiState . showItemButton) %= Map.insert t True
+
+  -- the first weapon teaches the rest
+  when (i == BoneSpear) $ do
+    weaponsAlreadyUnlocked <- use (milestones . weaponsUnlocked)
+    unless weaponsAlreadyUnlocked $ do
+      (milestones . weaponsUnlocked) .= True
+      notifyRoom "builder eyes the bone spear. she could make finer weapons."
+    -- the rest (iron sword, etc.) surface via updateBuildables when their
+    -- materials appear
