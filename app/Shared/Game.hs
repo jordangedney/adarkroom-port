@@ -15,6 +15,7 @@ import Control.Monad.State (State)
 import Shared.UI (UIState, uiStateInit)
 import Shared.GameEvent (gameEventsInit, GameEvent)
 import Shared.RandomEvent (Scene)
+import Shared.Rewards (Rewards)
 import Shared.Item
 import qualified Data.Map as Map
 
@@ -124,6 +125,7 @@ data Game = Game
   , _previousStates     :: [Game]
   , _paused             :: Bool
   , _inEvent            :: Maybe Scene
+  , _inRewards          :: Maybe Rewards
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''Game
@@ -154,4 +156,5 @@ initGame                = Game
   , _previousStates     = []
   , _paused             = False
   , _inEvent            = Nothing
+  , _inRewards          = Nothing
   }

@@ -60,6 +60,15 @@ data Name
   | EmbarkButton
   | IncreaseSupplyButton Item
   | DecreaseSupplyButton Item
+
+  -- Rewards screen (post-combat / post-exploration)
+  | TakeRewardButton Item
+  | DropRewardButton Item
+  | TakeAllRewardsButton
+  | EatMeatButton
+  | LeaveRewardsButton
+  | ContinueRewardsButton
+  | DebugRewardsButton
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 

@@ -19,6 +19,8 @@ import qualified Room.Builder as Builder
 -- import qualified Room.Event as RE
 import qualified Outside
 import qualified Path
+import qualified Rewards
+import Shared.Rewards (RewardsContext(..))
 
 import qualified RandomEvent
 import Control.Lens
@@ -110,6 +112,19 @@ handleButtonEvent stdGen = \case
   EmbarkButton -> Path.embark
   IncreaseSupplyButton i -> Path.increaseSupply i
   DecreaseSupplyButton i -> Path.decreaseSupply i
+
+  TakeRewardButton i -> Rewards.takeOne i
+  DropRewardButton i -> Rewards.dropOne i
+  TakeAllRewardsButton -> Rewards.takeAll
+  EatMeatButton -> Rewards.eatMeat
+  LeaveRewardsButton -> Rewards.leave
+  ContinueRewardsButton -> Rewards.continue
+  DebugRewardsButton ->
+    Rewards.open
+      "you killed the beast."
+      (Map.fromList [(Fur, 8), (Meat, 5), (Teeth, 2)])
+      RewardsCombat
+
   ShipButton -> do location .= Ship
 
   RestartButton -> do modify (const initGame)
