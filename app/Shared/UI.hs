@@ -25,6 +25,7 @@ data Name
   = StoreVP
   | ForestVP
   | EventsVP
+  | WorkersVP
 
   -- Random events
   | RandomEventButton SceneChoice
@@ -55,6 +56,7 @@ data Name
 
   -- Build and craft buttons
   | CraftButton Item
+  | BuyButton Item
 
   -- Path supply allocation
   | EmbarkButton
