@@ -19,6 +19,7 @@ import qualified Room.Builder as Builder
 -- import qualified Room.Event as RE
 import qualified Outside
 import qualified Path
+import qualified Rewards
 
 import qualified RandomEvent
 import Control.Lens
@@ -110,6 +111,19 @@ handleButtonEvent stdGen = \case
   EmbarkButton -> Path.embark
   IncreaseSupplyButton i -> Path.increaseSupply i
   DecreaseSupplyButton i -> Path.decreaseSupply i
+
+  TakeItemButton i      -> Rewards.takeItem i
+  DropItemButton i      -> Rewards.dropItem i
+  TakeAllButton         -> Rewards.takeAll
+  TakeAllYouCanButton   -> Rewards.takeAllYouCan
+  EatMeatButton         -> Rewards.eatMeat
+  LeaveRewardsButton    -> Rewards.dismiss
+  RewardsTestButton     -> do
+    -- Damage the player so the eat-meat button is exercisable from the
+    -- test trigger; combat will set hp via real attacks once it lands.
+    playerStats . hp %= (\h -> max 1 (h - 5))
+    Rewards.showRewards Rewards.sampleChest
+
   ShipButton -> do location .= Ship
 
   RestartButton -> do modify (const initGame)

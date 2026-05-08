@@ -72,9 +72,12 @@ blueButton buttonId label =
   & withDefAttr blueBackground
   & clickable buttonId
 
+isModalActive :: Game -> Bool
+isModalActive game = isJust (view inEvent game) || isJust (view rewards game)
+
 actionButton :: Game -> Name -> String -> Widget Name
 actionButton game buttonId label =
-  if isJust (view inEvent game)
+  if isModalActive game
   then greyedButton label
   else blueButton buttonId label
 
