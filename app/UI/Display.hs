@@ -82,12 +82,32 @@ storesWindow width = do
   else pure $ str (replicate (width + 2) ' ')
 
 craftButtons :: Game -> Widget Name
-craftButtons game =
-  let craftMenuUnlocked  = view (milestones . craftUnlocked) game
-      craftDemo =
-        str "  craft:"
-        <=> hCenter (actionButton game LightButton "light fire")
-  in if craftMenuUnlocked then padTop (Pad 4) craftDemo else blank
+craftButtons g =
+  let workshopTools = [Torch, Waterskin, Rucksack, LeatherArmor, BoneSpear]
+      weaponItems   = [IronSword, SteelSword, Rifle]
+
+      maxNumCraftable Torch = 100
+      maxNumCraftable _     = 1
+      tooMany c = getItem c g >= maxNumCraftable c
+
+      unlocked items = filter (flip Map.member (g ^. (uiState . showItemButton))) items
+
+      mkButton c = if tooMany c
+                   then greyedButton (itemToStr c)
+                   else actionButton g (CraftButton c) (itemToStr c)
+
+      tools = unlocked workshopTools
+      weaps = unlocked weaponItems
+
+      craftMenu | not (view (milestones . craftUnlocked) g) = blank
+                | null tools                                = blank
+                | otherwise = padTop (Pad 1) (str "craft:") <=> vBox (map mkButton tools)
+
+      weaponsMenu | not (view (milestones . weaponsUnlocked) g) = blank
+                  | null weaps                                  = blank
+                  | otherwise = padTop (Pad 1) (str "weapons:") <=> vBox (map mkButton weaps)
+
+  in craftMenu <=> weaponsMenu
 
 buyButtons :: Game -> Widget Name
 buyButtons game =
@@ -100,7 +120,7 @@ buyButtons game =
 buildButtons :: Game -> Widget Name
 buildButtons g =
   let maxNumCraftable Trap = maximumNumberOfTraps -- 10
-      maxNumCraftable Hut = maximumNumberOfHuts   -- 20
+      maxNumCraftable Hut = maximumNumberOfHuts   -- 10
       maxNumCraftable _ = 1
 
       tooMany c = getItem c g >= maxNumCraftable c

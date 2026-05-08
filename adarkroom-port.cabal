@@ -44,7 +44,7 @@ executable adarkroom-port
     -- other-extensions:
 
     -- Other library packages from which modules are imported.
-    build-depends:    base ^>=4.17.0.0
+    build-depends:    base >=4.17.0.0 && <5
                     , aeson
                     , brick
                     , containers
@@ -55,6 +55,7 @@ executable adarkroom-port
                     , stm
                     , unordered-containers
                     , vty
+                    , vty-crossplatform
                     , yaml
 
 

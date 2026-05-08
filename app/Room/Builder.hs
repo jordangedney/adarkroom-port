@@ -12,7 +12,8 @@ module Room.Builder
 where
 
 import Control.Lens
-import Control.Monad.State (get, gets, forM_, when, unless)
+import Control.Monad (forM_, when, unless)
+import Control.Monad.State (get, gets)
 import qualified Data.Map as Map
 
 import Shared.UI
@@ -22,6 +23,10 @@ import Shared.Constants
 import Shared.Item
 import Shared.Util
 import Util (notifyRoom, updateEvent, displayCosts)
+
+-- Items that the workshop unlocks for crafting.
+workshopTools :: [Item]
+workshopTools = [Torch, Waterskin, Rucksack, LeatherArmor, BoneSpear]
 
 showState :: BuilderState -> String
 showState = \case
@@ -253,3 +258,16 @@ build i = do
        forM_ cost $ \(item', amt) -> do
         overStored item' (+ (-amt))
        notifyRoom buildMsg
+       applyItemEffects i
+
+applyItemEffects :: Item -> DarkRoom
+applyItemEffects = \case
+  Workshop -> do
+    (milestones . craftUnlocked) .= True
+    forM_ workshopTools $ \t ->
+      (uiState . showItemButton) %= Map.insert t True
+  Waterskin    -> playerStats . waterCapacity     %= (+ 20)
+  Rucksack     -> playerStats . inventoryCapacity %= (+ 10)
+  LeatherArmor -> playerStats . armor             %= (+ 1)
+  BoneSpear    -> (milestones . weaponsUnlocked) .= True
+  _            -> pure ()

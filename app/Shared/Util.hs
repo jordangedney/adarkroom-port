@@ -6,10 +6,12 @@ module Shared.Util where
 
 import Shared.Item (Item(..))
 import Shared.Game
+import Shared.UI (showPath)
 
 import Control.Lens
 import qualified Data.Map as Map
-import Control.Monad.State (State, get, when)
+import Control.Monad (when)
+import Control.Monad.State (State, get)
 
 canAfford :: [(Item, Int)] -> Game -> Bool
 canAfford items game = all afford items
@@ -35,6 +37,11 @@ overStored :: Item -> (Int -> Int) -> DarkRoom
 overStored i fn = do
   stored %= Map.insertWith (+) i 0
   stored %= Map.insertWith (\a b-> fn a + b) i 0
+
+  -- Equipping the compass unlocks a dusty path on the location bar.
+  when (i == Compass) $ do
+    haveCompass <- (> 0) <$> getStored Compass
+    when haveCompass $ (uiState . showPath) .= True
 
   -- Keeps the number of huts, people, and workers in aligment
   -- [Yes, it would be better if the types kept these from getting out of sync,

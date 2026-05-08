@@ -63,6 +63,7 @@ data Milestones = Milestones
   , _seenForest          :: Bool
   , _buildUnlocked       :: Bool
   , _craftUnlocked       :: Bool
+  , _weaponsUnlocked     :: Bool
   , _buyUnlocked         :: Bool
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
@@ -74,7 +75,25 @@ milestonesInit = Milestones
   , _seenForest       = False
   , _buildUnlocked    = False
   , _craftUnlocked    = False
+  , _weaponsUnlocked  = False
   , _buyUnlocked      = False
+  }
+
+data PlayerStats = PlayerStats
+  { _hp                :: Int
+  , _waterCapacity     :: Int
+  , _inventoryCapacity :: Int
+  , _armor             :: Int
+  } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
+
+makeLenses ''PlayerStats
+
+playerStatsInit :: PlayerStats
+playerStatsInit = PlayerStats
+  { _hp                = 10
+  , _waterCapacity     = 10
+  , _inventoryCapacity = 10
+  , _armor             = 0
   }
 
 data Location = Room | Outside | Path | Ship
@@ -95,6 +114,7 @@ data Game = Game
   , _builderState       :: BuilderState
   , _progressAmount     :: Float
   , _milestones         :: Milestones
+  , _playerStats        :: PlayerStats
   , _hyper              :: Bool
   , _debug              :: Bool
   , _previousStates     :: [Game]
@@ -122,6 +142,7 @@ initGame                = Game
   , _builderState       = Approaching
   , _progressAmount     = 0.5
   , _milestones         = milestonesInit
+  , _playerStats        = playerStatsInit
   , _hyper              = True
   , _debug              = True
   , _previousStates     = []
