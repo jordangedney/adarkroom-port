@@ -12,8 +12,11 @@ module Path
   , move
   , goHome
   , tickBlackout
-  , pathMapData
   , triggerBeastFight
+  , advanceAfterCombat
+  , advanceAfterRewards
+  , exitPlaceEarly
+  , renderedTileAt
   ) where
 
 import Data.Maybe (isJust)
@@ -23,7 +26,6 @@ import Control.Monad (forM_, unless, when)
 import Control.Monad.State (get, gets)
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
-import Data.Maybe (listToMaybe)
 
 import Shared.Constants
   ( pathStepsPerWater
@@ -41,19 +43,32 @@ import Shared.Game
   , location
   , movesUntilFood
   , movesUntilWater
+  , pathExplored
+  , pathPlace
   , pathPlayer
+  , pathPreferredAllocation
+  , pathRoads
   , pathSeen
   , pathWater
   , playerStats
   , waterCapacity
   , inCombat
+  , inRewards
   , hp
   , maxHp
+  , stored
   )
 import Shared.Item (Item(CuredMeat, Torch))
+import Shared.PathMap
+  ( pathMapHeight
+  , pathMapWidth
+  , pathTileAt
+  , villageTile
+  )
 import Shared.Util (getItem, overStored)
 
 import Path.Combat (beginCombat, snarlingBeast)
+import qualified Path.Place as Place
 import Util (clearRoomBacklog, notify)
 
 -- Items the player can allocate to the expedition before embarking.
@@ -77,10 +92,34 @@ inventoryFree g = (g ^. playerStats . inventoryCapacity) - inventoryUsed g
 arrival :: DarkRoom
 arrival = do
   location .= Path
-  -- Re-allocate from scratch each visit until the player embarks.
   embarked .= False
-  expeditionInventory .= Map.empty
+  -- Pre-allocate from whatever the player took on the previous expedition,
+  -- capped by what's currently in stores. Items they've run out of just
+  -- silently drop off the allocation.
+  preferred <- use pathPreferredAllocation
+  cap <- use (playerStats . inventoryCapacity)
+  storeMap <- use stored
+  let (newInv, _) = preallocate cap storeMap preferred
+  expeditionInventory .= newInv
   clearRoomBacklog
+
+-- Cap allocation by both the rucksack capacity and the available stock for
+-- each item. Walks pathSupplies in order so capacity goes to higher-priority
+-- items first when the player is out of room.
+preallocate
+  :: Int                  -- ^ rucksack capacity
+  -> Map.Map Item Int     -- ^ items currently in stores
+  -> Map.Map Item Int     -- ^ preferred amounts from last expedition
+  -> (Map.Map Item Int, Int)
+preallocate cap storeMap preferred = foldl step (Map.empty, cap) pathSupplies
+  where
+    step (acc, remaining) i =
+      let want  = Map.findWithDefault 0 i preferred
+          have  = Map.findWithDefault 0 i storeMap
+          take' = max 0 (minimum [want, have, remaining])
+      in if take' > 0
+         then (Map.insert i take' acc, remaining - take')
+         else (acc, remaining)
 
 -- Embark moves allocated items out of stores and into the rucksack, then
 -- initialises the path expedition state (position, water, consumption
@@ -121,32 +160,9 @@ decreaseSupply i = do
 
 data Direction = North | South | East | West deriving (Eq, Show)
 
-pathTileAt :: (Int, Int) -> Maybe Char
-pathTileAt (col, row)
-  | row < 0 || row >= pathMapHeight = Nothing
-  | col < 0 || col >= pathMapWidth  = Nothing
-  | otherwise = Just ((pathMapData !! row) !! col)
-
-pathMapHeight :: Int
-pathMapHeight = length pathMapData
-
-pathMapWidth :: Int
-pathMapWidth = case pathMapData of
-  []    -> 0
-  (r:_) -> length r
-
--- Look for the village tile ('A') as the start; fall back to map centre.
+-- The starting tile is the village 'A' from the shared map.
 startTile :: (Int, Int)
-startTile = case findChar 'A' of
-  Just c  -> c
-  Nothing -> (pathMapWidth `div` 2, pathMapHeight `div` 2)
-  where
-    findChar target = listToMaybe
-      [ (col, row)
-      | (row, line) <- zip [0..] pathMapData
-      , (col, ch)   <- zip [0..] line
-      , ch == target
-      ]
+startTile = villageTile
 
 -- How many tiles the player can see in each direction from their position
 -- (Chebyshev / king-move distance). 2 gives a 5x5 visible square.
@@ -165,6 +181,17 @@ seenAround (col, row) = Set.fromList
   , r >= 0, r < pathMapHeight
   ]
 
+-- | What glyph the player should see at a tile, factoring in exploration
+-- conversions and roads. Used by the renderer.
+renderedTileAt :: Game -> (Int, Int) -> Maybe Char
+renderedTileAt game pos
+  | pos `Set.member` view pathExplored game =
+      case pathTileAt pos of
+        Just 'I' -> Just 'I'                       -- iron mine stays I
+        _        -> Just 'P'
+  | pos `Set.member` view pathRoads game = Just '#'
+  | otherwise = pathTileAt pos
+
 -- Movement ---------------------------------------------------------------
 
 move :: Direction -> DarkRoom
@@ -172,7 +199,11 @@ move dir = do
   loc <- use location
   emb <- use embarked
   bo  <- use blackoutCooldown
-  when (loc == Path && emb && bo == 0) $ do
+  inP <- use pathPlace
+  inC <- use inCombat
+  inR <- use inRewards
+  when (loc == Path && emb && bo == 0
+        && not (isJust inP) && not (isJust inC) && not (isJust inR)) $ do
     (col, row) <- use pathPlayer
     let prevTile = pathTileAt (col, row)
         (nc, nr) = case dir of
@@ -189,6 +220,37 @@ move dir = do
           forM_ (terrainName (Just newTile)) $ \name ->
             notify ("you enter " <> name <> ".")
         consumeStep
+        -- After the step is paid for, see if we walked onto a fresh place
+        -- tile and trigger its exploration sequence.
+        maybeEnterPlace (nc, nr)
+
+-- | If the player just stepped onto a landmark glyph that hasn't been
+-- explored yet, push them into the place's exploration sequence.
+maybeEnterPlace :: (Int, Int) -> DarkRoom
+maybeEnterPlace pos = do
+  alreadyExplored <- gets (Set.member pos . view pathExplored)
+  unless alreadyExplored $ do
+    case pathTileAt pos >>= Place.placeFromGlyph of
+      Nothing -> pure ()
+      Just place -> Place.enterPlace place pos
+
+-- | Re-enter the current place's event queue after combat ends or the
+-- rewards screen is dismissed. Routes the rewards/wakeUp/leave button
+-- handlers in 'Event' so the player can keep pushing through a place.
+advanceAfterCombat :: DarkRoom
+advanceAfterCombat = do
+  inP <- use pathPlace
+  when (isJust inP) Place.advanceAfterCombat
+
+advanceAfterRewards :: DarkRoom
+advanceAfterRewards = do
+  inP <- use pathPlace
+  when (isJust inP) Place.advanceAfterRewards
+
+exitPlaceEarly :: DarkRoom
+exitPlaceEarly = do
+  inP <- use pathPlace
+  when (isJust inP) Place.exitPlaceEarly
 
 consumeStep :: DarkRoom
 consumeStep = do
@@ -222,22 +284,31 @@ blackout = do
   embarked .= False
   expeditionInventory .= Map.empty
   pathSeen .= Set.empty
+  pathPlace .= Nothing
   pathPlayer .= startTile
   pathWater .= 0
 
 -- Voluntary return: rucksack contents go back into stores, reset fog,
--- drop back to the supply allocation screen (no cooldown).
+-- drop back to the supply allocation screen (no cooldown). Items the
+-- player took are remembered as the next expedition's preferred allocation.
+-- Disabled while a combat or rewards modal is up so the player can't
+-- accidentally bail out of a place mid-encounter.
 goHome :: DarkRoom
 goHome = do
   loc <- use location
   emb <- use embarked
-  when (loc == Path && emb) $ do
+  inC <- use inCombat
+  inR <- use inRewards
+  when (loc == Path && emb && not (isJust inC) && not (isJust inR)) $ do
     inv <- use expeditionInventory
+    -- Remember the takes so the next expedition pre-allocates them.
+    pathPreferredAllocation .= Map.filter (> 0) inv
     forM_ (Map.toList inv) $ \(i, n) ->
       when (n > 0) $ overStored i (+ n)
     embarked .= False
     expeditionInventory .= Map.empty
     pathSeen .= Set.empty
+    pathPlace .= Nothing
     pathPlayer .= startTile
     pathWater .= 0
     notify "you stagger back to the village."
@@ -265,75 +336,6 @@ terrainName (Just c) = case c of
   '#' -> Just "a road"
   _   -> Nothing
 
--- The path map. 60 rows by 61 columns of terrain characters. Lowercase
--- terrain is wilderness; uppercase letters mark named landmarks (A=village,
--- F=field, H=house, B=battlefield, etc.) which later beads will turn into
--- explorable places.
-pathMapData :: [String]
-pathMapData =
-  [ "....,,,,,,,,,.......;;;;;;;;;;;;;Y;;;;;;;;;;;;;;;;;.........,"
-  , ",,,,,,,,,,,,......;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;.........,"
-  , ",,,,,,,,,,,,......;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;.........,"
-  , ",,,.,,,,,,,.....;;;;;;;;;;;;;;H;;;;;;;;;;;;;;;;;;;..........,"
-  , ",,,.,,,,,,....;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;......;...,"
-  , ",,,,,,........;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;......;...,"
-  , ".,,,,........;;;;;;;;;;;;;;;.;;;;;B;;;;;;;;;;;;;;;......;;;;;"
-  , "..,,,........;;;;;;;;;;;.....;;;;;;;;;;;;;;;;;;;;;......;;;;;"
-  , "..,,,.......;;;;;;;;;;;......;;;;;;;;;;;;;;;;;;;;;........;;;"
-  , "...,,,...,..;;;;;;;,,........;;;;;;;;;;;;;;;;;;;...........;;"
-  , "....,,;;;;..;;;;;;,,,........;;;;;;;;;;;;;;;;;;;............."
-  , "....,,Y,;;;,;;;;,,,,........;;;;;;;......;;;................."
-  , "....,,,,,;;;;;;,,,,......Y;;;;;;;;;.....;;;.....,....F......."
-  , "....,,,,,,;;;;;,,,,.....;;;;;;;;;;;....;;;;.................."
-  , "....,,,,,,;;;;,,,,.....;;;;;;;;;;;;....;;;..................."
-  , "....,,,,,,;;;;,,,,.....;;;;;;;;;.......;;;................F.."
-  , "..Y...,,,,,,,;;;......;;;;;;;M;;......;;;;..;................"
-  , "......,,,,,,,,;;;;....;;;;;;.........;;;;;..;................"
-  , "Y.....,,,,,,,,........;;;H;.O........;;;;;....B.............."
-  , "......,,,,,,,,,,,....;;;;;,..........;;;;;..................."
-  , "......,,,,,,,,,,,....;;;;;,..........;;;.;..................."
-  , ".....Y.,,F,,,,,,,....;;;;,,.........;;;..;..................."
-  , ".........,,,,,,,,,...,,O,,,..,,.....;;O;.;..................."
-  , ".........,,,,,,,,,,,..,,,,,C.,......;,;;;;..................."
-  , ".........,,,,,,,,,,,....,,...,......;;;;;;O;................."
-  , "Y........,,,,,,,,,,,,,,......,......;;;;;;;;.B..............."
-  , ".........,,,,,,,,,,,,,,,,..,,,.......;;O;;;;................B"
-  , "Y..........,,,,,,,,,,,,,,V,,,....,,..;;;;;;;................."
-  , "F.......B..,,,,,,,,,,,,,,,,,.......H.....;;;;................"
-  , "............,,,,,,,,,,,,,,,,H,H..........;;;;;..............B"
-  , "............,,,,,,,,,,,,,,,,.;A;.........;;;;;..............."
-  , "F...........,,,,,,,,,,,,,,,,P##,......V..;;;;;...S..........."
-  , ".............,,,,,,,,,,,,,,,.,#,V;;...O.....................Y"
-  , ".............,,,,,,,,,,,,,,,,,#,..;;........................."
-  , ".Y..............,,,,,,,,,,,,,IP.............................."
-  , "...Y........Y...,,,,,,,,,,,,,,,.............................."
-  , "B..................,,,,H,,,,,,...H..................W........"
-  , ",..................,,,,,,,,O,................................"
-  , ",,..................,,,,,,,,,................................"
-  , ",,..................,,,,,,,.....O............................"
-  , ",,,,.................,,,,,..............Y...................."
-  , ",,,,,............,,,,,,,,,.............,,...................."
-  , ",,,,,............,,,,,,,...............,....................."
-  , ",,,,,.Y..........,,,,,,,....................................."
-  , ",,,,,............,,,,,,,.....H..O..O........................."
-  , ",,,,,,.......,,,,,,,,,,.....................,,..............."
-  , ",,,,,,.......,.,,,,,,,.....................,,,,Y,,,,........."
-  , ",,,,,,,,,....,,,,,,,,,...................,,,,,,,,,,,........."
-  , ",,,,,,,,,....,,,,,,......................,,,,,,,,,,,,,......."
-  , ",,,,,,,,,Y,,,,,,Y........................,,,,,,,,,,,,,,,....."
-  , ",,,,,,,,.,,,,,,......................,,,,,,,,,,,,,,,,,,,....."
-  , ",,,,,,,,.,,,,,,.........H...........,,,,,,,,,,,,,,,,,,,,,,..."
-  , ",,,,,,,,.,,,,,......................,,,,,,,,,,,,,,,,,,,,,,,,,"
-  , ",,,,,,,,,,,,...............Y......,,,,,,,,,,,,,,,,,,,,,,,,,,,"
-  , ",,,,,,,,,,....................,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"
-  , ",,,,,,,,,,...................,,,,,,,,,,,,,,,,Y,,,,,,,,,,,,,,,"
-  , ",,,,,,,,,,...................,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"
-  , ",,,,,,,,,,...................,,,,,,,,,,,,,,,,,,,,,,,,,,,,..,,"
-  , ",,,,,,,,.....................,,,,,,,,,H,,,,,,,,,,,,,,,,,....."
-  , ",,,,,,.......................,B,,,,,,,,,,,,,,,,,,,,,,,,,....."
-  , ";,,,,...............Y........,,B,,B,,,,,,,,,,,,,,,,,,,,......"
-  ]
-
 -- Manual trigger for the canonical encounter while embarked. Map walking
 -- (separate bead) will eventually invoke this automatically.
 triggerBeastFight :: StdGen -> DarkRoom
@@ -341,5 +343,6 @@ triggerBeastFight _ = do
   onPath <- (== Path) <$> use location
   isEmbarked <- use embarked
   alreadyFighting <- isJust <$> use inCombat
-  when (onPath && isEmbarked && not alreadyFighting) $
+  inP <- use pathPlace
+  when (onPath && isEmbarked && not alreadyFighting && not (isJust inP)) $
     beginCombat snarlingBeast

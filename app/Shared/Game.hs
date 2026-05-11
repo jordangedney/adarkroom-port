@@ -16,6 +16,7 @@ import Shared.GameEvent (gameEventsInit, GameEvent)
 import Shared.RandomEvent (Scene)
 import Shared.Rewards (Rewards)
 import Shared.Item
+import Shared.Place (PlaceState)
 import Shared.Worker (Worker(..))
 import qualified Data.Map as Map
 import Data.Set (Set)
@@ -134,6 +135,10 @@ data Game = Game
   , _expeditionInventory :: Map.Map Item Int
   , _pathPlayer         :: (Int, Int)
   , _pathSeen           :: Set (Int, Int)
+  , _pathExplored       :: Set (Int, Int)
+  , _pathRoads          :: Set (Int, Int)
+  , _pathPlace          :: Maybe PlaceState
+  , _pathPreferredAllocation :: Map.Map Item Int
   , _pathWater          :: Int
   , _movesUntilWater    :: Int
   , _movesUntilFood     :: Int
@@ -172,6 +177,10 @@ initGame                = Game
   , _expeditionInventory = Map.empty
   , _pathPlayer         = (0, 0)
   , _pathSeen           = Set.empty
+  , _pathExplored       = Set.empty
+  , _pathRoads          = Set.empty
+  , _pathPlace          = Nothing
+  , _pathPreferredAllocation = Map.empty
   , _pathWater          = 0
   , _movesUntilWater    = 0
   , _movesUntilFood     = 0

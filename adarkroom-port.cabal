@@ -25,6 +25,7 @@ executable adarkroom-port
         Path
         Path.Combat
         Path.Enemy
+        Path.Place
         RandomEvent
         Rewards
         Room.Builder
@@ -36,6 +37,8 @@ executable adarkroom-port
         Shared.Game
         Shared.GameEvent
         Shared.Item
+        Shared.PathMap
+        Shared.Place
         Shared.RandomEvent
         Shared.Rewards
         Shared.UI

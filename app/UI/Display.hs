@@ -26,6 +26,7 @@ import qualified Room.Room as Room
 import qualified Outside
 import qualified Path
 import Shared.Item
+import Shared.PathMap (pathMapHeight, pathMapWidth)
 import Shared.Util
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -388,21 +389,26 @@ rucksackBox game =
   in panel
 
 -- Render the path map row-by-row with fog of war: the player position is
--- shown as `@`, tiles in `pathSeen` show their map glyph, everything else
--- renders as a blank space. In debug mode the full map is rendered.
+-- shown as `@`, tiles in `pathSeen` show their map glyph (or 'P' / '#' if
+-- they've been converted by exploration), everything else renders as a blank
+-- space. In debug mode the full map is rendered.
 renderPathMap :: Game -> [String]
 renderPathMap game =
   let (px, py) = view pathPlayer game
       seen     = view pathSeen game
       showAll  = view debug game
-      cell row col original
-        | row == py && col == px         = '@'
-        | showAll                        = original
-        | (col, row) `Set.member` seen   = original
-        | otherwise                      = ' '
-      renderRow row line =
-        [ cell row col ch | (col, ch) <- zip [0..] line ]
-  in zipWith renderRow [0..] Path.pathMapData
+      glyphAt col row =
+        case Path.renderedTileAt game (col, row) of
+          Just ch -> ch
+          Nothing -> ' '
+      cell row col
+        | row == py && col == px       = '@'
+        | showAll                      = glyphAt col row
+        | (col, row) `Set.member` seen = glyphAt col row
+        | otherwise                    = ' '
+      renderRow row =
+        [ cell row col | col <- [0 .. pathMapWidth - 1] ]
+  in [ renderRow row | row <- [0 .. pathMapHeight - 1] ]
 
 -- Supply allocation screen shown after the dusty path is unlocked but
 -- before the player embarks. Lets the player divvy out path-allocatable

@@ -139,8 +139,12 @@ handleButtonEvent stdGen = \case
   DecreaseSupplyButton i -> Path.decreaseSupply i
 
   AttackButton          -> Combat.attackBeast stdGen
-  ClaimRewardsButton    -> Combat.claimRewards stdGen
-  WakeUpButton          -> Combat.wakeUp
+  ClaimRewardsButton    -> do
+    Combat.claimRewards stdGen
+    Path.advanceAfterCombat
+  WakeUpButton          -> do
+    Combat.wakeUp
+    Path.exitPlaceEarly
   StartBeastFightButton -> Path.triggerBeastFight stdGen
 
   TakeRewardButton i -> Rewards.takeOne i
@@ -153,8 +157,12 @@ handleButtonEvent stdGen = \case
     case inC of
       Just _  -> Combat.eatMeat
       Nothing -> Rewards.eatMeat
-  LeaveRewardsButton -> Rewards.leave
-  ContinueRewardsButton -> Rewards.continue
+  LeaveRewardsButton -> do
+    Rewards.leave
+    Path.exitPlaceEarly
+  ContinueRewardsButton -> do
+    Rewards.continue
+    Path.advanceAfterRewards
   DebugRewardsButton ->
     Rewards.open
       "you killed the beast."

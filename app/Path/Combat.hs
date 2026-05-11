@@ -11,6 +11,13 @@ module Path.Combat
   , wakeUp
   , beginCombat
   , snarlingBeast
+  , snarlingBeastSpec
+  , gauntManSpec
+  , scavengerSpec
+  , meatEaterSpec
+  , feralTerrorSpec
+  , soldierSpec
+  , sniperSpec
   ) where
 
 import GHC.Generics (Generic)
@@ -177,3 +184,69 @@ snarlingBeast = BeastSpec
       [ "the beast tears at you and the world goes dark."
       ]
   }
+
+-- | Place encounters reuse the combat machinery with empty drops — loot is
+-- presented by the surrounding place's loot scene, not by the combat itself.
+-- Stats are pulled from 'Path.Enemy' so the catalog stays the source of truth.
+placeFoeSpec
+  :: String -> Int -> (Int, Int) -> [String] -> BeastSpec
+placeFoeSpec foeName foeHp foeAttack foeArt = BeastSpec
+  { _bsName        = foeName
+  , _bsMaxHp       = foeHp
+  , _bsAttack      = foeAttack
+  , _bsDrops       = []
+  , _bsArt         = foeArt
+  , _bsVictoryText = [ "the " <> foeName <> " collapses." ]
+  , _bsDefeatText  = [ "the " <> foeName <> " overpowers you." ]
+  }
+
+snarlingBeastSpec :: BeastSpec
+snarlingBeastSpec = snarlingBeast
+
+gauntManSpec :: BeastSpec
+gauntManSpec = placeFoeSpec "gaunt man" 8 (1, 2)
+  [ "    o      "
+  , "   /|\\     "
+  , "   / \\     "
+  , "           "
+  ]
+
+scavengerSpec :: BeastSpec
+scavengerSpec = placeFoeSpec "scavenger" 10 (1, 3)
+  [ "   <o>     "
+  , "   /|\\     "
+  , "   / \\     "
+  , "           "
+  ]
+
+meatEaterSpec :: BeastSpec
+meatEaterSpec = placeFoeSpec "meat eater" 14 (2, 4)
+  [ "   _.-.    "
+  , "  ( o o)   "
+  , "  /  >|    "
+  , "   `~~     "
+  ]
+
+feralTerrorSpec :: BeastSpec
+feralTerrorSpec = placeFoeSpec "feral terror" 22 (3, 5)
+  [ "  /\\_/\\    "
+  , " ( O O)    "
+  , "  >v<      "
+  , "  /| |\\    "
+  ]
+
+soldierSpec :: BeastSpec
+soldierSpec = placeFoeSpec "soldier" 24 (4, 6)
+  [ "    ()     "
+  , "   /||=    "
+  , "   /\\      "
+  , "           "
+  ]
+
+sniperSpec :: BeastSpec
+sniperSpec = placeFoeSpec "sniper" 30 (5, 8)
+  [ "   ___     "
+  , "  ( o)==-  "
+  , "   /|      "
+  , "   / \\     "
+  ]

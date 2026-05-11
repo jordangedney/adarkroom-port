@@ -107,24 +107,24 @@
   - [ ] a soldier
   - [ ] a sniper
 
-- [ ] Create explorable places
-  - [ ] After exploration, places become an outpost 'P' excluding: IRON MINES
+- [X] Create explorable places
+  - [X] After exploration, places become an outpost 'P' excluding: IRON MINES
 
-  - [ ] A Damp Cave
-  - [ ] The Iron Mine
-  - [ ] Outposts
-  - [ ] An Old House
-  - [ ] The Coal Mine
-  - [ ] A Deserted Town
-  - [ ] The Sulfur mine
-  - [ ] A Forgotten Battlefield
-  - [ ] A Ruined City
-  - [ ] A Huge Borehole
-  - [ ] A Crashed Ship
-  - [ ] A Murky Swamp
+  - [X] A Damp Cave
+  - [X] The Iron Mine
+  - [X] Outposts
+  - [X] An Old House
+  - [X] The Coal Mine
+  - [X] A Deserted Town
+  - [X] The Sulfur mine
+  - [X] A Forgotten Battlefield
+  - [X] A Ruined City
+  - [X] A Huge Borehole
+  - [X] A Crashed Ship
+  - [X] A Murky Swamp
 
-- [ ] create roads/paths between explored outposts
-- [ ] going home maintains inventory across explorations
+- [X] create roads/paths between explored outposts
+- [X] going home maintains inventory across explorations
       (if you find a sword instead of a spear, you'll automatically take the sword next time)
 
 - [ ] On discovery of iron (or is it iron mines<<<?) unlock cask
