@@ -27,6 +27,7 @@ import Shared.Item (Item(..))
 import Shared.PathMap (pathTileAt, villageTile)
 import Shared.Place
 import Shared.Rewards (RewardsContext(..))
+import Shared.UI (showShip)
 
 import qualified Rewards
 import Path.Combat
@@ -114,8 +115,8 @@ placeEvents = \case
   OldHouse ->
     [ PlaceLoot "the door creaks open. dust hangs in the light."
         (Map.fromList [(Cloth, 2), (Leather, 1)])
-    , PlaceLoot "a footlocker yields a few keepsakes."
-        (Map.fromList [(Charm, 1), (Cloth, 2), (Wood, 1)])
+    , PlaceLoot "a footlocker yields a few keepsakes — and a vial of medicine."
+        (Map.fromList [(Charm, 1), (Cloth, 2), (Wood, 1), (Medicine, 1)])
     ]
   CoalMine ->
     [ PlaceLoot "the air is thick with coal dust."
@@ -141,8 +142,11 @@ placeEvents = \case
     [ PlaceLoot "rusted helmets and bones cover the ground."
         (Map.fromList [(Iron, 2), (Cloth, 3)])
     , PlaceEnemy soldierSpec
-    , PlaceLoot "weapons and armor lie scattered among the fallen."
-        (Map.fromList [(Iron, 3), (Steel, 1), (Bullets, 2)])
+    , PlaceLoot "weapons and armor lie scattered among the fallen. \
+                \a bayonet and a few grenades catch the light."
+        (Map.fromList [ (Iron, 3), (Steel, 1), (Bullets, 2)
+                      , (Bayonet, 1), (Grenades, 2), (Medicine, 1)
+                      ])
     ]
   RuinedCity ->
     [ PlaceLoot "broken buildings cast long shadows across the rubble."
@@ -158,18 +162,23 @@ placeEvents = \case
         (Map.fromList [(Steel, 3), (Iron, 2)])
     ]
   CrashedShip ->
-    [ PlaceLoot "a ship lies broken across the dunes."
-        (Map.fromList [(Steel, 2), (Cloth, 3)])
+    [ PlaceLoot "a ship lies broken across the dunes — \
+                \not of any make you know."
+        (Map.fromList [(Steel, 2), (Cloth, 3), (AlienAlloy, 1)])
     , PlaceEnemy sniperSpec
-    , PlaceLoot "you salvage what you can from the bridge."
-        (Map.fromList [(Steel, 3), (Bullets, 3), (Rifle, 1)])
+    , PlaceLoot "you salvage what you can from the bridge. \
+                \something hums faintly in your hand — a cell, still charged."
+        (Map.fromList [ (Steel, 3), (Bullets, 3), (Rifle, 1)
+                      , (EnergyCell, 1), (AlienAlloy, 2)
+                      ])
     ]
   MurkySwamp ->
     [ PlaceLoot "the swamp gurgles around you; mist clings to the reeds."
         (Map.fromList [(Meat, 2), (Cloth, 1)])
     , PlaceEnemy meatEaterSpec
-    , PlaceLoot "the bog yields its dead, and what they carried."
-        (Map.fromList [(Scale, 2), (Teeth, 2), (Charm, 1)])
+    , PlaceLoot "the bog yields its dead, and what they carried — \
+                \even a tangle of weighted cord, still serviceable."
+        (Map.fromList [(Scale, 2), (Teeth, 2), (Charm, 1), (Bolas, 1)])
     ]
 
 placeTotalEvents :: Place -> Int
@@ -239,6 +248,10 @@ finishPlace = do
       when (placeBecomesOutpost p) $ addRoad tile
       pathPlace .= Nothing
       notify ("you have cleared " <> placeName p <> ".")
+      -- Clearing the crashed ship reveals the starship menu back at home.
+      when (p == CrashedShip) $ do
+        uiState . showShip .= True
+        notify "an old starship rises from the dunes. you could return to it."
 
 -- | Trace a simple L-shaped road of '#' tiles from the village to the just-
 -- explored place. Skips landmark tiles so we don't paint over other places.

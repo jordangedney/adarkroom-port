@@ -6,7 +6,7 @@ import Shared.Constants (maximumNumberOfHuts)
 import Shared.Game
 import Shared.RandomEvent
 import Shared.Item
-import Shared.Util (getItem)
+import Shared.Util (getItem, playerHasSeen)
 
 events :: Game -> [(Scene, Bool)]
 events g =
@@ -19,6 +19,20 @@ events g =
   , (mysteriousWanderer, view location g == Room && getItem Hut g > 0)
 
   , (beastAttack,       view location g == Outside && getItem People g > 0)
+
+  -- Iron-tier unlock: once you've held iron, scouts will turn up looking
+  -- for steady work. Hiring one unlocks the scout button on the path.
+  , (wanderingScout,    view location g == Room
+                        && getItem Hut g > 0
+                        && playerHasSeen Iron g
+                        && not (view (milestones . scoutUnlocked) g))
+
+  -- Medicine-tier unlock: a plague rolls through the village. With meds
+  -- you save the sick; without, you bury them.
+  , (plagueEvent,       view location g == Room
+                        && getItem People g > 5
+                        && playerHasSeen Medicine g
+                        && not (view (milestones . plagueSeen) g))
   ]
 
 theBeggar :: Scene
@@ -388,3 +402,107 @@ mysteriousWanderer = Scene
                           }
             ]
           }
+
+wanderingScout :: Scene
+wanderingScout = Scene
+  { title = "A Wandering Scout"
+  , windowSize = 54
+  , currentScene = start
+  }
+  where
+    start = SceneEvent
+      { text = [ "a thin man in a long coat asks after the village."
+               , "\n"
+               , "says he knows the wastes. says he could mark them for you,"
+               , "for the right price." ]
+      , notification = Just "a scout passes through the village."
+      , reward = []
+      , choices =
+        [ SceneChoice
+            { choiceTxt = "hire him"
+            , cost = [(Fur, 150)]
+            , choiceNotification =
+                Just "the scout draws charcoal across his palm. he'll come along."
+            , nextScene = Just (Go ([], hired))
+            }
+        , SceneChoice
+            { choiceTxt = "turn him away"
+            , cost = []
+            , choiceNotification = Nothing
+            , nextScene = Nothing
+            }
+        ]
+      }
+    hired = SceneEvent
+      { text = [ "the scout settles in by the fire."
+               , "\n"
+               , "next time you walk the path, he'll point out the way." ]
+      , notification = Nothing
+      , reward = [ UnlockScoutAbility ]
+      , choices =
+        [ SceneChoice
+            { choiceTxt = "go home"
+            , cost = []
+            , choiceNotification = Nothing
+            , nextScene = Nothing
+            }
+        ]
+      }
+
+plagueEvent :: Scene
+plagueEvent = Scene
+  { title = "A Plague"
+  , windowSize = 54
+  , currentScene = start
+  }
+  where
+    start = SceneEvent
+      { text = [ "a fever moves through the village."
+               , "\n"
+               , "the sick lie in the huts. the cough won't stop." ]
+      , notification = Just "a plague spreads through the village."
+      , reward = []
+      , choices =
+        [ SceneChoice
+            { choiceTxt = "use meds"
+            , cost = [(Medicine, 2)]
+            , choiceNotification =
+                Just "the medicine works. the fever breaks."
+            , nextScene = Just (Go ([], cured))
+            }
+        , SceneChoice
+            { choiceTxt = "let it pass"
+            , cost = []
+            , choiceNotification = Nothing
+            , nextScene = Just (Go ([], unchecked))
+            }
+        ]
+      }
+    cured = SceneEvent
+      { text = [ "the village wakes weak but whole." ]
+      , notification = Nothing
+      , reward = [ PlagueResolved ]
+      , choices =
+        [ SceneChoice
+            { choiceTxt = "go home"
+            , cost = []
+            , choiceNotification = Nothing
+            , nextScene = Nothing
+            }
+        ]
+      }
+    unchecked = SceneEvent
+      { text = [ "many die before the fever lifts."
+               , "\n"
+               , "the survivors carry on." ]
+      , notification = Just "the plague takes many."
+      , reward = [ GiveRange People (-10, -3), PlagueResolved ]
+      , choices =
+        [ SceneChoice
+            { choiceTxt = "go home"
+            , cost = []
+            , choiceNotification = Nothing
+            , nextScene = Nothing
+            }
+        ]
+      }

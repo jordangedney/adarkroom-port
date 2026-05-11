@@ -11,6 +11,8 @@ module Path
   , Direction(..)
   , move
   , goHome
+  , scout
+  , scoutAvailable
   , tickBlackout
   , triggerBeastFight
   , advanceAfterCombat
@@ -41,6 +43,7 @@ import Shared.Game
   , expeditionInventory
   , inventoryCapacity
   , location
+  , milestones
   , movesUntilFood
   , movesUntilWater
   , pathExplored
@@ -51,6 +54,7 @@ import Shared.Game
   , pathSeen
   , pathWater
   , playerStats
+  , scoutUnlocked
   , waterCapacity
   , inCombat
   , inRewards
@@ -58,7 +62,7 @@ import Shared.Game
   , maxHp
   , stored
   )
-import Shared.Item (Item(CuredMeat, Torch))
+import Shared.Item (Item(CuredMeat, Torch, Medicine, Bullets, Bolas, Grenades))
 import Shared.PathMap
   ( pathMapHeight
   , pathMapWidth
@@ -74,7 +78,7 @@ import Util (clearRoomBacklog, notify)
 -- Items the player can allocate to the expedition before embarking.
 -- Order here drives display order on the supply screen.
 pathSupplies :: [Item]
-pathSupplies = [CuredMeat, Torch]
+pathSupplies = [CuredMeat, Torch, Medicine, Bullets, Bolas, Grenades]
 
 allocated :: Item -> Game -> Int
 allocated i g = Map.findWithDefault 0 i (g ^. expeditionInventory)
@@ -191,6 +195,35 @@ renderedTileAt game pos
         _        -> Just 'P'
   | pos `Set.member` view pathRoads game = Just '#'
   | otherwise = pathTileAt pos
+
+-- | Scout reveals a wide ring of tiles around the player. Available once the
+-- wandering scout event has hired on; consumes the scout — single use per
+-- expedition's worth of revealed terrain.
+scoutAvailable :: Game -> Bool
+scoutAvailable g =
+     view location g == Path
+  && view embarked g
+  && view (milestones . scoutUnlocked) g
+
+scoutRadius :: Int
+scoutRadius = 5
+
+scout :: DarkRoom
+scout = do
+  avail <- gets scoutAvailable
+  when avail $ do
+    (col, row) <- use pathPlayer
+    let reveal = Set.fromList
+          [ (c, r)
+          | dc <- [-scoutRadius .. scoutRadius]
+          , dr <- [-scoutRadius .. scoutRadius]
+          , let c = col + dc
+                r = row + dr
+          , c >= 0, c < pathMapWidth
+          , r >= 0, r < pathMapHeight
+          ]
+    pathSeen %= Set.union reveal
+    notify "the scout points out landmarks on the horizon."
 
 -- Movement ---------------------------------------------------------------
 

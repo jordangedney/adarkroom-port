@@ -56,6 +56,8 @@ data Milestones = Milestones
   , _craftUnlocked       :: Bool
   , _buyUnlocked         :: Bool
   , _weaponsUnlocked     :: Bool
+  , _scoutUnlocked       :: Bool
+  , _plagueSeen          :: Bool
   } deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 makeLenses ''Milestones
@@ -68,6 +70,8 @@ milestonesInit = Milestones
   , _craftUnlocked    = False
   , _buyUnlocked      = False
   , _weaponsUnlocked  = False
+  , _scoutUnlocked    = False
+  , _plagueSeen       = False
   }
 
 data PlayerStats = PlayerStats

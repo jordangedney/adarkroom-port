@@ -66,6 +66,12 @@ data Name
 
   -- Path combat
   | AttackButton
+  | ShootButton
+  | TangleButton
+  | LobButton
+  | BayonetButton
+  | UseMedsButton
+  | ScoutButton
   | ClaimRewardsButton
   | WakeUpButton
   | StartBeastFightButton

@@ -29,6 +29,7 @@ import Shared.Game
 import Shared.Item (Item(..))
 import Shared.UI (Name(..))
 import UI.Components
+import qualified Path.Combat as Combat
 
 drawCombatWindow :: Game -> Widget Name
 drawCombatWindow game = case view inCombat game of
@@ -95,15 +96,35 @@ combatButtons game c = case view combatState c of
   CombatActive ->
     let onCooldown = view attackCooldown c > 0
         haveMeat = Map.findWithDefault 0 CuredMeat (view expeditionInventory game) > 0
-        attack =
+        haveMeds = Map.findWithDefault 0 Medicine (view expeditionInventory game) > 0
+
+        mkAction label btn =
           if onCooldown
-          then greyedButton "attack"
-          else dialogButton AttackButton "attack"
+          then greyedButton label
+          else dialogButton btn label
+
+        attackRow = concat
+          [ [mkAction "attack" AttackButton]
+          , [mkAction "shoot" ShootButton    | Combat.hasShoot game]
+          , [mkAction "tangle" TangleButton  | Combat.hasTangle game]
+          , [mkAction "lob" LobButton        | Combat.hasLob game]
+          , [mkAction "bayonet" BayonetButton | Combat.hasBayonet game]
+          ]
+
         meat =
           if haveMeat
           then dialogButton EatMeatButton "eat meat"
           else greyedButton "eat meat"
-    in hBox [attack, str "    ", meat]
+        meds =
+          [dialogButton UseMedsButton "use meds" | haveMeds]
+        supportRow = meat : meds
+
+        spacer = str "  "
+        rowOf = foldr1 (\a b -> a <+> spacer <+> b)
+    in vBox [ rowOf attackRow
+            , str " "
+            , rowOf supportRow
+            ]
   CombatVictory ->
     dialogButton ClaimRewardsButton "take loot"
   CombatDefeat ->

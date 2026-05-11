@@ -279,6 +279,18 @@ buyCost = \case
   Scale -> [(Fur, 100)]
   Teeth -> [(Fur, 200)]
   Compass -> [(Fur, 300), (Scale, 15), (Teeth, 5), (Compass, 0)]
+  -- Iron tier
+  Iron -> [(Fur, 150), (Scale, 10)]
+  -- Coal + medicine tier
+  Coal -> [(Fur, 100), (Teeth, 10)]
+  Medicine -> [(Fur, 50), (Scale, 20)]
+  -- Modern weapons tier
+  Bullets -> [(Scale, 1), (Teeth, 1)]
+  Bolas -> [(Fur, 50), (Teeth, 10)]
+  AlienAlloy -> [(Fur, 1500), (Scale, 50), (Teeth, 25)]
+  EnergyCell -> [(Scale, 10), (Teeth, 10), (AlienAlloy, 1)]
+  Grenades -> [(Scale, 100), (Teeth, 50)]
+  Bayonet -> [(Fur, 500), (Scale, 25), (Teeth, 10)]
   _ -> []
 
 buy :: Item -> DarkRoom

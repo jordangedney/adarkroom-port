@@ -142,9 +142,32 @@ villagersWindow width game =
         | otherwise = []
       tanneryRows = [ mkSimpleRow "tanner" Tanner | getItem Tannery game > 0 ]
       smokehouseRows = [ mkSimpleRow "charcutier" Charcutier | getItem Smokehouse game > 0 ]
+      -- Iron-tier and coal-tier villager roles. Discovering the raw ore (in
+      -- the wilds, via a place or buying it) opens the assignable slot.
+      ironMinerRows
+        | playerHasSeen Iron game = [ mkAssignableRow "iron miner" IronMiner ]
+        | otherwise = []
+      coalMinerRows
+        | playerHasSeen Coal game = [ mkAssignableRow "coal miner" CoalMiner ]
+        | otherwise = []
+      sulphurMinerRows
+        | playerHasSeen Sulphur game = [ mkAssignableRow "sulphur miner" SulphurMiner ]
+        | otherwise = []
+      steelworkerRows
+        | getItem Steelworks game > 0 = [ mkAssignableRow "steelworker" Steelworker ]
+        | otherwise = []
+      armourerRows
+        | getItem Armory game > 0 = [ mkAssignableRow "armourer" Armourer ]
+        | otherwise = []
+
+      assignableExtras =
+        ironMinerRows ++ coalMinerRows ++ sulphurMinerRows
+        ++ steelworkerRows ++ armourerRows
 
       allRows = gathererRow ++ lodgeRows ++ tanneryRows ++ smokehouseRows
+                ++ assignableExtras
       height = sum [ if hasLodge then 4 else 0  -- 2 lines per assignable row
+                   , 2 * length assignableExtras
                    , length gathererRow
                    , length tanneryRows
                    , length smokehouseRows
@@ -174,8 +197,28 @@ craftButtons game =
       mkCraftButton item =
         actionButton game (CraftButton item) (itemToStr item)
 
-      craftItems  = [Torch, Waterskin, Rucksack, LeatherArmor, BoneSpear]
-      weaponItems = [IronSword, SteelSword, Rifle]
+      seen i = playerHasSeen i game
+
+      -- Workshop crafts gated by discovery: base items are always available
+      -- once the workshop is up, iron-tier items appear after iron is
+      -- discovered, steel-tier items after steel is smelted.
+      craftItems = concat
+        [ [ Torch, Waterskin, Rucksack, LeatherArmor ]
+        , [ Cask        | seen Iron ]
+        , [ Wagon       | seen Iron ]
+        , [ WaterTank   | seen Steel ]
+        , [ Convoy      | seen Steel ]
+        , [ IronArmor   | seen Iron ]
+        , [ SteelArmor  | seen Steel ]
+        ]
+      -- Weapons cascade: bone spear baseline, then iron/steel swords, then
+      -- modern weapons once their reagents have been found.
+      weaponItems = concat
+        [ [ BoneSpear ]
+        , [ IronSword  | seen Iron ]
+        , [ SteelSword | seen Steel ]
+        , [ Rifle      | seen Rifle || seen Bullets ]
+        ]
 
       craftSection =
         padTop (Pad 1) (str "craft:")
@@ -193,11 +236,24 @@ craftButtons game =
 buyButtons :: Game -> Widget Name
 buyButtons game =
   let buyMenuUnlocked = view (milestones . buyUnlocked) game
+      seen i = playerHasSeen i game
 
-      -- scales unlock once you've seen them
-      buyables =
-        [ Scale | playerHasSeen Scale game ] ++
-        [ Teeth, Compass ]
+      -- Each entry stays hidden until the player has actually held the item
+      -- once — discovery comes from places/events, the trading post just
+      -- restocks afterward.
+      buyables = concat
+        [ [ Scale | seen Scale ]
+        , [ Teeth, Compass ]
+        , [ Iron       | seen Iron ]
+        , [ Coal       | seen Coal ]
+        , [ Medicine   | seen Medicine ]
+        , [ Bullets    | seen Bullets ]
+        , [ Bolas      | seen Bolas ]
+        , [ AlienAlloy | seen AlienAlloy ]
+        , [ EnergyCell | seen EnergyCell ]
+        , [ Grenades   | seen Grenades ]
+        , [ Bayonet    | seen Bayonet ]
+        ]
 
       mkButton i
         | i == Compass && getItem Compass game > 0 =
@@ -356,8 +412,16 @@ drawPathMap game =
       -- Manual fight trigger until map walking auto-spawns encounters;
       -- the combat machinery is already wired up, so this button just
       -- proves the loop end-to-end.
-      fightBtn = hCenter (actionButton game StartBeastFightButton "fight a beast")
-  in align (vBox [rucksackBox game, gameMap, padTop (Pad 1) fightBtn])
+      fightBtn = actionButton game StartBeastFightButton "fight a beast"
+      haveMeds = Map.findWithDefault 0 Medicine (view expeditionInventory game) > 0
+      medsBtn = if haveMeds
+                then actionButton game UseMedsButton "use meds"
+                else greyedButton "use meds"
+      scoutBtn = if Path.scoutAvailable game
+                 then actionButton game ScoutButton "scout"
+                 else greyedButton "scout"
+      pathActions = hCenter (hBox [fightBtn, str "  ", medsBtn, str "  ", scoutBtn])
+  in align (vBox [rucksackBox game, gameMap, padTop (Pad 1) pathActions])
 
 -- The rucksack box shown over the path map: current HP, free vs. total
 -- inventory space, and the list of items the player took with them.

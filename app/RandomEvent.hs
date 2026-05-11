@@ -60,6 +60,10 @@ giveReward stdGen = \case
     let amtToGive = choice stdGen (range bounds)
     giveReward stdGen (Give i amtToGive)
 
+  UnlockScoutAbility -> (milestones . scoutUnlocked) .= True
+
+  PlagueResolved -> (milestones . plagueSeen) .= True
+
 doSceneChoice :: StdGen -> Maybe StayOrGo -> DarkRoom
 doSceneChoice rnd = \case
   -- go home

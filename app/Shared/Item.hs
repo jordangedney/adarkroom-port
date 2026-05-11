@@ -26,6 +26,9 @@ data Item
   | Iron
   | Steel
   | Sulphur
+  | Medicine
+  | AlienAlloy
+  | EnergyCell
   -- Craftables:
   | Trap
   | Cart
@@ -52,6 +55,9 @@ data Item
   | SteelSword
   | Rifle
   | Bullets
+  | Bolas
+  | Grenades
+  | Bayonet
   -- blatant objectification:
   | People
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON, ToJSONKey, FromJSONKey, Enum, Bounded)
@@ -71,8 +77,9 @@ craftableItems = [Trap, Cart, Hut, Lodge, TradingPost, Tannery, Smokehouse,
   SteelSword, Rifle]
 
 weapons :: [Item]
-weapons = [BoneSpear, IronSword, SteelSword, Rifle]
+weapons = [BoneSpear, IronSword, SteelSword, Rifle, Bayonet]
 
 goods :: [Item]
 goods  = [Fur, Cloth, Charm, Scale, Teeth, Bait, Compass, Wood, Meat, Coal,
-          Leather, Iron, Steel, Sulphur, Torch]
+          Leather, Iron, Steel, Sulphur, Torch, Medicine, Bullets, Bolas,
+          AlienAlloy, EnergyCell, Grenades]

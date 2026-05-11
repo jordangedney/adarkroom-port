@@ -25,6 +25,10 @@ data Reward
   | EquivalentExchange Item Int Item Int
   -- Gives a random amount of the item in the range
   | GiveRange Item (Int, Int)
+  -- Hire the wandering scout: enables the scout button on the path.
+  | UnlockScoutAbility
+  -- Mark the plague event resolved so it doesn't re-arrive.
+  | PlagueResolved
   -- Combine multiple reward types
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 

@@ -139,6 +139,12 @@ handleButtonEvent stdGen = \case
   DecreaseSupplyButton i -> Path.decreaseSupply i
 
   AttackButton          -> Combat.attackBeast stdGen
+  ShootButton           -> Combat.shootBeast stdGen
+  TangleButton          -> Combat.tangleBeast stdGen
+  LobButton             -> Combat.lobAtBeast stdGen
+  BayonetButton         -> Combat.bayonetBeast stdGen
+  UseMedsButton         -> Combat.useMeds
+  ScoutButton           -> Path.scout
   ClaimRewardsButton    -> do
     Combat.claimRewards stdGen
     Path.advanceAfterCombat

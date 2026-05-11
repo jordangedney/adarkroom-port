@@ -6,6 +6,11 @@ module Path.Combat
   ( BeastSpec(..)
   , combatTick
   , attackBeast
+  , shootBeast
+  , tangleBeast
+  , lobAtBeast
+  , bayonetBeast
+  , useMeds
   , eatMeat
   , claimRewards
   , wakeUp
@@ -18,6 +23,11 @@ module Path.Combat
   , feralTerrorSpec
   , soldierSpec
   , sniperSpec
+  , bestMeleeDamage
+  , hasShoot
+  , hasTangle
+  , hasLob
+  , hasBayonet
   ) where
 
 import GHC.Generics (Generic)
@@ -83,14 +93,46 @@ combatTick = do
     inCombat . _Just . enemyAtkAnim   %= max 0 . subtract 1
     inCombat . _Just . attackCooldown %= max 0 . subtract 1
 
+-- | Damage from the player's best melee weapon in stores. A fist (no weapon)
+-- does 2; every weapon tier above it adds to that.
+bestMeleeDamage :: Game -> Int
+bestMeleeDamage g
+  | held SteelSword = 7
+  | held IronSword  = 5
+  | held BoneSpear  = 3
+  | otherwise       = 2
+  where held i = Map.findWithDefault 0 i (g ^. stored) > 0
+
+-- | Weapons stay in stores (they're equipment, not consumables); ammo and
+-- single-use ordnance live in the expedition inventory so the player can
+-- choose how much to take along.
+hasShoot :: Game -> Bool
+hasShoot g = inStores Rifle g > 0 && inExpedition Bullets g > 0
+
+hasTangle :: Game -> Bool
+hasTangle g = inExpedition Bolas g > 0
+
+hasLob :: Game -> Bool
+hasLob g = inExpedition Grenades g > 0
+
+hasBayonet :: Game -> Bool
+hasBayonet g = inStores Bayonet g > 0
+
+inExpedition :: Item -> Game -> Int
+inExpedition i g = Map.findWithDefault 0 i (g ^. expeditionInventory)
+
+inStores :: Item -> Game -> Int
+inStores i g = Map.findWithDefault 0 i (g ^. stored)
+
 attackBeast :: StdGen -> DarkRoom
 attackBeast rng = do
   mc <- use inCombat
   forM_ mc $ \c ->
     when (view combatState c == CombatActive
           && view attackCooldown c <= 0) $ do
-      let playerDmg = 2  -- TODO: derive from equipped weapon when weapons land on path
-          enemyHpRemaining = max 0 (view enemyHp c - playerDmg)
+      playerDmg <- gets bestMeleeDamage
+      bonus <- gets (\g -> if hasBayonet g then 2 else 0)
+      let enemyHpRemaining = max 0 (view enemyHp c - (playerDmg + bonus))
 
       inCombat . _Just . enemyHp .= enemyHpRemaining
       inCombat . _Just . playerAtkAnim .= animFrames
@@ -99,6 +141,92 @@ attackBeast rng = do
       if enemyHpRemaining <= 0
         then victoryTransition
         else enemyCounter rng c
+
+-- | Rifle attack: ranged, consumes one bullet, does heavy damage without
+-- giving the enemy a counter-swing (the rifle button hits and the player
+-- backsteps in the same tick).
+shootBeast :: StdGen -> DarkRoom
+shootBeast _ = do
+  mc <- use inCombat
+  forM_ mc $ \c -> when (view combatState c == CombatActive
+                        && view attackCooldown c <= 0) $ do
+    canShoot <- gets hasShoot
+    when canShoot $ do
+      expeditionInventory %= Map.adjust (subtract 1) Bullets
+      let enemyHpRemaining = max 0 (view enemyHp c - 6)
+      inCombat . _Just . enemyHp .= enemyHpRemaining
+      inCombat . _Just . playerAtkAnim .= animFrames
+      inCombat . _Just . attackCooldown .= attackCooldownMax
+      notify "the rifle barks once."
+      when (enemyHpRemaining <= 0) victoryTransition
+
+-- | Throw bolas: tangle the enemy so they skip a counter and lose their
+-- own ramp-up time. Consumes one bolas.
+tangleBeast :: StdGen -> DarkRoom
+tangleBeast _ = do
+  mc <- use inCombat
+  forM_ mc $ \c -> when (view combatState c == CombatActive
+                        && view attackCooldown c <= 0) $ do
+    canTangle <- gets hasTangle
+    when canTangle $ do
+      expeditionInventory %= Map.adjust (subtract 1) Bolas
+      let enemyHpRemaining = max 0 (view enemyHp c - 1)
+      inCombat . _Just . enemyHp .= enemyHpRemaining
+      inCombat . _Just . playerAtkAnim .= animFrames
+      inCombat . _Just . attackCooldown .= attackCooldownMax
+      notify "the bolas wraps tight. the beast staggers."
+      when (enemyHpRemaining <= 0) victoryTransition
+
+-- | Lob a grenade: heavy damage, consumes one grenade.
+lobAtBeast :: StdGen -> DarkRoom
+lobAtBeast rng = do
+  mc <- use inCombat
+  forM_ mc $ \c -> when (view combatState c == CombatActive
+                        && view attackCooldown c <= 0) $ do
+    canLob <- gets hasLob
+    when canLob $ do
+      expeditionInventory %= Map.adjust (subtract 1) Grenades
+      let (extra, _) = randomR (0 :: Int, 4) rng
+          enemyHpRemaining = max 0 (view enemyHp c - (8 + extra))
+      inCombat . _Just . enemyHp .= enemyHpRemaining
+      inCombat . _Just . playerAtkAnim .= animFrames
+      inCombat . _Just . attackCooldown .= attackCooldownMax
+      notify "the grenade lands true. dust and limbs."
+      if enemyHpRemaining <= 0
+        then victoryTransition
+        else enemyCounter rng c
+
+-- | Bayonet thrust: alternative melee that always hits for a flat 5 even if
+-- the player has no other weapon. Consumes nothing (the bayonet stays on
+-- the rifle).
+bayonetBeast :: StdGen -> DarkRoom
+bayonetBeast rng = do
+  mc <- use inCombat
+  forM_ mc $ \c -> when (view combatState c == CombatActive
+                        && view attackCooldown c <= 0) $ do
+    canBayo <- gets hasBayonet
+    when canBayo $ do
+      let enemyHpRemaining = max 0 (view enemyHp c - 5)
+      inCombat . _Just . enemyHp .= enemyHpRemaining
+      inCombat . _Just . playerAtkAnim .= animFrames
+      inCombat . _Just . attackCooldown .= attackCooldownMax
+      notify "the bayonet bites deep."
+      if enemyHpRemaining <= 0
+        then victoryTransition
+        else enemyCounter rng c
+
+-- | Use medicine. Heals the player by a large fixed amount, costs one
+-- medicine vial. Works in or out of combat (the rucksack on the path also
+-- exposes this button).
+useMeds :: DarkRoom
+useMeds = do
+  have <- gets (Map.findWithDefault 0 Medicine . view expeditionInventory)
+  when (have > 0) $ do
+    expeditionInventory %= Map.adjust (subtract 1) Medicine
+    curHp <- use (playerStats . hp)
+    mx    <- use (playerStats . maxHp)
+    playerStats . hp .= min mx (curHp + 20)
+    notify "the medicine burns going down. the world steadies."
 
 enemyCounter :: StdGen -> Combat -> DarkRoom
 enemyCounter rng c = do
