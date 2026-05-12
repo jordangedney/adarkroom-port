@@ -132,11 +132,11 @@ embark :: DarkRoom
 embark = do
   bo  <- use blackoutCooldown
   alreadyEmbarked <- use embarked
-  unless (alreadyEmbarked || bo > 0) $ do
+  cap <- use (playerStats . waterCapacity)
+  unless (alreadyEmbarked || bo > 0 || cap <= 0) $ do
     inv <- use expeditionInventory
     forM_ (Map.toList inv) $ \(i, n) ->
       when (n > 0) $ overStored i (subtract n)
-    cap <- use (playerStats . waterCapacity)
     pathWater .= cap
     movesUntilWater .= pathStepsPerWater
     movesUntilFood  .= pathStepsPerFood

@@ -499,13 +499,16 @@ drawPathSupplies game =
         is -> vBox (map (supplyRow game) is)
 
       embarkBtn
-        | bo > 0    = greyedButton "embark"
-        | otherwise = actionButton game EmbarkButton "embark"
+        | bo > 0         = greyedButton "embark"
+        | waterVal <= 0  = greyedButton "embark"
+        | otherwise      = actionButton game EmbarkButton "embark"
 
-      recovery = if bo > 0
-        then padTop (Pad 1)
+      recovery
+        | bo > 0 = padTop (Pad 1)
               (hCenter (str ("recovering... " <> show ((bo + 9) `div` 10) <> "s")))
-        else blank
+        | waterVal <= 0 = padTop (Pad 1)
+              (hCenter (str "need a waterskin to carry water"))
+        | otherwise = blank
 
       content = vBox
         [ padBottom (Pad 1) (statsLine "armor" armorVal)
